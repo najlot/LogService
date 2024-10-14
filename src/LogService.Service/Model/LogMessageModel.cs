@@ -10,6 +10,7 @@ namespace LogService.Service.Model
 	{
 		[BsonId]
 		public Guid Id { get; set; }
+		public Guid CreatedBy { get; set; }
 		public DateTime DateTime { get; set; }
 		public LogLevel LogLevel { get; set; }
 		public string Category { get; set; }

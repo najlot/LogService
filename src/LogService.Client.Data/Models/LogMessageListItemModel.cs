@@ -10,5 +10,6 @@ namespace LogService.Client.Data.Models
 
 		public DateTime DateTime { get; set; }
 		public LogLevel LogLevel { get; set; }
+		public string Message { get; set; } = string.Empty;
 	}
 }

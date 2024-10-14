@@ -1,6 +1,8 @@
 @page "/"
 @using LogService.Blazor.Services
+@using LogService.Client.Data.Identity
 @using LogService.Client.Localisation
+@inject ITokenProvider TokenProvider
 
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
@@ -10,9 +12,52 @@
 	<div>
 	<AuthorizeView>
 		<Authorized>
-				<div class="form-outline mb-4">
+				<div class="form-outline">
 					<h1>@CommonLoc.Welcome, @name!</h1>
 				</div>
+
+				<br/>
+				<br/>
+				<br/>
+
+				@if (string.IsNullOrEmpty(token))
+				{
+					<label>
+						Source
+						<InputText @bind-Value="source" class="form-control col-4" />
+					</label>
+					<br />
+					<br />
+					<label>
+						Valid Until
+						<InputDate @bind-Value="validUntil" class="form-control col-4" />
+					</label>
+					<br />
+					<br />
+					<button @onclick="SetServiceToken" class="btn btn-primary" >
+						Get Service Token
+					</button>
+				}
+				else
+				{
+					<div class="row form-outline mb-2">
+						<div>
+							<label class="form-label" for="ContentInput">Token</label>
+						</div>
+
+						<div>
+							<script>
+								function auto_grow(element) {
+									element.style.height = "5px";
+									element.style.height = (element.scrollHeight) + "px";
+								}
+							</script>
+
+							<InputTextArea class="form-control col-4" id="ContentInput" type="text" @bind-Value="token" style="resize: none; overflow: hidden;" onfocus="auto_grow(this)" oninput="auto_grow(this)" />
+						</div>
+					</div>
+				}
+
 		</Authorized>
 		<NotAuthorized>
 				<div class="form-outline mb-4">
@@ -35,6 +80,14 @@
 	protected IErrorService? ErrorService { get; set; }
 
 	private string? name;
+	private string? token;
+	private string source = "";
+	private DateTime validUntil = DateTime.Now.AddYears(1);
+
+	protected async Task SetServiceToken()
+	{
+		token = await TokenProvider.GetServiceToken(source, validUntil);
+	}
 
 	protected override async Task OnInitializedAsync()
 	{

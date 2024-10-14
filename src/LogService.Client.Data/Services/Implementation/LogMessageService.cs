@@ -31,11 +31,6 @@ namespace LogService.Client.Data.Services.Implementation
 			};
 		}
 
-		public async Task<bool> AddItemAsync(LogMessageModel item)
-		{
-			return await _store.AddItemAsync(item);
-		}
-
 		public async Task<bool> DeleteItemAsync(Guid id)
 		{
 			return await _store.DeleteItemAsync(id);
@@ -54,11 +49,6 @@ namespace LogService.Client.Data.Services.Implementation
 		public async Task<IEnumerable<LogMessageListItemModel>> GetItemsAsync(LogMessageFilter filter)
 		{
 			return await _store.GetItemsAsync(filter);
-		}
-
-		public async Task<bool> UpdateItemAsync(LogMessageModel item)
-		{
-			return await _store.UpdateItemAsync(item);
 		}
 
 		private bool _disposedValue = false; // To detect redundant calls

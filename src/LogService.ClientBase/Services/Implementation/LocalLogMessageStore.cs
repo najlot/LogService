@@ -144,6 +144,7 @@ namespace LogService.ClientBase.Services.Implementation
 				Id = e.Id,
 				DateTime = e.DateTime,
 				LogLevel = e.LogLevel,
+				Message = e.Message,
 			}));
 		}
 

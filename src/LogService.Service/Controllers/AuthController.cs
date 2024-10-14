@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using LogService.Contracts;
 using LogService.Contracts.Commands;
@@ -36,6 +35,22 @@ namespace LogService.Service.Controllers
 			var userId = User.GetUserId();
 			var userName = User.Identity.Name;
 			var token = _tokenService.GetRefreshToken(userName, userId);
+
+			return Ok(token);
+		}
+
+		[Authorize]
+		[HttpGet("ServiceToken")]
+		public ActionResult<string> GetServiceToken([FromQuery]string source, [FromQuery]DateTime validUntil)
+		{
+			if (!ModelState.IsValid)
+			{
+				return BadRequest();
+			}
+
+			var userId = User.GetUserId();
+			var userName = User.Identity.Name;
+			var token = _tokenService.GetServiceToken(userName, userId, source ?? "", validUntil);
 
 			return Ok(token);
 		}

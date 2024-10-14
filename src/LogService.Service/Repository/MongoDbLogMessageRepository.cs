@@ -19,9 +19,9 @@ namespace LogService.Service.Repository
 			_collection = _context.Database.GetCollection<LogMessageModel>(nameof(LogMessageModel)[0..^5]);
 		}
 
-		public async IAsyncEnumerable<LogMessageModel> GetAll()
+		public async IAsyncEnumerable<LogMessageModel> GetAll(Guid userId)
 		{
-			var items = await _collection.FindAsync(FilterDefinition<LogMessageModel>.Empty).ConfigureAwait(false);
+			var items = await _collection.FindAsync(m => m.CreatedBy == userId).ConfigureAwait(false);
 
 			while (await items.MoveNextAsync().ConfigureAwait(false))
 			{
@@ -36,6 +36,14 @@ namespace LogService.Service.Repository
 		{
 			var result = await _collection.FindAsync(item => item.Id == id).ConfigureAwait(false);
 			return await result.FirstOrDefaultAsync().ConfigureAwait(false);
+		}
+
+		public async Task Insert(LogMessageModel[] models)
+		{
+			foreach (var model in models)
+			{
+				await _collection.InsertOneAsync(model).ConfigureAwait(false);
+			}
 		}
 
 		public async Task Insert(LogMessageModel model)

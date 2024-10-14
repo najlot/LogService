@@ -5,6 +5,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Authentication;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace LogService.Client.Data.Identity
 {
@@ -18,6 +19,27 @@ namespace LogService.Client.Data.Identity
 		{
 			_client = client;
 			_userDataStore = userDataStore;
+		}
+
+		public async Task<string> GetServiceToken(string source, DateTime validUntil)
+		{
+			var token = await GetToken();
+			var headers = new Dictionary<string, string>
+			{
+				{ "Authorization", $"Bearer {token}" }
+			};
+
+			var encodedSource = HttpUtility.UrlEncode(source);
+			var encodedValidUntil = HttpUtility.UrlEncode(validUntil.ToString("o"));
+			var query = $"?source={encodedSource}&validUntil={encodedValidUntil}";
+			var response = await _client.GetAsync("api/Auth/ServiceToken" + query, headers);
+
+			if (response.StatusCode >= 200 && response.StatusCode < 300)
+			{
+				return Encoding.UTF8.GetString(response.Body.ToArray());
+			}
+
+			return string.Empty;
 		}
 
 		public async Task<string> GetToken()

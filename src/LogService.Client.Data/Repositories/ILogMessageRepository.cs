@@ -8,10 +8,6 @@ namespace LogService.Client.Data.Repositories
 {
 	public interface ILogMessageRepository : IDisposable
 	{
-		Task<bool> AddItemAsync(LogMessageModel item);
-
-		Task<bool> UpdateItemAsync(LogMessageModel item);
-
 		Task<bool> DeleteItemAsync(Guid id);
 
 		Task<LogMessageModel> GetItemAsync(Guid id);

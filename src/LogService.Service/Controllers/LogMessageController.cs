@@ -55,19 +55,12 @@ namespace LogService.Service.Controllers
 			return Ok(item);
 		}
 
-		[HttpPost]
-		public async Task<ActionResult> Create([FromBody] CreateLogMessage command)
-		{
-			var userId = User.GetUserId();
-			await _logMessageService.CreateLogMessage(command, userId).ConfigureAwait(false);
-			return Ok();
-		}
-
 		[HttpPut]
-		public async Task<ActionResult> Update([FromBody] UpdateLogMessage command)
+		public async Task<ActionResult> Create([FromBody] CreateLogMessage[] commands)
 		{
 			var userId = User.GetUserId();
-			await _logMessageService.UpdateLogMessage(command, userId).ConfigureAwait(false);
+			var source = User.Claims.FirstOrDefault(c => c.Type == "Source")?.Value ?? "";
+			await _logMessageService.CreateLogMessages(commands, source, userId).ConfigureAwait(false);
 			return Ok();
 		}
 

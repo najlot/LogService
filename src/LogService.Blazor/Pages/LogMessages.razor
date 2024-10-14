@@ -29,7 +29,8 @@ else
 			<tr>
 				<th>@LogMessageLoc.DateTime</th>
 				<th>@LogMessageLoc.LogLevel</th>
-				<th><a href="/LogMessage/@Guid.Empty" class="btn btn-success w-100">@CommonLoc.New</a></th>
+				<th>@LogMessageLoc.Message</th>
+				<th></th>
 			</tr>
 		</thead>
 		<tbody>
@@ -38,6 +39,7 @@ else
 				<tr scope="row">
 					<td class="text-break">@logMessage.DateTime</td>
 					<td class="text-break">@logMessage.LogLevel</td>
+					<td class="text-break">@logMessage.Message</td>
 					<td><a href="/LogMessage/@logMessage.Id" class="btn btn-primary w-100">@CommonLoc.Edit</a></td>
 				</tr>
 			}
@@ -79,8 +81,6 @@ else
 			Subscriber = await SubscriberProvider.GetSubscriber();
 
 			Subscriber.Register<LogMessageCreated>(Handle);
-			Subscriber.Register<LogMessageUpdated>(Handle);
-			Subscriber.Register<LogMessageDeleted>(Handle);
 
 			await Subscriber.StartAsync();
 		}
@@ -107,47 +107,11 @@ else
 		{
 			Id = message.Id,
 			DateTime = message.DateTime,
-			LogLevel = message.LogLevel
+			LogLevel = message.LogLevel,
+			Message = message.Message
 		};
 
 		logMessages.Insert(0, item);
-
-		await InvokeAsync(StateHasChanged);
-	}
-
-	private async Task Handle(LogMessageUpdated message)
-	{
-		if (logMessages is null)
-		{
-			return;
-		}
-
-		var entry = logMessages.FirstOrDefault(t => t.Id == message.Id);
-
-		if (entry is not null)
-		{
-			entry.DateTime = message.DateTime;
-			entry.LogLevel = message.LogLevel;
-		}
-
-		await InvokeAsync(StateHasChanged);
-	}
-
-	private async Task Handle(LogMessageDeleted message)
-	{
-		if (logMessages is null)
-		{
-			return;
-		}
-
-		var entry = logMessages.FirstOrDefault(t => t.Id == message.Id);
-
-		if (entry is null)
-		{
-			return;
-		}
-
-		logMessages.Remove(entry);
 
 		await InvokeAsync(StateHasChanged);
 	}

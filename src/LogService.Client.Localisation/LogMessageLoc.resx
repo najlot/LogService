@@ -159,4 +159,7 @@
   <data name="LogMessages" xml:space="preserve">
     <value>LogMessages</value>
   </data>
+  <data name="LogMessage" xml:space="preserve">
+    <value>Log Message</value>
+  </data>
 </root>

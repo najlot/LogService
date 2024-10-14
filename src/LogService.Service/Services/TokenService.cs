@@ -59,10 +59,34 @@ namespace LogService.Service.Services
 			var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature);
 
 			var jwtToken = new JwtSecurityToken(
-				issuer: "LogService.Service",
-				audience: "LogService.Service",
+				issuer: "Log.Service",
+				audience: "Log.Service",
 				claims: claim,
 				expires: DateTime.UtcNow.AddMinutes(7),
+				signingCredentials: credentials
+			);
+
+			var token = new JwtSecurityTokenHandler().WriteToken(jwtToken);
+			return token;
+		}
+
+		public string GetServiceToken(string username, Guid userId, string source, DateTime validUntil)
+		{
+			var claim = new[]
+			{
+				new Claim(ClaimTypes.Name, username),
+				new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+				new Claim("Source", source)
+			};
+
+			var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_serviceConfiguration.Secret));
+			var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature);
+
+			var jwtToken = new JwtSecurityToken(
+				issuer: "Log.Service",
+				audience: "Log.Service",
+				claims: claim,
+				expires: validUntil,
 				signingCredentials: credentials
 			);
 
@@ -97,8 +121,8 @@ namespace LogService.Service.Services
 			var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature);
 
 			var jwtToken = new JwtSecurityToken(
-				issuer: "Najlot.Service",
-				audience: "Najlot.Service",
+				issuer: "Log.Service",
+				audience: "Log.Service",
 				claims: claim,
 				expires: DateTime.UtcNow.AddDays(7),
 				signingCredentials: credentials

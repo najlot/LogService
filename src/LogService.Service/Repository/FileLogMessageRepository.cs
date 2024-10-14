@@ -20,14 +20,18 @@ namespace LogService.Service.Repository
 			Directory.CreateDirectory(_storagePath);
 		}
 
-		public async IAsyncEnumerable<LogMessageModel> GetAll()
+		public async IAsyncEnumerable<LogMessageModel> GetAll(Guid userId)
 		{
 			foreach (var path in Directory.GetFiles(_storagePath))
 			{
 				var bytes = await File.ReadAllBytesAsync(path).ConfigureAwait(false);
 				var text = Encoding.UTF8.GetString(bytes);
 				var item = JsonSerializer.Deserialize<LogMessageModel>(text, _options);
-				yield return item;
+
+				if (item.CreatedBy == userId)
+				{
+					yield return item;
+				}
 			}
 		}
 
@@ -46,12 +50,15 @@ namespace LogService.Service.Repository
 			return item;
 		}
 
-		public async Task Insert(LogMessageModel model)
+		public async Task Insert(LogMessageModel[] models)
 		{
-			await Update(model).ConfigureAwait(false);
+			foreach (var model in models)
+			{
+				await Insert(model).ConfigureAwait(false);
+			}
 		}
 
-		public async Task Update(LogMessageModel model)
+		public async Task Insert(LogMessageModel model)
 		{
 			var path = Path.Combine(_storagePath, model.Id.ToString());
 			var bytes = JsonSerializer.SerializeToUtf8Bytes(model);

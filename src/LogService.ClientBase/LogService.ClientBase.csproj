@@ -15,7 +15,6 @@
 	<ItemGroup>
 		<ProjectReference Include="..\LogService.Client.Data\LogService.Client.Data.csproj" />
 		<ProjectReference Include="..\LogService.Client.Localisation\LogService.Client.Localisation.csproj" />
-		<ProjectReference Include="..\LogService.Client.MVVM\LogService.Client.MVVM.csproj" />
 	</ItemGroup>
 
 </Project>
