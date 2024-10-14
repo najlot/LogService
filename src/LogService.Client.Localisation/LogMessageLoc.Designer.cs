@@ -160,16 +160,7 @@ namespace LogService.Client.Localisation {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to RawArguments.
-        /// </summary>
-        public static string RawArguments {
-            get {
-                return ResourceManager.GetString("RawArguments", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to RawMessage.
+        ///   Looks up a localized string similar to RawMessage:.
         /// </summary>
         public static string RawMessage {
             get {

@@ -17,7 +17,6 @@ namespace LogService.Client.Data.Models
 		public string Message { get; set; } = string.Empty;
 		public string Exception { get; set; } = string.Empty;
 		public bool ExceptionIsValid { get; set; }
-		public List<string> RawArguments { get; set; }
 		public List<LogArgumentModel> Arguments { get; set; } = new();
 	}
 }

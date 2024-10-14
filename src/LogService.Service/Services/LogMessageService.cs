@@ -45,7 +45,6 @@ namespace LogService.Service.Services
 					Message = command.Message ?? "",
 					Exception = command.Exception ?? "",
 					ExceptionIsValid = command.ExceptionIsValid,
-					RawArguments = new List<string>(),
 					Arguments = command.Arguments.Select(a => new LogArgument()
 					{
 						Id = i++,
@@ -70,7 +69,6 @@ namespace LogService.Service.Services
 					item.Message,
 					item.Exception,
 					item.ExceptionIsValid,
-					item.RawArguments,
 					item.Arguments)).ConfigureAwait(false);
 			}
 		}
@@ -101,7 +99,6 @@ namespace LogService.Service.Services
 				Message = item.Message,
 				Exception = item.Exception,
 				ExceptionIsValid = item.ExceptionIsValid,
-				RawArguments = item.RawArguments,
 				Arguments = item.Arguments,
 			};
 		}
@@ -130,8 +127,6 @@ namespace LogService.Service.Services
 				enumerable = enumerable.Where(e => e.Exception.Contains(filter.Exception, StringComparison.OrdinalIgnoreCase));
 			if (filter.ExceptionIsValid != null)
 				enumerable = enumerable.Where(e => e.ExceptionIsValid == filter.ExceptionIsValid);
-			if (filter.RawArguments != null)
-				enumerable = enumerable.Where(e => e.RawArguments == filter.RawArguments);
 
 			enumerable = enumerable.OrderByDescending(e => e.DateTime);
 

@@ -78,10 +78,6 @@
 					<Label Content="" MinWidth="75" />
 					<CheckBox IsChecked="{Binding Item.ExceptionIsValid}" Content="{x:Static loc:LogMessageLoc.ExceptionIsValid}" />
 				</DockPanel>
-				<DockPanel Margin="5">
-					<Label Content="{x:Static loc:LogMessageLoc.RawArguments}" MinWidth="75" />
-					<TextBox Text="{Binding Item.RawArguments}" />
-				</DockPanel>
 				<DockPanel>
 					<DockPanel DockPanel.Dock="Top">
 						<Button ToolTip="{x:Static loc:CommonLoc.New}" Command="{Binding AddLogArgumentCommand}" Margin="5" DockPanel.Dock="Right">

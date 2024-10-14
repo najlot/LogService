@@ -15,7 +15,6 @@ namespace LogService.Contracts
 		public string Message { get; set; } = string.Empty;
 		public string Exception { get; set; } = string.Empty;
 		public bool ExceptionIsValid { get; set; }
-		public List<string> RawArguments { get; set; }
 		public List<LogArgument> Arguments { get; set; } = new();
 	}
 }

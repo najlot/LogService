@@ -65,7 +65,6 @@ namespace LogService.ClientBase.Services.Implementation
 				item.Message,
 				item.Exception,
 				item.ExceptionIsValid,
-				item.RawArguments,
 				item.Arguments.Select(e => logArgumentMapper.Map(e, new LogArgument())).ToList()));
 
 			return await Task.FromResult(true);
@@ -112,7 +111,6 @@ namespace LogService.ClientBase.Services.Implementation
 				item.Message,
 				item.Exception,
 				item.ExceptionIsValid,
-				item.RawArguments,
 				item.Arguments.Select(e => logArgumentMapper.Map(e, new LogArgument())).ToList()));
 
 			return await Task.FromResult(true);
@@ -172,8 +170,6 @@ namespace LogService.ClientBase.Services.Implementation
 				enumerable = enumerable.Where(e => e.Exception.ToLower().Contains(filter.Exception.ToLower()));
 			if (filter.ExceptionIsValid != null)
 				enumerable = enumerable.Where(e => e.ExceptionIsValid == filter.ExceptionIsValid);
-			if (filter.RawArguments != null)
-				enumerable = enumerable.Where(e => e.RawArguments == filter.RawArguments);
 
 			return await Task.FromResult(enumerable.Select(e => new LogMessageListItemModel()
 			{
