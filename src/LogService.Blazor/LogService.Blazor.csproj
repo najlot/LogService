@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UserSecretsId>aspnet-LogService.Blazor-4ea02e08-91a1-464f-b410-a492610d37b0</UserSecretsId>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.10" />
+		<PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.6" />
+		<PackageReference Include="Najlot.Log.Configuration.FileSource" Version="4.0.0" />
+		<PackageReference Include="Najlot.Log.Extensions.Logging" Version="4.0.0" />
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.1.2" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\LogService.Client.Data\LogService.Client.Data.csproj" />
+		<ProjectReference Include="..\LogService.Client.Localisation\LogService.Client.Localisation.csproj" />
+	</ItemGroup>
+
+</Project>

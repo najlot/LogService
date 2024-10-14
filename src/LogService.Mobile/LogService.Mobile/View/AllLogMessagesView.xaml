@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 xmlns:converter="clr-namespace:LogService.Mobile.Converter"
+			 xmlns:loc="clr-namespace:LogService.Client.Localisation;assembly=LogService.Client.Localisation"
+			 x:Class="LogService.Mobile.View.AllLogMessagesView"
+			 x:Name="This"
+			 Title="LogMessages">
+
+	<ContentPage.Resources>
+		<ResourceDictionary>
+			<converter:StringToImageSourceConverter x:Key="StringToImageSourceConverter" />
+		</ResourceDictionary>
+	</ContentPage.Resources>
+
+	<ContentPage.ToolbarItems>
+		<ToolbarItem Command="{Binding AddLogMessageCommand}" IconImageSource="{Binding Converter={StaticResource StringToImageSourceConverter},
+			ConverterParameter='M13 7h-2v4H7v2h4v4h2v-4h4v-2h-4V7zm-1-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z'}" />
+	</ContentPage.ToolbarItems>
+
+	<ContentPage.Content>
+		<StackLayout>
+			<StackLayout Orientation="Horizontal" Padding="10,5">
+				<Label Text="Filter:" VerticalOptions="Center" />
+				<Entry Text="{Binding Filter}" HorizontalOptions="FillAndExpand" />
+			</StackLayout>
+
+			<ListView ItemsSource="{Binding LogMessagesView}"
+					VerticalOptions="FillAndExpand"
+					HasUnevenRows="true"
+					RefreshCommand="{Binding RefreshLogMessagesCommand}"
+					IsPullToRefreshEnabled="true"
+					IsRefreshing="{Binding IsBusy}"
+					CachingStrategy="RecycleElement">
+				<ListView.ItemTemplate>
+					<DataTemplate>
+						<ViewCell>
+							<StackLayout Padding="10">
+								<StackLayout.GestureRecognizers>
+									<TapGestureRecognizer
+										Command="{Binding BindingContext.EditLogMessageCommand, Source={x:Reference This}}"
+										CommandParameter="{Binding .}" />
+								</StackLayout.GestureRecognizers>
+								<Label Text="{Binding DateTime}" />
+								<Label Text="{Binding LogLevel}" />
+							</StackLayout>
+						</ViewCell>
+					</DataTemplate>
+				</ListView.ItemTemplate>
+			</ListView>
+		</StackLayout>
+	</ContentPage.Content>
+</ContentPage>

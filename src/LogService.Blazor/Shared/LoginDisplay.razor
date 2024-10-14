@@ -1,0 +1,23 @@
+@using LogService.Blazor.Identity;
+@using LogService.Client.Localisation;
+@inject IAuthenticationService AuthenticationService
+@inject NavigationManager NavigationManager
+
+<AuthorizeView>
+	<Authorized>
+		<a href="Manage">@CommonLoc.Hello, @context.User.Identity?.Name!</a>
+		<button class="nav-link btn btn-link" @onclick="Logout">@CommonLoc.Logout</button>
+	</Authorized>
+	<NotAuthorized>
+		<a href="Register">@CommonLoc.Register</a>
+		<a href="Login">@CommonLoc.Login</a>
+	</NotAuthorized>
+</AuthorizeView>
+
+@code {
+	private async Task Logout()
+	{
+		await AuthenticationService.LogoutAsync();
+		NavigationManager.NavigateTo("/");
+	}
+}

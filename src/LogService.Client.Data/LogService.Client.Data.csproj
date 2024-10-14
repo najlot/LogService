@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<LangVersion>latest</LangVersion>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Cosei.Client.Http" Version="0.0.13" />
+		<PackageReference Include="Cosei.Client.RabbitMq" Version="0.0.13" />
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.1.2" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\LogService.Contracts\LogService.Contracts.csproj" />
+	</ItemGroup>
+
+</Project>

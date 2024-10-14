@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Cosei.Client.Http" Version="0.0.13" />
+		<PackageReference Include="Cosei.Client.RabbitMq" Version="0.0.13" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="System.Text.Json" Version="8.0.5" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\LogService.Client.Data\LogService.Client.Data.csproj" />
+		<ProjectReference Include="..\LogService.Client.Localisation\LogService.Client.Localisation.csproj" />
+		<ProjectReference Include="..\LogService.Client.MVVM\LogService.Client.MVVM.csproj" />
+	</ItemGroup>
+
+</Project>
