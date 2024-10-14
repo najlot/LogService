@@ -40,7 +40,6 @@ namespace LogService.Service.Services
 				Message = command.Message,
 				Exception = command.Exception,
 				ExceptionIsValid = command.ExceptionIsValid,
-				RawArguments = command.RawArguments,
 				Arguments = command.Arguments,
 			};
 
@@ -57,7 +56,6 @@ namespace LogService.Service.Services
 				command.Message,
 				command.Exception,
 				command.ExceptionIsValid,
-				command.RawArguments,
 				command.Arguments)).ConfigureAwait(false);
 		}
 
@@ -74,7 +72,6 @@ namespace LogService.Service.Services
 			item.Message = command.Message;
 			item.Exception = command.Exception;
 			item.ExceptionIsValid = command.ExceptionIsValid;
-			item.RawArguments = command.RawArguments;
 
 			while (item.Arguments.Count > command.Arguments.Count)
 			{
@@ -105,7 +102,6 @@ namespace LogService.Service.Services
 				command.Message,
 				command.Exception,
 				command.ExceptionIsValid,
-				command.RawArguments,
 				command.Arguments)).ConfigureAwait(false);
 		}
 
@@ -137,7 +133,6 @@ namespace LogService.Service.Services
 				Message = item.Message,
 				Exception = item.Exception,
 				ExceptionIsValid = item.ExceptionIsValid,
-				RawArguments = item.RawArguments,
 				Arguments = item.Arguments,
 			};
 		}
@@ -166,8 +161,6 @@ namespace LogService.Service.Services
 				enumerable = enumerable.Where(e => e.Exception.Contains(filter.Exception, StringComparison.OrdinalIgnoreCase));
 			if (filter.ExceptionIsValid != null)
 				enumerable = enumerable.Where(e => e.ExceptionIsValid == filter.ExceptionIsValid);
-			if (filter.RawArguments != null)
-				enumerable = enumerable.Where(e => e.RawArguments == filter.RawArguments);
 
 			await foreach (var item in enumerable.ConfigureAwait(false))
 			{

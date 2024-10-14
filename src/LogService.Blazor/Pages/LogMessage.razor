@@ -112,12 +112,6 @@ else
 					<label class="form-label" for="ExceptionIsValidInput">@LogMessageLoc.ExceptionIsValid</label>
 					<InputCheckBox id="ExceptionIsValidInput" class="form-control" @bind-Value="Model.ExceptionIsValid" />
 				</div>
-
-				<!-- RawArguments input -->
-				<div class="form-outline mb-2">
-					<label class="form-label" for="RawArgumentsInput">@LogMessageLoc.RawArguments</label>
-List<string> ???
-				</div>
 			</div>
 		</section>
 		<section>
@@ -282,7 +276,6 @@ List<string> ???
 		Model.Message = message.Message;
 		Model.Exception = message.Exception;
 		Model.ExceptionIsValid = message.ExceptionIsValid;
-		Model.RawArguments = message.RawArguments;
 		Model.Arguments = message.Arguments.Select(e => logArgumentMapper.Map(e, new LogArgumentModel())).ToList();
 
 		await InvokeAsync(StateHasChanged);

@@ -97,8 +97,8 @@ namespace LogService.Service.Services
 			var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature);
 
 			var jwtToken = new JwtSecurityToken(
-				issuer: "Najlot.Service",
-				audience: "Najlot.Service",
+				issuer: "LogService.Service",
+				audience: "LogService.Service",
 				claims: claim,
 				expires: DateTime.UtcNow.AddDays(7),
 				signingCredentials: credentials

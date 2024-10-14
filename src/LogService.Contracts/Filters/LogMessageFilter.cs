@@ -15,6 +15,5 @@ namespace LogService.Contracts.Filters
 		public string? Message { get; set; }
 		public string? Exception { get; set; }
 		public bool? ExceptionIsValid { get; set; }
-		public List<string>? RawArguments { get; set; }
 	}
 }

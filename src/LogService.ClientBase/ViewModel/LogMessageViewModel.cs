@@ -110,7 +110,6 @@ namespace LogService.ClientBase.ViewModel
 				Message = obj.Message,
 				Exception = obj.Exception,
 				ExceptionIsValid = obj.ExceptionIsValid,
-				RawArguments = obj.RawArguments,
 				Arguments = obj.Arguments.Select(e => logArgumentMapper.Map(e, new LogArgumentModel())).ToList(),
 			};
 

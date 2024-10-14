@@ -15,7 +15,6 @@ namespace LogService.Contracts.Commands
 		public string Message { get; set; }
 		public string Exception { get; set; }
 		public bool ExceptionIsValid { get; set; }
-		public List<string> RawArguments { get; set; }
 		public List<LogArgument> Arguments { get; set; }
 
 		private UpdateLogMessage() { }
@@ -31,7 +30,6 @@ namespace LogService.Contracts.Commands
 			string message,
 			string exception,
 			bool exceptionIsValid,
-			List<string> rawArguments,
 			List<LogArgument> arguments)
 		{
 			Id = id;
@@ -44,7 +42,6 @@ namespace LogService.Contracts.Commands
 			Message = message;
 			Exception = exception;
 			ExceptionIsValid = exceptionIsValid;
-			RawArguments = rawArguments;
 			Arguments = arguments;
 		}
 	}

@@ -144,9 +144,6 @@
   <data name="ExceptionIsValid" xml:space="preserve">
     <value>ExceptionIsValid</value>
   </data>
-  <data name="RawArguments" xml:space="preserve">
-    <value>RawArguments</value>
-  </data>
   <data name="Arguments" xml:space="preserve">
     <value>Arguments</value>
   </data>

@@ -98,7 +98,6 @@ namespace LogService.Client.Data.Repositories.Implementation
 				item.Message,
 				item.Exception,
 				item.ExceptionIsValid,
-				item.RawArguments,
 				item.Arguments.Select(e => logArgumentMapper.Map(e, new LogArgument())).ToList());
 
 			await _client.PostAsync($"api/LogMessage", request, headers);
@@ -133,7 +132,6 @@ namespace LogService.Client.Data.Repositories.Implementation
 				item.Message,
 				item.Exception,
 				item.ExceptionIsValid,
-				item.RawArguments,
 				item.Arguments.Select(e => logArgumentMapper.Map(e, new LogArgument())).ToList());
 
 			await _client.PutAsync($"api/LogMessage", request, headers);

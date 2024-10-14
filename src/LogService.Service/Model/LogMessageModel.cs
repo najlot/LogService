@@ -19,7 +19,6 @@ namespace LogService.Service.Model
 		public string Message { get; set; }
 		public string Exception { get; set; }
 		public bool ExceptionIsValid { get; set; }
-		public List<string> RawArguments { get; set; }
 		public List<LogArgument> Arguments { get; set; }
 	}
 }

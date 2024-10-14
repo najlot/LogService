@@ -48,8 +48,6 @@
 					<CheckBox IsChecked="{Binding Item.ExceptionIsValid}" />
 					<Label Text="{x:Static loc:LogMessageLoc.ExceptionIsValid}" LineBreakMode="NoWrap" />
 				</StackLayout>
-				<Label Text="{x:Static loc:LogMessageLoc.RawArguments}" LineBreakMode="NoWrap" />
-				<Entry Text="{Binding Item.RawArguments}" />
 				<Label Text="{x:Static loc:LogMessageLoc.Arguments}" LineBreakMode="NoWrap" />
 				<ListView ItemsSource="{Binding Arguments}"
 					VerticalOptions="FillAndExpand"
