@@ -21,7 +21,7 @@ The logged-in user can only view log messages from tokens that were created by t
 This allows services to be grouped by user.
 
 This design also supports the possibility of separating service groups by creating a new user,
-making it easier to manage logs in an environment with many different.
+making it easier to manage logs in an environment with many different service groups.
 
 # Next steps
 - Cleaning of Messages after a defined amount of time
