@@ -24,27 +24,34 @@
 }
 else
 {
-	<table class="table table-sm table-striped">
-		<thead>
-			<tr>
-				<th>@LogMessageLoc.DateTime</th>
-				<th>@LogMessageLoc.LogLevel</th>
-				<th>@LogMessageLoc.Message</th>
-				<th></th>
-			</tr>
-		</thead>
-		<tbody>
-			@foreach (var logMessage in logMessages)
-			{
-				<tr scope="row">
-					<td class="text-break">@logMessage.DateTime</td>
-					<td class="text-break">@logMessage.LogLevel</td>
-					<td class="text-break">@logMessage.Message</td>
-					<td><a href="/LogMessage/@logMessage.Id" class="btn btn-primary w-100">@CommonLoc.Edit</a></td>
-				</tr>
-			}
-		</tbody>
-	</table>
+	<div class="row border-bottom">
+		<div class="col-6 col-xl-2 fw-bold">
+			@LogMessageLoc.DateTime
+		</div>
+		<div class="col-6 col-xl-1 fw-bold">
+			@LogMessageLoc.LogLevel
+		</div>
+		<div class="col-xl-9 fw-bold">
+			@LogMessageLoc.Message
+		</div>
+	</div>
+
+	@foreach (var logMessage in logMessages)
+	{
+		<div class="row border-bottom">
+			<div class="col-6 col-xl-2">
+				@logMessage.DateTime
+			</div>
+			<div class="col-6 col-xl-1">
+				@logMessage.LogLevel
+			</div>
+			<div class="col-xl-9">
+				<a href="/LogMessage/@logMessage.Id" class="text-break">
+					@logMessage.Message
+				</a>
+			</div>
+		</div>
+	}
 }
 
 @code {

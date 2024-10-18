@@ -79,29 +79,11 @@ namespace LogService.Client.Localisation {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to CreateLogMessage.
-        /// </summary>
-        public static string CreateLogMessage {
-            get {
-                return ResourceManager.GetString("CreateLogMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to DateTime.
+        ///   Looks up a localized string similar to Date and time.
         /// </summary>
         public static string DateTime {
             get {
                 return ResourceManager.GetString("DateTime", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to EditLogMessage.
-        /// </summary>
-        public static string EditLogMessage {
-            get {
-                return ResourceManager.GetString("EditLogMessage", resourceCulture);
             }
         }
         
@@ -115,16 +97,7 @@ namespace LogService.Client.Localisation {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ExceptionIsValid.
-        /// </summary>
-        public static string ExceptionIsValid {
-            get {
-                return ResourceManager.GetString("ExceptionIsValid", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to LogLevel.
+        ///   Looks up a localized string similar to Level.
         /// </summary>
         public static string LogLevel {
             get {
@@ -133,7 +106,7 @@ namespace LogService.Client.Localisation {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Log Message.
+        ///   Looks up a localized string similar to Log message.
         /// </summary>
         public static string LogMessage {
             get {
@@ -142,7 +115,7 @@ namespace LogService.Client.Localisation {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to LogMessages.
+        ///   Looks up a localized string similar to Log messages.
         /// </summary>
         public static string LogMessages {
             get {
@@ -160,7 +133,7 @@ namespace LogService.Client.Localisation {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to RawMessage:.
+        ///   Looks up a localized string similar to Raw message.
         /// </summary>
         public static string RawMessage {
             get {

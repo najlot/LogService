@@ -118,10 +118,10 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="DateTime" xml:space="preserve">
-    <value>DateTime</value>
+    <value>Date and time</value>
   </data>
   <data name="LogLevel" xml:space="preserve">
-    <value>LogLevel</value>
+    <value>Level</value>
   </data>
   <data name="Category" xml:space="preserve">
     <value>Category</value>
@@ -133,7 +133,7 @@
     <value>Source</value>
   </data>
   <data name="RawMessage" xml:space="preserve">
-    <value>RawMessage</value>
+    <value>Raw message</value>
   </data>
   <data name="Message" xml:space="preserve">
     <value>Message</value>
@@ -141,22 +141,13 @@
   <data name="Exception" xml:space="preserve">
     <value>Exception</value>
   </data>
-  <data name="ExceptionIsValid" xml:space="preserve">
-    <value>ExceptionIsValid</value>
-  </data>
   <data name="Arguments" xml:space="preserve">
     <value>Arguments</value>
   </data>
-  <data name="CreateLogMessage" xml:space="preserve">
-    <value>CreateLogMessage</value>
-  </data>
-  <data name="EditLogMessage" xml:space="preserve">
-    <value>EditLogMessage</value>
-  </data>
   <data name="LogMessages" xml:space="preserve">
-    <value>LogMessages</value>
+    <value>Log messages</value>
   </data>
   <data name="LogMessage" xml:space="preserve">
-    <value>Log Message</value>
+    <value>Log message</value>
   </data>
 </root>

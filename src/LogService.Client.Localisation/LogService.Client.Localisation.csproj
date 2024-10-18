@@ -43,15 +43,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<EmbeddedResource Update="CommonLoc.de.resx">
-			<Generator></Generator>
-		</EmbeddedResource>
 		<EmbeddedResource Update="CommonLoc.resx">
 			<Generator>PublicResXFileCodeGenerator</Generator>
 			<LastGenOutput>CommonLoc.Designer.cs</LastGenOutput>
-		</EmbeddedResource>
-		<EmbeddedResource Update="ProfileLoc.de.resx">
-			<Generator></Generator>
 		</EmbeddedResource>
 		<EmbeddedResource Update="ProfileLoc.resx">
 			<Generator>PublicResXFileCodeGenerator</Generator>

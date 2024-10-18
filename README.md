@@ -26,4 +26,3 @@ making it easier to manage logs in an environment with many different service gr
 # Next steps
 - Cleaning of Messages after a defined amount of time
 - Filtering
-- UI-Design

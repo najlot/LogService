@@ -8,41 +8,54 @@
 
 <PageTitle>@CommonLoc.Home</PageTitle>
 
-<section class="w-100 p-4 d-flex justify-content-center pb-4">
-	<div>
+
 	<AuthorizeView>
 		<Authorized>
+		<section class="w-100 p-4 d-flex justify-content-center pb-4">
+			<div>
 				<div class="form-outline">
 					<h1>@CommonLoc.Welcome, @name!</h1>
 				</div>
-
-				<br/>
-				<br/>
-				<br/>
-
+			</div>
+		</section>
+		<section class="w-100">
+			<div>
 				@if (string.IsNullOrEmpty(token))
 				{
-					<label>
-						Source
-						<InputText @bind-Value="source" class="form-control col-4" />
-					</label>
-					<br />
-					<br />
-					<label>
-						Valid Until
-						<InputDate @bind-Value="validUntil" class="form-control col-4" />
-					</label>
-					<br />
-					<br />
-					<button @onclick="SetServiceToken" class="btn btn-primary" >
-						Get Service Token
-					</button>
+					<div class="border">
+						<div class="m-2">
+							<div class="border-bottom mb-3">
+								<h2>Create service token</h2>
+							</div>
+							<div class="row mb-2">
+								<div class="col-xl-1">
+									Source
+								</div>
+								<div class="col-xl-2 mb-2">
+									<InputText @bind-Value="source" class="form-control" />
+								</div>
+								<div class="col-xl-1">
+									Valid Until
+								</div>
+								<div class="col-xl-2 mb-2">
+									<InputDate @bind-Value="validUntil" class="form-control" />
+								</div>
+								<div class="col-xl-3">
+									<div class="d-flex justify-content-end justify-content-xl-between">
+										<button @onclick="SetServiceToken" class="btn btn-primary">
+											Get Service Token
+										</button>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
 				}
 				else
 				{
 					<div class="row form-outline mb-2">
 						<div>
-							<label class="form-label" for="ContentInput">Token</label>
+							<label class="form-label fw-bold">Token</label>
 						</div>
 
 						<div>
@@ -53,27 +66,31 @@
 								}
 							</script>
 
-							<InputTextArea class="form-control col-4" id="ContentInput" type="text" @bind-Value="token" style="resize: none; overflow: hidden;" onfocus="auto_grow(this)" oninput="auto_grow(this)" />
+							<InputTextArea class="form-control" readonly type="text" @bind-Value="token" style="resize: none; overflow: hidden;" onfocus="auto_grow(this)" oninput="auto_grow(this)" />
 						</div>
 					</div>
 				}
-
+			</div>
+		</section>
 		</Authorized>
 		<NotAuthorized>
-				<div class="form-outline mb-4">
-					<h1>@CommonLoc.Welcome!</h1>
-					<p>@CommonLoc.RegisterOrLogin</p>
+			<section class="w-100 p-4 d-flex justify-content-center pb-4">
+				<div>
+					<div class="form-outline mb-4">
+						<h1>@CommonLoc.Welcome!</h1>
+						<p>@CommonLoc.RegisterOrLogin</p>
+					</div>
+					<div class="form-outline mb-4">
+						<a href="/login" class="btn btn-primary w-100">@CommonLoc.Login</a>
+					</div>
+					<div class="form-outline mb-4">
+						<a href="/register" class="btn btn-primary w-100">@CommonLoc.Register</a>
+					</div>
 				</div>
-				<div class="form-outline mb-4">
-					<a href="/login" class="btn btn-primary w-100">@CommonLoc.Login</a>
-				</div>
-				<div class="form-outline mb-4">
-					<a href="/register" class="btn btn-primary w-100">@CommonLoc.Register</a>
-				</div>
+			</section>
 		</NotAuthorized>
 	</AuthorizeView>
-	</div>
-</section>
+
 
 @code {
 	[CascadingParameter(Name = "ErrorService")]
