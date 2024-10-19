@@ -51,6 +51,11 @@ namespace LogService.Client.Data.Services.Implementation
 			return await _store.GetItemsAsync(forceRefresh);
 		}
 
+		public async Task<bool> UpdateSettingsAsync(UserSettingsModel item)
+		{
+			return await _store.UpdateSettingsAsync(item);
+		}
+
 		public async Task<bool> UpdateItemAsync(UserModel item)
 		{
 			return await _store.UpdateItemAsync(item);

@@ -24,5 +24,4 @@ This design also supports the possibility of separating service groups by creati
 making it easier to manage logs in an environment with many different service groups.
 
 # Next steps
-- Cleaning of Messages after a defined amount of time
 - Filtering

@@ -63,9 +63,9 @@ namespace LogService.Client.Data.Repositories.Implementation
 			var token = await _tokenProvider.GetToken();
 
 			var headers = new Dictionary<string, string>
-				{
-					{ "Authorization", $"Bearer {token}" }
-				};
+			{
+				{ "Authorization", $"Bearer {token}" }
+			};
 
 			return await _client.GetAsync<UserModel>($"api/User/Current", headers);
 		}
@@ -114,6 +114,28 @@ namespace LogService.Client.Data.Repositories.Implementation
 				item.Password);
 
 			await _client.PutAsync($"api/User", request, headers);
+
+			return true;
+		}
+
+		public async Task<bool> UpdateSettingsAsync(UserSettingsModel item)
+		{
+			if (item == null)
+			{
+				return false;
+			}
+
+			var token = await _tokenProvider.GetToken();
+
+			var headers = new Dictionary<string, string>
+			{
+				{ "Authorization", $"Bearer {token}" }
+			};
+
+			var request = new UpdateUserSettings(
+				item.LogRetentionDays);
+
+			await _client.PutAsync($"api/User/Settings", request, headers);
 
 			return true;
 		}

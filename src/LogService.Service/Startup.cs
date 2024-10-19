@@ -87,6 +87,8 @@ namespace LogService.Service
 			});
 
 			services.AddControllers();
+
+			services.AddHostedService<LogMessageCleanUpService>();
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -1,8 +1,15 @@
 @page "/"
 @using LogService.Blazor.Services
+@using LogService.Blazor.Pages
 @using LogService.Client.Data.Identity
+@using LogService.Client.Data.Services
 @using LogService.Client.Localisation
+@using System.ComponentModel.DataAnnotations
+
 @inject ITokenProvider TokenProvider
+@inject IUserService UserService
+@inject ILogger<Index> Logger
+@inject NavigationManager NavigationManager
 
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
@@ -72,6 +79,33 @@
 				}
 			</div>
 		</section>
+
+		<section class="w-100 mt-2">
+			<div class="border">
+				<div class="m-2">
+					<div class="border-bottom mb-3">
+						<h2>Settings</h2>
+					</div>
+					<div class="row mb-2">
+						<div class="col-xl-2">
+							Log retention days
+						</div>
+						<div class="col-xl-1 mb-2">
+							<InputNumber @bind-Value="logRetentionDays" class="form-control" />
+						</div>
+						
+						<div class="col-xl-9">
+							<div class="d-flex justify-content-end justify-content-xl-between">
+								<button @onclick="SaveSettings" class="btn btn-primary">
+									@CommonLoc.Save
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
 		</Authorized>
 		<NotAuthorized>
 			<section class="w-100 p-4 d-flex justify-content-center pb-4">
@@ -99,6 +133,7 @@
 	private string? name;
 	private string? token;
 	private string source = "";
+	private int logRetentionDays;
 	private DateTime validUntil = DateTime.Now.AddYears(1);
 
 	protected async Task SetServiceToken()
@@ -117,8 +152,42 @@
 		if (user.Identity is not null && user.Identity.IsAuthenticated)
 		{
 			name = user.FindFirst(c => c.Type == System.Security.Claims.ClaimTypes.Name)?.Value;
+
+			var userModel = await UserService.GetCurrentUserAsync();
+			logRetentionDays = userModel.Settings.LogRetentionDays;
 		}
 
 		await base.OnInitializedAsync();
+	}
+
+	private async Task SaveSettings()
+	{
+		try
+		{
+			var token = await TokenProvider.GetToken();
+			if (token is null)
+			{
+				var url = NavigationManager.BuildReturnUrl("/login");
+				NavigationManager.NavigateTo(url);
+				return;
+			}
+
+			if (logRetentionDays < 0)
+			{
+				logRetentionDays *= -1;
+			}
+
+			await UserService.UpdateSettingsAsync(new Client.Data.Models.UserSettingsModel()
+			{
+				LogRetentionDays = logRetentionDays
+			});
+
+			ErrorService?.HideError();
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex, "Error updating user settings.");
+			ErrorService?.ShowError("Login", "Could update user settings. Server error.");
+		}
 	}
 }

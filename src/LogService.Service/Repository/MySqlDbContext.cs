@@ -32,6 +32,7 @@ namespace LogService.Service.Repository
 			modelBuilder.Entity<UserModel>(entity =>
 			{
 				entity.HasKey(e => e.Id);
+				entity.OwnsOne(e => e.Settings);
 			});
 			modelBuilder.Entity<LogMessageModel>(entity =>
 			{

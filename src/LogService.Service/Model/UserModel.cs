@@ -14,5 +14,7 @@ namespace LogService.Service.Model
 		public string EMail { get; set; }
 		public byte[] PasswordHash { get; set; }
 		public bool IsActive { get; set; }
-	}
+
+        public UserSettingsModel Settings { get; set; } = new();
+    }
 }

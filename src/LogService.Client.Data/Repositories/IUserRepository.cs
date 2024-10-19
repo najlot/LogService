@@ -11,6 +11,8 @@ namespace LogService.Client.Data.Repositories
 
 		Task<bool> UpdateItemAsync(UserModel item);
 
+		Task<bool> UpdateSettingsAsync(UserSettingsModel item);
+
 		Task<bool> DeleteItemAsync(Guid id);
 
 		Task<UserModel> GetItemAsync(Guid id);

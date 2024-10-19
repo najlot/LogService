@@ -61,6 +61,13 @@ namespace LogService.Service.Services
 				command.EMail)).ConfigureAwait(false);
 		}
 
+		public async Task UpdateUserSettings(UpdateUserSettings command, Guid userId)
+		{
+			var item = await _userRepository.Get(userId).ConfigureAwait(false);
+			item.Settings.LogRetentionDays = command.LogRetentionDays;
+			await _userRepository.Update(item);
+		}
+
 		public async Task UpdateUser(UpdateUser command, Guid userId)
 		{
 			command.Username = command.Username.Normalize().ToLower();
@@ -131,6 +138,10 @@ namespace LogService.Service.Services
 				Id = item.Id,
 				Username = item.Username,
 				EMail = item.EMail,
+				Settings = new UserSettings()
+				{
+					LogRetentionDays = item.Settings.LogRetentionDays
+				}
 			};
 		}
 
