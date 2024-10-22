@@ -112,7 +112,7 @@ namespace LogService.Service.Services
 			if (filter.DateTimeTo != null)
 				enumerable = enumerable.Where(e => e.DateTime <= filter.DateTimeTo);
 			if (filter.LogLevel != null)
-				enumerable = enumerable.Where(e => e.LogLevel == filter.LogLevel);
+				enumerable = enumerable.Where(e => e.LogLevel >= filter.LogLevel);
 			if (filter.Category != null)
 				enumerable = enumerable.Where(e => e.Category.Contains(filter.Category, StringComparison.OrdinalIgnoreCase));
 			if (filter.State != null)

@@ -24,4 +24,5 @@ This design also supports the possibility of separating service groups by creati
 making it easier to manage logs in an environment with many different service groups.
 
 # Next steps
-- Filtering
+- Filtering on new messages from SignalR
+- Filter improvements
