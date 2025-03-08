@@ -13,265 +13,260 @@ using LogService.Client.Data.Mappings;
 using LogService.Client.Data.Models;
 using LogService.Contracts.Events;
 
-namespace LogService.ClientBase.ViewModel
+namespace LogService.ClientBase.ViewModel;
+
+public class AllLogMessagesViewModel : AbstractViewModel, IDisposable
 {
-	public class AllLogMessagesViewModel : AbstractViewModel, IDisposable
+	private readonly Func<LogMessageViewModel> _logMessageViewModelFactory;
+	private readonly ILogMessageService _logMessageService;
+	private readonly INavigationService _navigationService;
+	private readonly IMessenger _messenger;
+	private readonly IErrorService _errorService;
+
+	private bool _isBusy;
+	private string _filter;
+
+	public bool IsBusy
 	{
-		private readonly Func<LogMessageViewModel> _logMessageViewModelFactory;
-		private readonly ILogMessageService _logMessageService;
-		private readonly INavigationService _navigationService;
-		private readonly IMessenger _messenger;
-		private readonly IErrorService _errorService;
+		get => _isBusy;
+		set => Set(nameof(IsBusy), ref _isBusy, value);
+	}
 
-		private bool _isBusy;
-		private string _filter;
-
-		public bool IsBusy
+	public string Filter
+	{
+		get => _filter;
+		set
 		{
-			get => _isBusy;
-			set => Set(nameof(IsBusy), ref _isBusy, value);
+			Set(nameof(Filter), ref _filter, value);
+			LogMessagesView.Refresh();
+		}
+	}
+
+	public ObservableCollectionView<LogMessageListItemModel> LogMessagesView { get; }
+	public ObservableCollection<LogMessageListItemModel> LogMessages { get; } = new ObservableCollection<LogMessageListItemModel>();
+
+	public AllLogMessagesViewModel(
+		Func<LogMessageViewModel> logMessageViewModelFactory,
+		IErrorService errorService,
+		ILogMessageService logMessageService,
+		INavigationService navigationService,
+		IMessenger messenger)
+	{
+		_logMessageViewModelFactory = logMessageViewModelFactory;
+		_errorService = errorService;
+		_logMessageService = logMessageService;
+		_navigationService = navigationService;
+		_messenger = messenger;
+
+		LogMessagesView = new ObservableCollectionView<LogMessageListItemModel>(LogMessages, FilterLogMessage);
+
+		_messenger.Register<LogMessageCreated>(Handle);
+		_messenger.Register<LogMessageUpdated>(Handle);
+		_messenger.Register<LogMessageDeleted>(Handle);
+
+		AddLogMessageCommand = new AsyncCommand(AddLogMessageAsync, DisplayError);
+		EditLogMessageCommand = new AsyncCommand<LogMessageListItemModel>(EditLogMessageAsync, DisplayError);
+		RefreshLogMessagesCommand = new AsyncCommand(RefreshLogMessagesAsync, DisplayError);
+	}
+
+	private bool FilterLogMessage(LogMessageListItemModel item)
+	{
+		if (string.IsNullOrEmpty(Filter))
+		{
+			return true;
 		}
 
-		public string Filter
+		var dateTime = item.DateTime.ToString();
+		if (!string.IsNullOrEmpty(dateTime) && dateTime.IndexOf(Filter, StringComparison.OrdinalIgnoreCase) != -1)
 		{
-			get => _filter;
-			set
-			{
-				Set(nameof(Filter), ref _filter, value);
-				LogMessagesView.Refresh();
-			}
+			return true;
 		}
 
-		public ObservableCollectionView<LogMessageListItemModel> LogMessagesView { get; }
-		public ObservableCollection<LogMessageListItemModel> LogMessages { get; } = new ObservableCollection<LogMessageListItemModel>();
-
-		public AllLogMessagesViewModel(
-			Func<LogMessageViewModel> logMessageViewModelFactory,
-			IErrorService errorService,
-			ILogMessageService logMessageService,
-			INavigationService navigationService,
-			IMessenger messenger)
+		var logLevel = item.LogLevel.ToString();
+		if (!string.IsNullOrEmpty(logLevel) && logLevel.IndexOf(Filter, StringComparison.OrdinalIgnoreCase) != -1)
 		{
-			_logMessageViewModelFactory = logMessageViewModelFactory;
-			_errorService = errorService;
-			_logMessageService = logMessageService;
-			_navigationService = navigationService;
-			_messenger = messenger;
-
-			LogMessagesView = new ObservableCollectionView<LogMessageListItemModel>(LogMessages, FilterLogMessage);
-
-			_messenger.Register<LogMessageCreated>(Handle);
-			_messenger.Register<LogMessageUpdated>(Handle);
-			_messenger.Register<LogMessageDeleted>(Handle);
-
-			AddLogMessageCommand = new AsyncCommand(AddLogMessageAsync, DisplayError);
-			EditLogMessageCommand = new AsyncCommand<LogMessageListItemModel>(EditLogMessageAsync, DisplayError);
-			RefreshLogMessagesCommand = new AsyncCommand(RefreshLogMessagesAsync, DisplayError);
+			return true;
 		}
 
-		private bool FilterLogMessage(LogMessageListItemModel item)
+		return false;
+	}
+
+	private async Task DisplayError(Task task)
+	{
+		await _errorService.ShowAlertAsync(CommonLoc.Error, task.Exception);
+	}
+
+	private void Handle(LogMessageCreated obj)
+	{
+		LogMessages.Insert(0, new LogMessageListItemModel()
 		{
-			if (string.IsNullOrEmpty(Filter))
-			{
-				return true;
-			}
+			Id = obj.Id,
+			DateTime = obj.DateTime,
+			LogLevel = obj.LogLevel,
+		});
+	}
 
-			var dateTime = item.DateTime.ToString();
-			if (!string.IsNullOrEmpty(dateTime) && dateTime.IndexOf(Filter, StringComparison.OrdinalIgnoreCase) != -1)
-			{
-				return true;
-			}
+	private void Handle(LogMessageUpdated obj)
+	{
+		var oldItem = LogMessages.FirstOrDefault(i => i.Id == obj.Id);
+		var index = -1;
 
-			var logLevel = item.LogLevel.ToString();
-			if (!string.IsNullOrEmpty(logLevel) && logLevel.IndexOf(Filter, StringComparison.OrdinalIgnoreCase) != -1)
-			{
-				return true;
-			}
-
-			return false;
-		}
-
-		private async Task DisplayError(Task task)
+		if (oldItem != null)
 		{
-			await _errorService.ShowAlertAsync(CommonLoc.Error, task.Exception);
-		}
+			index = LogMessages.IndexOf(oldItem);
 
-		private void Handle(LogMessageCreated obj)
-		{
-			LogMessages.Insert(0, new LogMessageListItemModel()
+			if (index != -1)
 			{
-				Id = obj.Id,
-				DateTime = obj.DateTime,
-				LogLevel = obj.LogLevel,
-			});
-		}
-
-		private void Handle(LogMessageUpdated obj)
-		{
-			var oldItem = LogMessages.FirstOrDefault(i => i.Id == obj.Id);
-			var index = -1;
-
-			if (oldItem != null)
-			{
-				index = LogMessages.IndexOf(oldItem);
-
-				if (index != -1)
-				{
-					LogMessages.RemoveAt(index);
-				}
-			}
-
-			if (index == -1)
-			{
-				index = 0;
-			}
-
-			LogMessages.Insert(index, new LogMessageListItemModel()
-			{
-				Id = obj.Id,
-				DateTime = obj.DateTime,
-				LogLevel = obj.LogLevel,
-			});
-		}
-
-		private void Handle(LogMessageDeleted obj)
-		{
-			var oldItem = LogMessages.FirstOrDefault(i => i.Id == obj.Id);
-
-			if (oldItem != null)
-			{
-				LogMessages.Remove(oldItem);
+				LogMessages.RemoveAt(index);
 			}
 		}
 
-		public AsyncCommand<LogMessageListItemModel> EditLogMessageCommand { get; }
-		public async Task EditLogMessageAsync(LogMessageListItemModel model)
+		if (index == -1)
 		{
-			if (IsBusy)
-			{
-				return;
-			}
-
-			try
-			{
-				IsBusy = true;
-
-				var item = await _logMessageService.GetItemAsync(model.Id);
-				var viewModel = _logMessageViewModelFactory();
-
-
-				viewModel.Item = item;
-
-				_messenger.Register<EditLogArgument>(viewModel.Handle);
-				_messenger.Register<DeleteLogArgument>(viewModel.Handle);
-				_messenger.Register<SaveLogArgument>(viewModel.Handle);
-
-				_messenger.Register<LogMessageUpdated>(viewModel.Handle);
-
-				await _navigationService.NavigateForward(viewModel);
-			}
-			catch (Exception ex)
-			{
-				await _errorService.ShowAlertAsync("Error loading...", ex);
-			}
-			finally
-			{
-				IsBusy = false;
-			}
+			index = 0;
 		}
 
-		public AsyncCommand AddLogMessageCommand { get; }
-		public async Task AddLogMessageAsync()
+		LogMessages.Insert(index, new LogMessageListItemModel()
 		{
-			if (IsBusy)
-			{
-				return;
-			}
+			Id = obj.Id,
+			DateTime = obj.DateTime,
+			LogLevel = obj.LogLevel,
+		});
+	}
 
-			try
-			{
-				IsBusy = true;
+	private void Handle(LogMessageDeleted obj)
+	{
+		var oldItem = LogMessages.FirstOrDefault(i => i.Id == obj.Id);
 
-				var item = _logMessageService.CreateLogMessage();
-				var viewModel = _logMessageViewModelFactory();
+		if (oldItem != null)
+		{
+			LogMessages.Remove(oldItem);
+		}
+	}
 
-
-				viewModel.Item = item;
-				viewModel.IsNew = true;
-
-				_messenger.Register<EditLogArgument>(viewModel.Handle);
-				_messenger.Register<DeleteLogArgument>(viewModel.Handle);
-				_messenger.Register<SaveLogArgument>(viewModel.Handle);
-
-				await _navigationService.NavigateForward(viewModel);
-			}
-			catch (Exception ex)
-			{
-				await _errorService.ShowAlertAsync("Error adding...", ex);
-			}
-			finally
-			{
-				IsBusy = false;
-			}
+	public AsyncCommand<LogMessageListItemModel> EditLogMessageCommand { get; }
+	public async Task EditLogMessageAsync(LogMessageListItemModel model)
+	{
+		if (IsBusy)
+		{
+			return;
 		}
 
-		public AsyncCommand RefreshLogMessagesCommand { get; }
-		public async Task RefreshLogMessagesAsync()
+		try
 		{
-			if (IsBusy)
-			{
-				return;
-			}
+			IsBusy = true;
 
-			try
-			{
-				IsBusy = true;
-				LogMessagesView.Disable();
-				Filter = "";
+			var item = await _logMessageService.GetItemAsync(model.Id);
+			var viewModel = _logMessageViewModelFactory();
 
-				LogMessages.Clear();
 
-				var logMessages = await _logMessageService.GetItemsAsync(true);
+			viewModel.Item = item;
 
-				foreach (var item in logMessages)
-				{
-					LogMessages.Add(item);
-				}
-			}
-			catch (Exception ex)
-			{
-				await _errorService.ShowAlertAsync("Error loading data...", ex);
-			}
-			finally
-			{
-				LogMessagesView.Enable();
-				IsBusy = false;
-			}
+			_messenger.Register<EditLogArgument>(viewModel.Handle);
+			_messenger.Register<DeleteLogArgument>(viewModel.Handle);
+			_messenger.Register<SaveLogArgument>(viewModel.Handle);
+
+			_messenger.Register<LogMessageUpdated>(viewModel.Handle);
+
+			await _navigationService.NavigateForward(viewModel);
+		}
+		catch (Exception ex)
+		{
+			await _errorService.ShowAlertAsync("Error loading...", ex);
+		}
+		finally
+		{
+			IsBusy = false;
+		}
+	}
+
+	public AsyncCommand AddLogMessageCommand { get; }
+	public async Task AddLogMessageAsync()
+	{
+		if (IsBusy)
+		{
+			return;
 		}
 
-		#region IDisposable Support
-
-		private bool disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
+		try
 		{
-			if (!disposedValue)
-			{
-				disposedValue = true;
+			IsBusy = true;
 
-				if (disposing)
-				{
-					_messenger.Unregister(this);
-				}
+			var item = _logMessageService.CreateLogMessage();
+			var viewModel = _logMessageViewModelFactory();
+
+
+			viewModel.Item = item;
+			viewModel.IsNew = true;
+
+			_messenger.Register<EditLogArgument>(viewModel.Handle);
+			_messenger.Register<DeleteLogArgument>(viewModel.Handle);
+			_messenger.Register<SaveLogArgument>(viewModel.Handle);
+
+			await _navigationService.NavigateForward(viewModel);
+		}
+		catch (Exception ex)
+		{
+			await _errorService.ShowAlertAsync("Error adding...", ex);
+		}
+		finally
+		{
+			IsBusy = false;
+		}
+	}
+
+	public AsyncCommand RefreshLogMessagesCommand { get; }
+	public async Task RefreshLogMessagesAsync()
+	{
+		if (IsBusy)
+		{
+			return;
+		}
+
+		try
+		{
+			IsBusy = true;
+			LogMessagesView.Disable();
+			Filter = "";
+
+			LogMessages.Clear();
+
+			var logMessages = await _logMessageService.GetItemsAsync();
+
+			foreach (var item in logMessages)
+			{
+				LogMessages.Add(item);
 			}
 		}
-
-		public void Dispose()
+		catch (Exception ex)
 		{
-			Dispose(true);
-			GC.SuppressFinalize(this);
+			await _errorService.ShowAlertAsync("Error loading data...", ex);
 		}
+		finally
+		{
+			LogMessagesView.Enable();
+			IsBusy = false;
+		}
+	}
 
-		#endregion IDisposable Support
+	private bool _disposedValue = false;
+
+	protected virtual void Dispose(bool disposing)
+	{
+		if (!_disposedValue)
+		{
+			_disposedValue = true;
+
+			if (disposing)
+			{
+				_messenger.Unregister(this);
+			}
+		}
+	}
+
+	public void Dispose()
+	{
+		Dispose(true);
+		GC.SuppressFinalize(this);
 	}
 }

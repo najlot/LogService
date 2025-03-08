@@ -1,22 +1,20 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using LogService.Client.Data.Models;
 
-namespace LogService.Client.Data.Repositories
+namespace LogService.Client.Data.Repositories;
+
+public interface IUserRepository : IDisposable
 {
-	public interface IUserRepository : IDisposable
-	{
-		Task<bool> AddItemAsync(UserModel item);
+	Task<UserModel> GetCurrentUserAsync();
 
-		Task<bool> UpdateItemAsync(UserModel item);
+	Task<UserListItemModel[]> GetItemsAsync();
 
-		Task<bool> DeleteItemAsync(Guid id);
+	Task<UserModel> GetItemAsync(Guid id);
 
-		Task<UserModel> GetItemAsync(Guid id);
+	Task AddItemAsync(UserModel item);
 
-		Task<IEnumerable<UserListItemModel>> GetItemsAsync(bool forceRefresh = false);
+	Task UpdateItemAsync(UserModel item);
 
-		Task<UserModel> GetCurrentUserAsync();
-	}
+	Task DeleteItemAsync(Guid id);
 }

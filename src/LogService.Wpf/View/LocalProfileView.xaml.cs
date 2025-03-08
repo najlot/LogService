@@ -1,15 +1,11 @@
 ﻿using System.Windows.Controls;
 
-namespace LogService.Wpf.View
+namespace LogService.Wpf.View;
+
+public partial class LocalProfileView : UserControl
 {
-	/// <summary>
-	/// Interaction logic for LocalProfileView.xaml
-	/// </summary>
-	public partial class LocalProfileView : UserControl
+	public LocalProfileView()
 	{
-		public LocalProfileView()
-		{
-			InitializeComponent();
-		}
+		InitializeComponent();
 	}
 }

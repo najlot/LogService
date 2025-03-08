@@ -1,10 +1,9 @@
 using System;
 using System.Threading.Tasks;
 
-namespace LogService.Client.Data.Identity
+namespace LogService.Client.Data.Identity;
+
+public interface IRegistrationService
 {
-	public interface IRegistrationService
-	{
-		Task<RegistrationResult> Register(Guid id, string username, string email, string password);
-	}
+	Task<RegistrationResult> Register(Guid id, string username, string email, string password);
 }

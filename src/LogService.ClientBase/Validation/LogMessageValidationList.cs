@@ -2,13 +2,12 @@
 using LogService.Client.MVVM.Validation;
 using LogService.ClientBase.ViewModel;
 
-namespace LogService.ClientBase.Validation
+namespace LogService.ClientBase.Validation;
+
+public class LogMessageValidationList : ValidationList<LogMessageViewModel>
 {
-	public class LogMessageValidationList : ValidationList<LogMessageViewModel>
+	public LogMessageValidationList()
 	{
-		public LogMessageValidationList()
-		{
-			Add(new LogMessageValidation());
-		}
+		Add(new LogMessageValidation());
 	}
 }

@@ -3,33 +3,32 @@ using System.Threading.Tasks;
 using LogService.Client.MVVM;
 using Xamarin.Forms;
 
-namespace LogService.Mobile
+namespace LogService.Mobile;
+
+public class DispatcherHelper : IDispatcherHelper
 {
-	public class DispatcherHelper : IDispatcherHelper
+	public void BeginInvokeOnMainThread(Action action)
 	{
-		public void BeginInvokeOnMainThread(Action action)
-		{
-			Device.BeginInvokeOnMainThread(action);
-		}
+		Device.BeginInvokeOnMainThread(action);
+	}
 
-		public async Task BeginInvokeOnMainThread(Func<Task> action)
-		{
-			var tcs = new TaskCompletionSource<object>();
+	public async Task BeginInvokeOnMainThread(Func<Task> action)
+	{
+		var tcs = new TaskCompletionSource<object>();
 
-			Device.BeginInvokeOnMainThread(async () =>
+		Device.BeginInvokeOnMainThread(async () =>
+		{
+			try
 			{
-				try
-				{
-					await action();
-					tcs.SetResult(null);
-				}
-				catch (Exception e)
-				{
-					tcs.SetException(e);
-				}
-			});
+				await action();
+				tcs.SetResult(null);
+			}
+			catch (Exception e)
+			{
+				tcs.SetException(e);
+			}
+		});
 
-			await tcs.Task;
-		}
+		await tcs.Task;
 	}
 }

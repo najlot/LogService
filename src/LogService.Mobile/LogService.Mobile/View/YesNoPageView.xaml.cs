@@ -1,20 +1,19 @@
 ﻿using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
-namespace LogService.Mobile.View
-{
-	[XamlCompilation(XamlCompilationOptions.Compile)]
-	public partial class YesNoPageView : ContentPage
-	{
-		public YesNoPageView()
-		{
-			InitializeComponent();
-		}
+namespace LogService.Mobile.View;
 
-		protected override bool OnBackButtonPressed()
-		{
-			// Reject going back with back-button
-			return true;
-		}
+[XamlCompilation(XamlCompilationOptions.Compile)]
+public partial class YesNoPageView : ContentPage
+{
+	public YesNoPageView()
+	{
+		InitializeComponent();
+	}
+
+	protected override bool OnBackButtonPressed()
+	{
+		// Reject going back with back-button
+		return true;
 	}
 }

@@ -2,15 +2,14 @@
 using LogService.ClientBase.Models;
 using System.Threading.Tasks;
 
-namespace LogService.ClientBase.ProfileHandler
+namespace LogService.ClientBase.ProfileHandler;
+
+public interface IProfileHandler
 {
-	public interface IProfileHandler
-	{
-		IUserService GetUserService();
-		ILogMessageService GetLogMessageService();
+	IUserService GetUserService();
+	ILogMessageService GetLogMessageService();
 
-		IProfileHandler SetNext(IProfileHandler handler);
+	IProfileHandler SetNext(IProfileHandler handler);
 
-		Task SetProfile(ProfileBase profile);
-	}
+	Task SetProfile(ProfileBase profile);
 }

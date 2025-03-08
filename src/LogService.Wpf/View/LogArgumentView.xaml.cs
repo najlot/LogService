@@ -1,15 +1,11 @@
 ﻿using System.Windows.Controls;
 
-namespace LogService.Wpf.View
+namespace LogService.Wpf.View;
+
+public partial class LogArgumentView : UserControl
 {
-	/// <summary>
-	/// Interaction logic for LogArgumentView.xaml
-	/// </summary>
-	public partial class LogArgumentView : UserControl
+	public LogArgumentView()
 	{
-		public LogArgumentView()
-		{
-			InitializeComponent();
-		}
+		InitializeComponent();
 	}
 }

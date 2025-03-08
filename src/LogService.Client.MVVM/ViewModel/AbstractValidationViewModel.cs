@@ -5,83 +5,82 @@ using System.ComponentModel;
 using System.Linq;
 using LogService.Client.MVVM.Validation;
 
-namespace LogService.Client.MVVM.ViewModel
+namespace LogService.Client.MVVM.ViewModel;
+
+public abstract class AbstractValidationViewModel : AbstractViewModel, INotifyDataErrorInfo
 {
-	public abstract class AbstractValidationViewModel : AbstractViewModel, INotifyDataErrorInfo
+	private Action _validateAction = () => { };
+	private IEnumerable<ValidationResult> _errors = new List<ValidationResult>();
+	private IEnumerable<string> _previousProperties = new List<string>();
+
+	protected void RaiseErrorsChanged(string propertyName) => ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
+
+	public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
+
+	public void SetValidation<T>(ValidationList<T> validations, bool validate = true) where T : AbstractValidationViewModel
 	{
-		private Action _validateAction = () => { };
-		private IEnumerable<ValidationResult> _errors = new List<ValidationResult>();
-		private IEnumerable<string> _previousProperties = new List<string>();
-
-		protected void RaiseErrorsChanged(string propertyName) => ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
-
-		public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
-
-		public void SetValidation<T>(ValidationList<T> validations, bool validate = true) where T : AbstractValidationViewModel
+		if (!typeof(T).IsAssignableFrom(GetType()))
 		{
-			if (!typeof(T).IsAssignableFrom(GetType()))
-			{
-				throw new InvalidOperationException($"{typeof(T).FullName} is not assignable from {GetType().FullName}");
-			}
-
-			_validateAction = async () =>
-			{
-				Errors = await validations.ValidateAsync((T)this);
-				RaisePropertyChanged(nameof(HasErrors));
-			};
-
-			if (validate)
-			{
-				_validateAction();
-			}
+			throw new InvalidOperationException($"{typeof(T).FullName} is not assignable from {GetType().FullName}");
 		}
 
-		public override bool Set<T>(string propertyName, ref T oldValue, T newValue)
+		_validateAction = async () =>
 		{
-			if (base.Set(propertyName, ref oldValue, newValue))
-			{
-				_validateAction();
-				return true;
-			}
+			Errors = await validations.ValidateAsync((T)this);
+			RaisePropertyChanged(nameof(HasErrors));
+		};
 
-			return false;
+		if (validate)
+		{
+			_validateAction();
+		}
+	}
+
+	public override bool Set<T>(string propertyName, ref T oldValue, T newValue)
+	{
+		if (base.Set(propertyName, ref oldValue, newValue))
+		{
+			_validateAction();
+			return true;
 		}
 
-		private bool _hasErrors = false;
-		public bool HasErrors { get => Errors.Any() || _hasErrors; set => _hasErrors = value; }
+		return false;
+	}
 
-		public IEnumerable GetErrors(string propertyName)
+	private bool _hasErrors = false;
+	public bool HasErrors { get => Errors.Any() || _hasErrors; set => _hasErrors = value; }
+
+	public IEnumerable GetErrors(string propertyName)
+	{
+		foreach (var err in Errors)
 		{
-			foreach (var err in Errors)
+			if (string.IsNullOrEmpty(err.PropertyName) || err.PropertyName == propertyName)
 			{
-				if (string.IsNullOrEmpty(err.PropertyName) || err.PropertyName == propertyName)
-				{
-					yield return err;
-				}
+				yield return err;
 			}
 		}
+	}
 
-		public IEnumerable<ValidationResult> Errors
+	public IEnumerable<ValidationResult> Errors
+	{
+		get => _errors;
+		set
 		{
-			get => _errors;
-			set
+			_errors = value;
+
+			foreach (var propertyName in _previousProperties)
 			{
-				_errors = value;
-
-				foreach (var propertyName in _previousProperties)
-				{
-					RaiseErrorsChanged(propertyName);
-				}
-
-				var propertyNames = _errors.Select(err => err.PropertyName).Distinct();
-
-				foreach (var propertyName in propertyNames)
-				{
-					RaiseErrorsChanged(propertyName);
-				}
-
-				_previousProperties = propertyNames;
+				RaiseErrorsChanged(propertyName);
 			}
+
+			var propertyNames = _errors.Select(err => err.PropertyName).Distinct();
+
+			foreach (var propertyName in propertyNames)
+			{
+				RaiseErrorsChanged(propertyName);
+			}
+
+			_previousProperties = propertyNames;
 		}
 	}
 }

@@ -1,25 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 
-namespace LogService.Contracts.Events
+namespace LogService.Contracts.Events;
+
+public class UserCreated(
+	Guid id,
+	string username,
+	string eMail)
 {
-	public class UserCreated
-	{
-		public Guid Id { get; set; }
-		public string Username { get; set; }
-		public string EMail { get; set; }
-		public string Password { get; set; }
-
-		private UserCreated() { }
-
-		public UserCreated(
-			Guid id,
-			string username,
-			string eMail)
-		{
-			Id = id;
-			Username = username;
-			EMail = eMail;
-		}
-	}
+	public Guid Id { get; } = id;
+	public string Username { get; } = username;
+	public string EMail { get; } = eMail;
 }

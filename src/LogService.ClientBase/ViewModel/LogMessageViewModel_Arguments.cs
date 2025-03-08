@@ -11,130 +11,129 @@ using LogService.ClientBase.Services;
 using LogService.ClientBase.Validation;
 using LogService.Contracts;
 
-namespace LogService.ClientBase.ViewModel
+namespace LogService.ClientBase.ViewModel;
+
+public partial class LogMessageViewModel
 {
-	public partial class LogMessageViewModel
+	private ObservableCollection<LogArgumentViewModel> _arguments = new ObservableCollection<LogArgumentViewModel>();
+	public ObservableCollection<LogArgumentViewModel> Arguments { get => _arguments; set => Set(nameof(Arguments), ref _arguments, value); }
+
+	public RelayCommand AddLogArgumentCommand => new RelayCommand(() =>
 	{
-		private ObservableCollection<LogArgumentViewModel> _arguments = new ObservableCollection<LogArgumentViewModel>();
-		public ObservableCollection<LogArgumentViewModel> Arguments { get => _arguments; set => Set(nameof(Arguments), ref _arguments, value); }
+		var max = 0;
 
-		public RelayCommand AddLogArgumentCommand => new RelayCommand(() =>
+		if (Arguments.Count > 0)
 		{
-			var max = 0;
+			max = Arguments.Max(e => e.Item.Id) + 1;
+		}
 
-			if (Arguments.Count > 0)
+		var model = new LogArgumentModel() { Id = max };
+
+		var viewModel = _logArgumentViewModelFactory();
+		viewModel.ParentId = Item.Id;
+		viewModel.Item = model;
+
+		Arguments.Add(viewModel);
+	});
+
+	public async Task Handle(DeleteLogArgument obj)
+	{
+		if (Item.Id != obj.ParentId)
+		{
+			return;
+		}
+
+		try
+		{
+			var oldItem = Arguments.FirstOrDefault(i => i.Item.Id == obj.Id);
+
+			if (oldItem != null)
 			{
-				max = Arguments.Max(e => e.Item.Id) + 1;
-			}
+				var index = Arguments.IndexOf(oldItem);
 
-			var model = new LogArgumentModel() { Id = max };
+				if (index != -1)
+				{
+					Arguments.RemoveAt(index);
+				}
+			}
+		}
+		catch (Exception ex)
+		{
+			await _errorService.ShowAlertAsync("Error saving...", ex);
+		}
+	}
+
+	public async Task Handle(EditLogArgument obj)
+	{
+		if (IsBusy)
+		{
+			return;
+		}
+
+		if (Item.Id != obj.ParentId)
+		{
+			return;
+		}
+
+		try
+		{
+			IsBusy = true;
+
+			var vm = Arguments.FirstOrDefault(e => e.Item.Id == obj.Id);
+			var viewModel = _logArgumentViewModelFactory();
+			viewModel.ParentId = Item.Id;
+			viewModel.Item = vm.Item;
+
+			await _navigationService.NavigateForward(viewModel);
+		}
+		catch (Exception ex)
+		{
+			await _errorService.ShowAlertAsync("Error loading...", ex);
+		}
+		finally
+		{
+			IsBusy = false;
+		}
+	}
+
+	public async Task Handle(SaveLogArgument obj)
+	{
+		if (Item.Id != obj.ParentId)
+		{
+			return;
+		}
+
+		try
+		{
+			int index = -1;
+			var oldItem = Arguments.FirstOrDefault(i => i.Item.Id == obj.Item.Id);
+
+			if (oldItem != null)
+			{
+				index = Arguments.IndexOf(oldItem);
+
+				if (index != -1)
+				{
+					Arguments.RemoveAt(index);
+				}
+			}
 
 			var viewModel = _logArgumentViewModelFactory();
 			viewModel.ParentId = Item.Id;
-			viewModel.Item = model;
+			viewModel.Item = obj.Item;
 
-			Arguments.Add(viewModel);
-		});
-
-		public async Task Handle(DeleteLogArgument obj)
-		{
-			if (Item.Id != obj.ParentId)
+			if (index == -1)
 			{
-				return;
+				Arguments.Insert(0, viewModel);
 			}
-
-			try
+			else
 			{
-				var oldItem = Arguments.FirstOrDefault(i => i.Item.Id == obj.Id);
-
-				if (oldItem != null)
-				{
-					var index = Arguments.IndexOf(oldItem);
-
-					if (index != -1)
-					{
-						Arguments.RemoveAt(index);
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				await _errorService.ShowAlertAsync("Error saving...", ex);
+				Arguments.Insert(index, viewModel);
 			}
 		}
-
-		public async Task Handle(EditLogArgument obj)
+		catch (Exception ex)
 		{
-			if (IsBusy)
-			{
-				return;
-			}
-
-			if (Item.Id != obj.ParentId)
-			{
-				return;
-			}
-
-			try
-			{
-				IsBusy = true;
-
-				var vm = Arguments.FirstOrDefault(e => e.Item.Id == obj.Id);
-				var viewModel = _logArgumentViewModelFactory();
-				viewModel.ParentId = Item.Id;
-				viewModel.Item = vm.Item;
-
-				await _navigationService.NavigateForward(viewModel);
-			}
-			catch (Exception ex)
-			{
-				await _errorService.ShowAlertAsync("Error loading...", ex);
-			}
-			finally
-			{
-				IsBusy = false;
-			}
-		}
-
-		public async Task Handle(SaveLogArgument obj)
-		{
-			if (Item.Id != obj.ParentId)
-			{
-				return;
-			}
-
-			try
-			{
-				int index = -1;
-				var oldItem = Arguments.FirstOrDefault(i => i.Item.Id == obj.Item.Id);
-
-				if (oldItem != null)
-				{
-					index = Arguments.IndexOf(oldItem);
-
-					if (index != -1)
-					{
-						Arguments.RemoveAt(index);
-					}
-				}
-
-				var viewModel = _logArgumentViewModelFactory();
-				viewModel.ParentId = Item.Id;
-				viewModel.Item = obj.Item;
-
-				if (index == -1)
-				{
-					Arguments.Insert(0, viewModel);
-				}
-				else
-				{
-					Arguments.Insert(index, viewModel);
-				}
-			}
-			catch (Exception ex)
-			{
-				await _errorService.ShowAlertAsync("Error saving...", ex);
-			}
+			await _errorService.ShowAlertAsync("Error saving...", ex);
 		}
 	}
 }

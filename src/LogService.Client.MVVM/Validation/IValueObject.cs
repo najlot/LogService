@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 
-namespace LogService.Client.MVVM.Validation
+namespace LogService.Client.MVVM.Validation;
+
+public interface IValueObject
 {
-	public interface IValueObject { IEnumerable<ValidationResult> Validate(); }
+	IEnumerable<ValidationResult> Validate();
 }

@@ -1,9 +1,8 @@
 using System.Threading.Tasks;
 
-namespace LogService.Client.Data.Identity
+namespace LogService.Client.Data.Identity;
+
+public interface ITokenService
 {
-	public interface ITokenService
-	{
-		Task<string> CreateToken(string username, string password);
-	}
+	Task<string> CreateToken(string username, string password);
 }

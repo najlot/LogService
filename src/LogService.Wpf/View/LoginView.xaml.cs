@@ -1,15 +1,11 @@
 ﻿using System.Windows.Controls;
 
-namespace LogService.Wpf.View
+namespace LogService.Wpf.View;
+
+public partial class LoginView : UserControl
 {
-	/// <summary>
-	/// Interaction logic for LoginView.xaml
-	/// </summary>
-	public partial class LoginView : UserControl
+	public LoginView()
 	{
-		public LoginView()
-		{
-			InitializeComponent();
-		}
+		InitializeComponent();
 	}
 }

@@ -1,7 +1,6 @@
-﻿namespace LogService.ClientBase.Models
+﻿namespace LogService.ClientBase.Models;
+
+public class LocalProfile : ProfileBase
 {
-	public class LocalProfile : ProfileBase
-	{
-		public string FolderName { get; set; }
-	}
+	public string FolderName { get; set; }
 }

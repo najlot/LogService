@@ -1,13 +1,12 @@
 using Microsoft.AspNetCore.Components.Authorization;
 
-namespace LogService.Blazor.Identity
+namespace LogService.Blazor.Identity;
+
+public interface IAuthenticationService
 {
-	public interface IAuthenticationService
-	{
-		Task<AuthenticationState> GetAuthenticationStateAsync();
+	Task<AuthenticationState> GetAuthenticationStateAsync();
 
-		Task LoginAsync(string username, string token);
+	Task LoginAsync(string username, string token);
 
-		Task LogoutAsync();
-	}
+	Task LogoutAsync();
 }

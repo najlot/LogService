@@ -4,82 +4,57 @@ using System.Threading.Tasks;
 using LogService.Client.Data.Models;
 using LogService.Client.Data.Repositories;
 
-namespace LogService.Client.Data.Services.Implementation
+namespace LogService.Client.Data.Services.Implementation;
+
+public sealed class UserService : IUserService
 {
-	public class UserService : IUserService
+	private readonly IUserRepository _repository;
+
+	public UserService(IUserRepository repository)
 	{
-		private IUserRepository _store;
-
-		public UserService(IUserRepository dataStore)
-		{
-			_store = dataStore;
-		}
-
-		public UserModel CreateUser()
-		{
-			return new UserModel()
-			{
-				Id = Guid.NewGuid(),
-				Username = "",
-				EMail = "",
-				Password = "",
-			};
-		}
-
-		public async Task<bool> AddItemAsync(UserModel item)
-		{
-			return await _store.AddItemAsync(item);
-		}
-
-		public async Task<bool> DeleteItemAsync(Guid id)
-		{
-			return await _store.DeleteItemAsync(id);
-		}
-
-		public async Task<UserModel> GetCurrentUserAsync()
-		{
-			return await _store.GetCurrentUserAsync();
-		}
-
-		public async Task<UserModel> GetItemAsync(Guid id)
-		{
-			return await _store.GetItemAsync(id);
-		}
-
-		public async Task<IEnumerable<UserListItemModel>> GetItemsAsync(bool forceRefresh = false)
-		{
-			return await _store.GetItemsAsync(forceRefresh);
-		}
-
-		public async Task<bool> UpdateItemAsync(UserModel item)
-		{
-			return await _store.UpdateItemAsync(item);
-		}
-
-		#region IDisposable Support
-
-		private bool disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!disposedValue)
-			{
-				disposedValue = true;
-
-				if (disposing)
-				{
-					_store?.Dispose();
-					_store = null;
-				}
-			}
-		}
-
-		public void Dispose()
-		{
-			Dispose(true);
-			GC.SuppressFinalize(this);
-		}
-
-		#endregion IDisposable Support
+		_repository = repository;
 	}
+
+	public UserModel CreateUser()
+	{
+		return new UserModel()
+		{
+			Id = Guid.NewGuid(),
+			Username = "",
+			EMail = "",
+			Password = "",
+		};
+	}
+
+	public async Task AddItemAsync(UserModel item)
+	{
+		await _repository.AddItemAsync(item);
+	}
+
+	public async Task DeleteItemAsync(Guid id)
+	{
+		await _repository.DeleteItemAsync(id);
+	}
+
+	public async Task<UserModel> GetCurrentUserAsync()
+	{
+		return await _repository.GetCurrentUserAsync();
+	}
+
+	public async Task<UserModel> GetItemAsync(Guid id)
+	{
+		return await _repository.GetItemAsync(id);
+	}
+
+	public async Task<IEnumerable<UserListItemModel>> GetItemsAsync()
+	{
+		return await _repository.GetItemsAsync();
+	}
+
+	public async Task UpdateItemAsync(UserModel item)
+	{
+		await _repository.UpdateItemAsync(item);
+	}
+
+	public void Dispose() => _repository.Dispose();
 }

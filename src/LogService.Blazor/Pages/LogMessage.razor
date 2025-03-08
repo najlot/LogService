@@ -8,9 +8,11 @@
 @using LogService.Client.Data.Models;
 @using LogService.Client.Data.Services;
 @using LogService.Client.Data;
-@using LogService.Client.Localisation
+@using LogService.Client.Localisation;
+@using LogService.Contracts;
 @using LogService.Contracts.Events;
 @inject ILogger<LogMessage> Log
+@inject Najlot.Map.IMap Map;
 @inject ILogMessageService LogMessageService
 @inject ISubscriberProvider SubscriberProvider
 @inject IAuthenticationService AuthenticationService
@@ -110,7 +112,7 @@ else
 				<!-- ExceptionIsValid input -->
 				<div class="form-outline mb-2">
 					<label class="form-label" for="ExceptionIsValidInput">@LogMessageLoc.ExceptionIsValid</label>
-					<InputCheckBox id="ExceptionIsValidInput" class="form-control" @bind-Value="Model.ExceptionIsValid" />
+					<InputCheckbox id="ExceptionIsValidInput" class="form-control" @bind-Value="Model.ExceptionIsValid" />
 				</div>
 			</div>
 		</section>
@@ -265,18 +267,7 @@ else
 			return;
 		}
 
-		var logArgumentMapper = new LogArgumentMapper();
-
-		Model.DateTime = message.DateTime;
-		Model.LogLevel = message.LogLevel;
-		Model.Category = message.Category;
-		Model.State = message.State;
-		Model.Source = message.Source;
-		Model.RawMessage = message.RawMessage;
-		Model.Message = message.Message;
-		Model.Exception = message.Exception;
-		Model.ExceptionIsValid = message.ExceptionIsValid;
-		Model.Arguments = message.Arguments.Select(e => logArgumentMapper.Map(e, new LogArgumentModel())).ToList();
+		Map.From(message).To(Model);
 
 		await InvokeAsync(StateHasChanged);
 	}

@@ -1,20 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using LogService.Service.Model;
 
-namespace LogService.Service.Repository
+namespace LogService.Service.Repository;
+
+public interface ILogMessageRepository
 {
-	public interface ILogMessageRepository
-	{
-		IAsyncEnumerable<LogMessageModel> GetAll();
+	IAsyncEnumerable<LogMessageModel> GetAll();
 
-		Task<LogMessageModel> Get(Guid id);
+	IQueryable<LogMessageModel> GetAllQueryable();
 
-		Task Insert(LogMessageModel model);
+	Task<LogMessageModel?> Get(Guid id);
 
-		Task Update(LogMessageModel model);
+	Task Insert(LogMessageModel model);
 
-		Task Delete(Guid id);
-	}
+	Task Update(LogMessageModel model);
+
+	Task Delete(Guid id);
 }

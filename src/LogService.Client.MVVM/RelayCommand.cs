@@ -1,50 +1,69 @@
 using System;
 using System.Windows.Input;
 
-namespace LogService.Client.MVVM
-{
-	public class RelayCommand : RelayCommand<object>
-	{
-		public RelayCommand(Action action)
-			: base(_ => action())
-		{
-		}
+namespace LogService.Client.MVVM;
 
-		public RelayCommand(Action action, Func<bool> canExecute)
-			: base(_ => action(), _ => canExecute())
-		{
-		}
+public class RelayCommand : RelayCommand<object>
+{
+	public RelayCommand(Action action)
+		: base(_ => action())
+	{
 	}
 
-	public class RelayCommand<T> : ICommand
+	public RelayCommand(Action action, Func<bool> canExecute)
+		: base(_ => action(), _ => canExecute())
 	{
-		private readonly Action<T> _action;
-		private readonly Func<T, bool> _canExecute;
+	}
+}
 
-		public event EventHandler CanExecuteChanged;
+public class RelayCommand<T> : ICommand
+{
+	private readonly Action<T> _action;
+	private readonly Func<T, bool> _canExecute;
 
-		public RelayCommand(Action<T> action, Func<T, bool> canExecute = null)
+	public event EventHandler CanExecuteChanged;
+
+	public RelayCommand(Action<T> action, Func<T, bool> canExecute = null)
+	{
+		_action = action;
+
+		if (canExecute != null)
+			_canExecute = canExecute;
+		else
+			_canExecute = ReturnTrue;
+	}
+
+	private static bool ReturnTrue(T param) => true;
+
+	public void RaiseCanExecuteChanged()
+	{
+		CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+	}
+
+	public bool CanExecute(object parameter)
+	{
+		if (parameter == null)
 		{
-			_action = action;
-
-			if (canExecute != null)
-				_canExecute = canExecute;
-			else
-				_canExecute = ReturnTrue;
+			return _canExecute(default);
 		}
 
-		private static bool ReturnTrue(T param) => true;
-
-		public void RaiseCanExecuteChanged()
+		if (!typeof(T).IsAssignableFrom(parameter.GetType()))
 		{
-			CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+			var typeConverter = System.ComponentModel.TypeDescriptor.GetConverter(typeof(T));
+			parameter = typeConverter.ConvertFrom(parameter);
 		}
 
-		public bool CanExecute(object parameter)
+		return _canExecute((T)parameter);
+	}
+
+	public void Execute(object parameter)
+	{
+		if (CanExecute(parameter))
 		{
 			if (parameter == null)
 			{
-				return _canExecute(default);
+				_action(default);
+				return;
 			}
 
 			if (!typeof(T).IsAssignableFrom(parameter.GetType()))
@@ -53,27 +72,7 @@ namespace LogService.Client.MVVM
 				parameter = typeConverter.ConvertFrom(parameter);
 			}
 
-			return _canExecute((T)parameter);
-		}
-
-		public void Execute(object parameter)
-		{
-			if (CanExecute(parameter))
-			{
-				if (parameter == null)
-				{
-					_action(default);
-					return;
-				}
-
-				if (!typeof(T).IsAssignableFrom(parameter.GetType()))
-				{
-					var typeConverter = System.ComponentModel.TypeDescriptor.GetConverter(typeof(T));
-					parameter = typeConverter.ConvertFrom(parameter);
-				}
-
-				_action((T)parameter);
-			}
+			_action((T)parameter);
 		}
 	}
 }

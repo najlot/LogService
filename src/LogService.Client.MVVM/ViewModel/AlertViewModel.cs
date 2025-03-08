@@ -1,8 +1,7 @@
-namespace LogService.Client.MVVM.ViewModel
+namespace LogService.Client.MVVM.ViewModel;
+
+public class AlertViewModel : AbstractViewModel
 {
-	public class AlertViewModel : AbstractViewModel
-	{
-		public string Title { get; set; }
-		public string Message { get; set; }
-	}
+	public string Title { get; set; }
+	public string Message { get; set; }
 }

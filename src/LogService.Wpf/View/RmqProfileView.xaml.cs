@@ -1,15 +1,11 @@
 ﻿using System.Windows.Controls;
 
-namespace LogService.Wpf.View
+namespace LogService.Wpf.View;
+
+public partial class RmqProfileView : UserControl
 {
-	/// <summary>
-	/// Interaction logic for RmqProfileView.xaml
-	/// </summary>
-	public partial class RmqProfileView : UserControl
+	public RmqProfileView()
 	{
-		public RmqProfileView()
-		{
-			InitializeComponent();
-		}
+		InitializeComponent();
 	}
 }

@@ -1,15 +1,11 @@
 ﻿using System.Windows.Controls;
 
-namespace LogService.Wpf.View
+namespace LogService.Wpf.View;
+
+public partial class YesNoPageView : UserControl
 {
-	/// <summary>
-	/// Interaction logic for YesNoPageView.xaml
-	/// </summary>
-	public partial class YesNoPageView : UserControl
+	public YesNoPageView()
 	{
-		public YesNoPageView()
-		{
-			InitializeComponent();
-		}
+		InitializeComponent();
 	}
 }

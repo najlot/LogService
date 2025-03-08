@@ -1,14 +1,13 @@
 ﻿using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
-namespace LogService.Mobile.View
+namespace LogService.Mobile.View;
+
+[XamlCompilation(XamlCompilationOptions.Compile)]
+public partial class LogArgumentView : ContentPage
 {
-	[XamlCompilation(XamlCompilationOptions.Compile)]
-	public partial class LogArgumentView : ContentPage
+	public LogArgumentView()
 	{
-		public LogArgumentView()
-		{
-			InitializeComponent();
-		}
+		InitializeComponent();
 	}
 }

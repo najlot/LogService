@@ -1,10 +1,9 @@
 using Cosei.Client.Base;
 
-namespace LogService.Blazor.Services
+namespace LogService.Blazor.Services;
+
+public interface ISubscriberProvider
 {
-	public interface ISubscriberProvider
-	{
-		Task<ISubscriber> GetSubscriber();
-		Task ClearSubscriber();
-	}
+	Task<ISubscriber> GetSubscriber();
+	Task ClearSubscriber();
 }

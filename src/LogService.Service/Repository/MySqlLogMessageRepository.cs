@@ -5,66 +5,74 @@ using System.Linq;
 using System.Threading.Tasks;
 using LogService.Service.Model;
 
-namespace LogService.Service.Repository
+namespace LogService.Service.Repository;
+
+public class MySqlLogMessageRepository : ILogMessageRepository
 {
-	public class MySqlLogMessageRepository : ILogMessageRepository
+	private readonly MySqlDbContext _context;
+
+	public MySqlLogMessageRepository(MySqlDbContext context)
 	{
-		private readonly MySqlDbContext _context;
+		_context = context;
+	}
 
-		public MySqlLogMessageRepository(MySqlDbContext context)
+	public IAsyncEnumerable<LogMessageModel> GetAll()
+	{
+		return _context
+			.LogMessages
+			.AsNoTracking()
+			.AsAsyncEnumerable();
+	}
+
+	public IQueryable<LogMessageModel> GetAllQueryable()
+	{
+		return _context
+			.LogMessages
+			.AsNoTracking()
+			.AsQueryable();
+	}
+
+	public async Task<LogMessageModel?> Get(Guid id)
+	{
+		var e = await _context.LogMessages.FirstOrDefaultAsync(i => i.Id == id).ConfigureAwait(false);
+
+		if (e == null)
 		{
-			_context = context;
+			return null;
 		}
 
-		public IAsyncEnumerable<LogMessageModel> GetAll()
+
+		return e;
+	}
+
+	public async Task Insert(LogMessageModel model)
+	{
+
+		foreach (var entry in model.Arguments)
 		{
-			return _context.LogMessages
-				.AsNoTracking()
-				.AsAsyncEnumerable();
+			entry.Id = 0;
 		}
 
-		public async Task<LogMessageModel> Get(Guid id)
+		await _context.LogMessages.AddAsync(model).ConfigureAwait(false);
+
+		await _context.SaveChangesAsync().ConfigureAwait(false);
+	}
+
+	public async Task Update(LogMessageModel model)
+	{
+		_context.LogMessages.Update(model);
+
+		await _context.SaveChangesAsync().ConfigureAwait(false);
+	}
+
+	public async Task Delete(Guid id)
+	{
+		var model = await _context.LogMessages.FirstOrDefaultAsync(i => i.Id == id).ConfigureAwait(false);
+
+		if (model != null)
 		{
-			var e = await _context.LogMessages.FirstOrDefaultAsync(i => i.Id == id).ConfigureAwait(false);
-
-			if (e == null)
-			{
-				return null;
-			}
-
-
-			return e;
-		}
-
-		public async Task Insert(LogMessageModel model)
-		{
-
-			foreach (var entry in model.Arguments)
-			{
-				entry.Id = 0;
-			}
-
-			await _context.LogMessages.AddAsync(model).ConfigureAwait(false);
-
+			_context.LogMessages.Remove(model);
 			await _context.SaveChangesAsync().ConfigureAwait(false);
-		}
-
-		public async Task Update(LogMessageModel model)
-		{
-			_context.LogMessages.Update(model);
-
-			await _context.SaveChangesAsync().ConfigureAwait(false);
-		}
-
-		public async Task Delete(Guid id)
-		{
-			var model = await _context.LogMessages.FirstOrDefaultAsync(i => i.Id == id).ConfigureAwait(false);
-
-			if (model != null)
-			{
-				_context.LogMessages.Remove(model);
-				await _context.SaveChangesAsync().ConfigureAwait(false);
-			}
 		}
 	}
 }

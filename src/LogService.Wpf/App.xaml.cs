@@ -2,18 +2,14 @@
 using System.Windows;
 using System.Windows.Markup;
 
-namespace LogService.Wpf
+namespace LogService.Wpf;
+
+public partial class App : Application
 {
-	/// <summary>
-	/// Interaction logic for App.xaml
-	/// </summary>
-	public partial class App : Application
+	static App()
 	{
-		static App()
-		{
-			var language = XmlLanguage.GetLanguage(CultureInfo.CurrentCulture.Name);
-			var metadata = new FrameworkPropertyMetadata(language);
-			FrameworkElement.LanguageProperty.OverrideMetadata(typeof(FrameworkElement), metadata);
-		}
+		var language = XmlLanguage.GetLanguage(CultureInfo.CurrentCulture.Name);
+		var metadata = new FrameworkPropertyMetadata(language);
+		FrameworkElement.LanguageProperty.OverrideMetadata(typeof(FrameworkElement), metadata);
 	}
 }

@@ -1,15 +1,11 @@
 ﻿using System.Windows.Controls;
 
-namespace LogService.Wpf.View
+namespace LogService.Wpf.View;
+
+public partial class RestProfileView : UserControl
 {
-	/// <summary>
-	/// Interaction logic for RestProfileView.xaml
-	/// </summary>
-	public partial class RestProfileView : UserControl
+	public RestProfileView()
 	{
-		public RestProfileView()
-		{
-			InitializeComponent();
-		}
+		InitializeComponent();
 	}
 }

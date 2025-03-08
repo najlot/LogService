@@ -1,10 +1,9 @@
 using Cosei.Client.Base;
 using System.Threading.Tasks;
 
-namespace LogService.ClientBase.ProfileHandler
+namespace LogService.ClientBase.ProfileHandler;
+
+public interface ILocalSubscriber : ISubscriber
 {
-	public interface ILocalSubscriber : ISubscriber
-	{
-		Task SendAsync<T>(T message) where T : class;
-	}
+	Task SendAsync<T>(T message) where T : class;
 }

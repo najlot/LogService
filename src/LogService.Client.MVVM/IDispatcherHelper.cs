@@ -1,11 +1,10 @@
 using System;
 using System.Threading.Tasks;
 
-namespace LogService.Client.MVVM
+namespace LogService.Client.MVVM;
+
+public interface IDispatcherHelper
 {
-	public interface IDispatcherHelper
-	{
-		void BeginInvokeOnMainThread(Action action);
-		Task BeginInvokeOnMainThread(Func<Task> action);
-	}
+	void BeginInvokeOnMainThread(Action action);
+	Task BeginInvokeOnMainThread(Func<Task> action);
 }

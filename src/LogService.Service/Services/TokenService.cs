@@ -8,104 +8,103 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 
-namespace LogService.Service.Services
+namespace LogService.Service.Services;
+
+public class TokenService
 {
-	public class TokenService
+	private readonly IUserService _userService;
+	private readonly ServiceConfiguration _serviceConfiguration;
+
+	public TokenService(
+		IUserService userService,
+		ServiceConfiguration serviceConfiguration)
 	{
-		private readonly IUserService _userService;
-		private readonly ServiceConfiguration _serviceConfiguration;
+		_userService = userService;
+		_serviceConfiguration = serviceConfiguration;
+	}
 
-		public TokenService(
-			IUserService userService,
-			ServiceConfiguration serviceConfiguration)
+	public static TokenValidationParameters GetValidationParameters(string secret)
+	{
+		var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
+
+		return new TokenValidationParameters
 		{
-			_userService = userService;
-			_serviceConfiguration = serviceConfiguration;
+			ValidateLifetime = true,
+			LifetimeValidator = (before, expires, token, param) =>
+			{
+				return expires > DateTime.UtcNow;
+			},
+			ValidateAudience = false,
+			ValidateIssuer = false,
+			ValidateActor = false,
+			ValidateIssuerSigningKey = true,
+			IssuerSigningKey = key
+		};
+	}
+
+	public TokenValidationParameters GetValidationParameters()
+	{
+		return GetValidationParameters(_serviceConfiguration.Secret);
+	}
+
+	public string GetRefreshToken(string username, Guid userId)
+	{
+		var claim = new[]
+		{
+			new Claim(ClaimTypes.Name, username),
+			new Claim(ClaimTypes.NameIdentifier, userId.ToString())
+		};
+
+		var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_serviceConfiguration.Secret));
+		var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+		var jwtToken = new JwtSecurityToken(
+			issuer: "LogService.Service",
+			audience: "LogService.Service",
+			claims: claim,
+			expires: DateTime.UtcNow.AddMinutes(7),
+			signingCredentials: credentials
+		);
+
+		var token = new JwtSecurityTokenHandler().WriteToken(jwtToken);
+		return token;
+	}
+
+	public async Task<string?> GetToken(string username, string password)
+	{
+		var user = await _userService.GetUserModelFromName(username).ConfigureAwait(false);
+
+		if (user == null)
+		{
+			return null;
 		}
 
-		public static TokenValidationParameters GetValidationParameters(string secret)
-		{
-			var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
+		var bytes = Encoding.UTF8.GetBytes(password);
+		var userUasswordHash = SHA256.HashData(bytes);
 
-			return new TokenValidationParameters
-			{
-				ValidateLifetime = true,
-				LifetimeValidator = (before, expires, token, param) =>
-				{
-					return expires > DateTime.UtcNow;
-				},
-				ValidateAudience = false,
-				ValidateIssuer = false,
-				ValidateActor = false,
-				ValidateIssuerSigningKey = true,
-				IssuerSigningKey = key
-			};
+		if (!Enumerable.SequenceEqual(user.PasswordHash, userUasswordHash))
+		{
+			return null;
 		}
 
-		public TokenValidationParameters GetValidationParameters()
+		var claim = new[]
 		{
-			return GetValidationParameters(_serviceConfiguration.Secret);
-		}
+			new Claim(ClaimTypes.Name, username),
+			new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+		};
 
-		public string GetRefreshToken(string username, Guid userId)
-		{
-			var claim = new[]
-			{
-				new Claim(ClaimTypes.Name, username),
-				new Claim(ClaimTypes.NameIdentifier, userId.ToString())
-			};
+		var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_serviceConfiguration.Secret));
+		var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-			var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_serviceConfiguration.Secret));
-			var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature);
+		var jwtToken = new JwtSecurityToken(
+			issuer: "LogService.Service",
+			audience: "LogService.Service",
+			claims: claim,
+			expires: DateTime.UtcNow.AddDays(7),
+			signingCredentials: credentials
+		);
 
-			var jwtToken = new JwtSecurityToken(
-				issuer: "LogService.Service",
-				audience: "LogService.Service",
-				claims: claim,
-				expires: DateTime.UtcNow.AddMinutes(7),
-				signingCredentials: credentials
-			);
-
-			var token = new JwtSecurityTokenHandler().WriteToken(jwtToken);
-			return token;
-		}
-
-		public async Task<string> GetToken(string username, string password)
-		{
-			var user = await _userService.GetUserModelFromName(username).ConfigureAwait(false);
-
-			if (user == null)
-			{
-				return null;
-			}
-
-			var bytes = Encoding.UTF8.GetBytes(password);
-			var userUasswordHash = SHA256.HashData(bytes);
-
-			if (!Enumerable.SequenceEqual(user.PasswordHash, userUasswordHash))
-			{
-				return null;
-			}
-
-			var claim = new[]
-			{
-				new Claim(ClaimTypes.Name, username),
-				new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
-			};
-
-			var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_serviceConfiguration.Secret));
-			var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature);
-
-			var jwtToken = new JwtSecurityToken(
-				issuer: "LogService.Service",
-				audience: "LogService.Service",
-				claims: claim,
-				expires: DateTime.UtcNow.AddDays(7),
-				signingCredentials: credentials
-			);
-
-			var token = new JwtSecurityTokenHandler().WriteToken(jwtToken);
-			return token;
-		}
+		var token = new JwtSecurityTokenHandler().WriteToken(jwtToken);
+		return token;
 	}
 }

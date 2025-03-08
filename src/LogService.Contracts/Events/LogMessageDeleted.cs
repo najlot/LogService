@@ -1,17 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 
-namespace LogService.Contracts.Events
+namespace LogService.Contracts.Events;
+
+public class LogMessageDeleted(Guid id)
 {
-	public class LogMessageDeleted
-	{
-		public Guid Id { get; set; }
-
-		private LogMessageDeleted() { }
-
-		public LogMessageDeleted(Guid id)
-		{
-			Id = id;
-		}
-	}
+	public Guid Id { get; } = id;
 }

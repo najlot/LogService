@@ -12,158 +12,161 @@ using LogService.Contracts.ListItems;
 using System.Text;
 using System.Security.Cryptography;
 
-namespace LogService.Service.Services
-{
-	public class UserService : IUserService
-	{
-		private readonly IUserRepository _userRepository;
-		private readonly IPublisher _publisher;
+namespace LogService.Service.Services;
 
-		public UserService(
-			IUserRepository userRepository,
-			IPublisher publisher)
+public class UserService : IUserService
+{
+	private readonly IUserRepository _userRepository;
+	private readonly IPublisher _publisher;
+
+	public UserService(
+		IUserRepository userRepository,
+		IPublisher publisher)
+	{
+		_userRepository = userRepository;
+		_publisher = publisher;
+	}
+
+	public async Task CreateUser(CreateUser command, Guid userId)
+	{
+		var username = command.Username.Normalize().ToLower();
+
+		var user = await _userRepository.Get(username).ConfigureAwait(false);
+		if (user != null)
 		{
-			_userRepository = userRepository;
-			_publisher = publisher;
+			throw new InvalidOperationException("User already exists!");
 		}
 
-		public async Task CreateUser(CreateUser command, Guid userId)
+		if (command.Password.Trim().Length < 6)
 		{
-			command.Username = command.Username.Normalize().ToLower();
+			throw new InvalidOperationException("Password too short!");
+		}
 
-			var user = await _userRepository.Get(command.Username).ConfigureAwait(false);
-			if (user != null)
-			{
-				throw new InvalidOperationException("User already exists!");
-			}
+		var passwordBytes = Encoding.UTF8.GetBytes(command.Password);
 
+		var item = new UserModel()
+		{
+			Id = command.Id,
+			Username = username,
+			EMail = command.EMail,
+			PasswordHash = SHA256.HashData(passwordBytes),
+			IsActive = true
+		};
+
+		await _userRepository.Insert(item).ConfigureAwait(false);
+
+		await _publisher.PublishAsync(new UserCreated(
+			command.Id,
+			username,
+			command.EMail)).ConfigureAwait(false);
+	}
+
+	public async Task UpdateUser(UpdateUser command, Guid userId)
+	{
+		var username = command.Username.Normalize().ToLower();
+
+		var item = await _userRepository.Get(command.Id).ConfigureAwait(false);
+
+		if (item == null)
+		{
+			throw new InvalidOperationException("User not found!");
+		}
+
+		item.Username = item.Username.Normalize().ToLower();
+
+		if (item.Id != userId)
+		{
+			throw new InvalidOperationException("You must not modify other users!");
+		}
+
+		if (item.Username != username)
+		{
+			throw new InvalidOperationException("Username can not be modified!");
+		}
+
+		item.Username = username;
+		item.EMail = command.EMail;
+
+		if (!string.IsNullOrWhiteSpace(command.Password))
+		{
 			if (command.Password.Trim().Length < 6)
 			{
 				throw new InvalidOperationException("Password too short!");
 			}
 
 			var passwordBytes = Encoding.UTF8.GetBytes(command.Password);
-
-			var item = new UserModel()
-			{
-				Id = command.Id,
-				Username = command.Username,
-				EMail = command.EMail,
-				PasswordHash = SHA256.HashData(passwordBytes),
-				IsActive = true
-			};
-
-			await _userRepository.Insert(item).ConfigureAwait(false);
-
-			await _publisher.PublishAsync(new UserCreated(
-				command.Id,
-				command.Username,
-				command.EMail)).ConfigureAwait(false);
+			item.PasswordHash = SHA256.HashData(passwordBytes);
 		}
 
-		public async Task UpdateUser(UpdateUser command, Guid userId)
+		await _userRepository.Update(item).ConfigureAwait(false);
+
+		await _publisher.PublishAsync(new UserUpdated(
+			command.Id,
+			username,
+			command.EMail)).ConfigureAwait(false);
+	}
+
+	public async Task DeleteUser(Guid id, Guid userId)
+	{
+		var item = await _userRepository.Get(id).ConfigureAwait(false);
+
+		if (item == null)
 		{
-			command.Username = command.Username.Normalize().ToLower();
-
-			var item = await _userRepository.Get(command.Id).ConfigureAwait(false);
-
-			item.Username = item.Username.Normalize().ToLower();
-
-			if (item.Id != userId)
-			{
-				throw new InvalidOperationException("You must not modify other users!");
-			}
-
-			if (item.Username != command.Username)
-			{
-				throw new InvalidOperationException("Username can not be modified!");
-			}
-
-			item.Username = command.Username;
-			item.EMail = command.EMail;
-
-			if (!string.IsNullOrWhiteSpace(command.Password))
-			{
-				if (command.Password.Trim().Length < 6)
-				{
-					throw new InvalidOperationException("Password too short!");
-				}
-
-				var passwordBytes = Encoding.UTF8.GetBytes(command.Password);
-				item.PasswordHash = SHA256.HashData(passwordBytes);
-			}
-
-			await _userRepository.Update(item).ConfigureAwait(false);
-
-			await _publisher.PublishAsync(new UserUpdated(
-				command.Id,
-				command.Username,
-				command.EMail)).ConfigureAwait(false);
+			throw new InvalidOperationException("User not found!");
 		}
 
-		public async Task DeleteUser(Guid id, Guid userId)
+		if (item.Id != userId)
 		{
-			var item = await _userRepository.Get(id).ConfigureAwait(false);
-
-			if (item.Id != userId)
-			{
-				throw new InvalidOperationException("You must not delete other user!");
-			}
-
-			item.IsActive = false;
-
-			await _userRepository.Update(item).ConfigureAwait(false);
-
-			await _publisher.PublishAsync(new UserDeleted(id)).ConfigureAwait(false);
+			throw new InvalidOperationException("You must not delete other user!");
 		}
 
-		public async Task<User> GetItemAsync(Guid id)
-		{
-			var item = await _userRepository.Get(id).ConfigureAwait(false);
+		item.IsActive = false;
 
-			if (item == null)
+		await _userRepository.Update(item).ConfigureAwait(false);
+
+		await _publisher.PublishAsync(new UserDeleted(id)).ConfigureAwait(false);
+	}
+
+	public async Task<User?> GetItemAsync(Guid id)
+	{
+		var item = await _userRepository.Get(id).ConfigureAwait(false);
+
+		if (item == null)
+		{
+			return null;
+		}
+
+		return new User
+		{
+			Id = item.Id,
+			Username = item.Username,
+			EMail = item.EMail,
+		};
+	}
+
+	public async IAsyncEnumerable<UserListItem> GetItemsForUserAsync(Guid userId)
+	{
+		await foreach (var item in _userRepository.GetAll().ConfigureAwait(false))
+		{
+			if (!item.IsActive)
 			{
-				return null;
+				continue;
 			}
 
-			return new User
+			yield return new UserListItem
 			{
 				Id = item.Id,
 				Username = item.Username,
 				EMail = item.EMail,
 			};
 		}
+	}
 
-		public async IAsyncEnumerable<UserListItem> GetItemsForUserAsync(Guid userId)
-		{
-			await foreach (var item in _userRepository.GetAll().ConfigureAwait(false))
-			{
-				if (!item.IsActive)
-				{
-					continue;
-				}
+	public async Task<UserModel?> GetUserModelFromName(string username)
+	{
+		username = username.Normalize().ToLower();
 
-				yield return new UserListItem
-				{
-					Id = item.Id,
-					Username = item.Username,
-					EMail = item.EMail,
-				};
-			}
-		}
-
-		public async Task<UserModel> GetUserModelFromId(Guid id)
-		{
-			var user = await _userRepository.Get(id).ConfigureAwait(false);
-			return user;
-		}
-
-		public async Task<UserModel> GetUserModelFromName(string username)
-		{
-			username = username.Normalize().ToLower();
-
-			var user = await _userRepository.Get(username).ConfigureAwait(false);
-			return user;
-		}
+		var user = await _userRepository.Get(username).ConfigureAwait(false);
+		return user;
 	}
 }
