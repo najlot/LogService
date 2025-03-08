@@ -22,13 +22,13 @@ internal sealed class UserMappings
 		to.Password = from.Password;
 	}
 
-	public CreateUser MapToCreate(UserModel item) => 
+	public CreateUser MapToCreate(UserModel item) =>
 		new(item.Id,
 			item.Username,
 			item.EMail,
 			item.Password);
 
-	public UpdateUser MapToUpdate(UserModel item) => 
+	public UpdateUser MapToUpdate(UserModel item) =>
 		new(item.Id,
 			item.Username,
 			item.EMail,

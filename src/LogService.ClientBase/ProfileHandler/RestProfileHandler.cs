@@ -42,13 +42,13 @@ public sealed class RestProfileHandler : AbstractProfileHandler
 
 			var requestClient = CreateRequestClient();
 			var tokenProvider = new TokenProvider(CreateRequestClient, _profile.ServerUser, _profile.ServerPassword);
-			
+
 			var token = await tokenProvider.GetToken();
 
 			var serverUri = new Uri(_profile.ServerName);
 			var signalRUri = new Uri(serverUri, "/cosei");
 
-			var subscriber = new SignalRSubscriber(signalRUri.AbsoluteUri, 
+			var subscriber = new SignalRSubscriber(signalRUri.AbsoluteUri,
 				options =>
 				{
 					options.Headers.Add("Authorization", $"Bearer {token}");

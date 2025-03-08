@@ -10,7 +10,7 @@ public sealed class SubscriberProvider(
 	ILogger<SubscriberProvider> logger) : ISubscriberProvider, IAsyncDisposable
 {
 	private SignalRSubscriber? _subscriber;
-	
+
 	public async Task<ISubscriber> GetSubscriber()
 	{
 		if (_subscriber == null)

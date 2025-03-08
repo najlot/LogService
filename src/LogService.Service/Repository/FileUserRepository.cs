@@ -20,7 +20,7 @@ public class FileUserRepository : IUserRepository
 		Directory.CreateDirectory(_storagePath);
 	}
 
-	public async IAsyncEnumerable<UserModel> GetAll()	
+	public async IAsyncEnumerable<UserModel> GetAll()
 	{
 		foreach (var path in Directory.GetFiles(_storagePath))
 		{

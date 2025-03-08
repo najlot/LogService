@@ -46,7 +46,7 @@ public class Program
 				Path.Combine("logs", ".logs"),
 				true)
 			.ReadConfigurationFromXmlFile(configPath, true, true);
-			
+
 		var builder = WebApplication.CreateBuilder(args);
 
 		builder.Services.AddSingleton(new Map().RegisterDataMappings());
