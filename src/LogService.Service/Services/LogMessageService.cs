@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Najlot.Map;
 using LogService.Contracts;
 using LogService.Service.Model;
 using LogService.Service.Repository;
@@ -17,46 +18,26 @@ public class LogMessageService
 {
 	private readonly ILogMessageRepository _logMessageRepository;
 	private readonly IPublisher _publisher;
+	private readonly IMap _map;
 
 	public LogMessageService(
 		ILogMessageRepository logMessageRepository,
-		IPublisher publisher)
+		IPublisher publisher,
+		IMap map)
 	{
 		_logMessageRepository = logMessageRepository;
 		_publisher = publisher;
+		_map = map;
 	}
 
 	public async Task CreateLogMessage(CreateLogMessage command, Guid userId)
 	{
-		var item = new LogMessageModel()
-		{
-			Id = command.Id,
-			DateTime = command.DateTime,
-			LogLevel = command.LogLevel,
-			Category = command.Category,
-			State = command.State,
-			Source = command.Source,
-			RawMessage = command.RawMessage,
-			Message = command.Message,
-			Exception = command.Exception,
-			ExceptionIsValid = command.ExceptionIsValid,
-			Arguments = command.Arguments,
-		};
+		var item = _map.From(command).To<LogMessageModel>();
 
 		await _logMessageRepository.Insert(item).ConfigureAwait(false);
 
-		await _publisher.PublishAsync(new LogMessageCreated(
-			command.Id,
-			command.DateTime,
-			command.LogLevel,
-			command.Category,
-			command.State,
-			command.Source,
-			command.RawMessage,
-			command.Message,
-			command.Exception,
-			command.ExceptionIsValid,
-			command.Arguments)).ConfigureAwait(false);
+		var message = _map.From(item).To<LogMessageCreated>();
+		await _publisher.PublishAsync(message).ConfigureAwait(false);
 	}
 
 	public async Task UpdateLogMessage(UpdateLogMessage command, Guid userId)
@@ -68,81 +49,29 @@ public class LogMessageService
 			throw new InvalidOperationException("LogMessage not found!");
 		}
 
-		item.DateTime = command.DateTime;
-		item.LogLevel = command.LogLevel;
-		item.Category = command.Category;
-		item.State = command.State;
-		item.Source = command.Source;
-		item.RawMessage = command.RawMessage;
-		item.Message = command.Message;
-		item.Exception = command.Exception;
-		item.ExceptionIsValid = command.ExceptionIsValid;
-
-		while (item.Arguments.Count > command.Arguments.Count)
-		{
-			item.Arguments.RemoveAt(item.Arguments.Count - 1);
-		}
-
-		while (item.Arguments.Count < command.Arguments.Count)
-		{
-			item.Arguments.Add(new LogArgument());
-		}
-
-		for (int i = 0; i < item.Arguments.Count; i++)
-		{
-			item.Arguments[i].Key = command.Arguments[i].Key;
-			item.Arguments[i].Value = command.Arguments[i].Value;
-		}
+		_map.From(command).To(item);
 
 		await _logMessageRepository.Update(item).ConfigureAwait(false);
 
-		await _publisher.PublishAsync(new LogMessageUpdated(
-			command.Id,
-			command.DateTime,
-			command.LogLevel,
-			command.Category,
-			command.State,
-			command.Source,
-			command.RawMessage,
-			command.Message,
-			command.Exception,
-			command.ExceptionIsValid,
-			command.Arguments)).ConfigureAwait(false);
+		var message = _map.From(item).To<LogMessageUpdated>();
+		await _publisher.PublishAsync(message).ConfigureAwait(false);
 	}
 
 	public async Task DeleteLogMessage(Guid id, Guid userId)
 	{
 		await _logMessageRepository.Delete(id).ConfigureAwait(false);
 
-		await _publisher.PublishAsync(new LogMessageDeleted(id)).ConfigureAwait(false);
+		var message = new LogMessageDeleted(id);
+		await _publisher.PublishAsync(message).ConfigureAwait(false);
 	}
 
 	public async Task<LogMessage?> GetItemAsync(Guid id, Guid userId)
 	{
 		var item = await _logMessageRepository.Get(id).ConfigureAwait(false);
-
-		if (item == null)
-		{
-			return null;
-		}
-
-		return new LogMessage
-		{
-			Id = item.Id,
-			DateTime = item.DateTime,
-			LogLevel = item.LogLevel,
-			Category = item.Category,
-			State = item.State,
-			Source = item.Source,
-			RawMessage = item.RawMessage,
-			Message = item.Message,
-			Exception = item.Exception,
-			ExceptionIsValid = item.ExceptionIsValid,
-			Arguments = item.Arguments,
-		};
+		return _map.FromNullable(item)?.To<LogMessage>();
 	}
 
-	public async IAsyncEnumerable<LogMessageListItem> GetItemsForUserAsync(LogMessageFilter filter, Guid userId)
+	public IAsyncEnumerable<LogMessageListItem> GetItemsForUserAsync(LogMessageFilter filter, Guid userId)
 	{
 		var enumerable = _logMessageRepository.GetAll();
 
@@ -167,27 +96,12 @@ public class LogMessageService
 		if (filter.ExceptionIsValid != null)
 			enumerable = enumerable.Where(e => e.ExceptionIsValid == filter.ExceptionIsValid);
 
-		await foreach (var item in enumerable.ConfigureAwait(false))
-		{
-			yield return new LogMessageListItem
-			{
-				Id = item.Id,
-				DateTime = item.DateTime,
-				LogLevel = item.LogLevel,
-			};
-		}
+		return _map.From(enumerable).To<LogMessageListItem>();
 	}
 
-	public async IAsyncEnumerable<LogMessageListItem> GetItemsForUserAsync(Guid userId)
+	public IAsyncEnumerable<LogMessageListItem> GetItemsForUserAsync(Guid userId)
 	{
-		await foreach (var item in _logMessageRepository.GetAll().ConfigureAwait(false))
-		{
-			yield return new LogMessageListItem
-			{
-				Id = item.Id,
-				DateTime = item.DateTime,
-				LogLevel = item.LogLevel,
-			};
-		}
+		var enumerable = _logMessageRepository.GetAll();
+		return _map.From(enumerable).To<LogMessageListItem>();
 	}
 }

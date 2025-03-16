@@ -62,7 +62,7 @@ public class TokenService
 			issuer: "LogService.Service",
 			audience: "LogService.Service",
 			claims: claim,
-			expires: DateTime.UtcNow.AddMinutes(7),
+			expires: DateTime.UtcNow.AddDays(7),
 			signingCredentials: credentials
 		);
 

@@ -27,7 +27,7 @@ public class UserController : ControllerBase
 	public async Task<ActionResult<List<UserListItem>>> List()
 	{
 		var userId = User.GetUserId();
-		var query = _userService.GetItemsForUserAsync(userId);
+		var query = _userService.GetItemsForUser(userId);
 		var items = await query.ToListAsync().ConfigureAwait(false);
 		return Ok(items);
 	}
@@ -36,7 +36,7 @@ public class UserController : ControllerBase
 	public async Task<ActionResult<User>> GetCurrentUser()
 	{
 		var userId = User.GetUserId();
-		var item = await _userService.GetItemAsync(userId).ConfigureAwait(false);
+		var item = await _userService.GetItem(userId).ConfigureAwait(false);
 		if (item == null)
 		{
 			return NotFound();
@@ -48,7 +48,7 @@ public class UserController : ControllerBase
 	[HttpGet("{id}")]
 	public async Task<ActionResult<User>> GetItem(Guid id)
 	{
-		var item = await _userService.GetItemAsync(id).ConfigureAwait(false);
+		var item = await _userService.GetItem(id).ConfigureAwait(false);
 		if (item == null)
 		{
 			return NotFound();

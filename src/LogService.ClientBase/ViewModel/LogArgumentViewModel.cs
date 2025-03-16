@@ -19,26 +19,26 @@ namespace LogService.ClientBase.ViewModel;
 
 public class LogArgumentViewModel : AbstractValidationViewModel
 {
-	private bool _isBusy;
-	private LogArgumentModel _item;
-	private Guid _parentId;
-
 	private readonly IErrorService _errorService;
 	private readonly INavigationService _navigationService;
 	private readonly IMessenger _messenger;
 	private readonly IMap _map;
 
-	public LogArgumentModel Item
-	{
-		get => _item;
-		set
-		{
-			Set(nameof(Item), ref _item, value);
-		}
-	}
 
-	public bool IsBusy { get => _isBusy; private set => Set(nameof(IsBusy), ref _isBusy, value); }
+	private int _id;
+	public int Id { get => _id; set => Set(ref _id, value); }
+
+	private string _key = string.Empty;
+	public string Key { get => _key; set => Set(ref _key, value); }
+
+	private string _value = string.Empty;
+	public string Value { get => _value; set => Set(ref _value, value); }
+
+	private bool _isBusy;
+	public bool IsBusy { get => _isBusy; private set => Set(ref _isBusy, value); }
+
 	public bool IsNew { get; set; }
+	private Guid _parentId;
 	public Guid ParentId { get => _parentId; set => Set(nameof(ParentId), ref _parentId, value); }
 
 	public LogArgumentViewModel(
@@ -103,7 +103,10 @@ public class LogArgumentViewModel : AbstractValidationViewModel
 			}
 
 			await _navigationService.NavigateBack();
-			await _messenger.SendAsync(new SaveLogArgument(_parentId, Item));
+
+			var model = _map.From(this).To<LogArgumentModel>();
+			await _messenger.SendAsync(new SaveLogArgument(_parentId, model));
+
 			IsNew = false;
 		}
 		catch (Exception ex)
@@ -143,7 +146,7 @@ public class LogArgumentViewModel : AbstractValidationViewModel
 					await _navigationService.NavigateBack();
 				}
 
-				await _messenger.SendAsync(new DeleteLogArgument(_parentId, Item.Id));
+				await _messenger.SendAsync(new DeleteLogArgument(_parentId, Id));
 			}
 		}
 		catch (Exception ex)
@@ -167,7 +170,7 @@ public class LogArgumentViewModel : AbstractValidationViewModel
 		try
 		{
 			IsBusy = true;
-			await _messenger.SendAsync(new EditLogArgument(_parentId, Item.Id));
+			await _messenger.SendAsync(new EditLogArgument(_parentId, Id));
 		}
 		catch (Exception ex)
 		{

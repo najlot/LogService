@@ -43,40 +43,40 @@
 						HorizontalAlignment="Center" VerticalAlignment="Center">
 				<DockPanel Margin="5">
 					<Label Content="{x:Static loc:LogMessageLoc.DateTime}" MinWidth="75" />
-					<DatePicker SelectedDate="{Binding Item.DateTime}" />
+					<DatePicker SelectedDate="{Binding DateTime}" />
 				</DockPanel>
 				<DockPanel Margin="5">
 					<Label Content="{x:Static loc:LogMessageLoc.LogLevel}" MinWidth="75" />
 					<ComboBox ItemsSource="{Binding AvailableLogLevels, Converter={StaticResource EnumToTranslationConverter}, ConverterParameter={x:Type loc:LogLevelLoc}}" 
-							  SelectedItem="{Binding Item.LogLevel, Converter={StaticResource EnumToTranslationConverter}, ConverterParameter={x:Type loc:LogLevelLoc}}" />
+							  SelectedItem="{Binding LogLevel, Converter={StaticResource EnumToTranslationConverter}, ConverterParameter={x:Type loc:LogLevelLoc}}" />
 				</DockPanel>
 				<DockPanel Margin="5">
 					<Label Content="{x:Static loc:LogMessageLoc.Category}" MinWidth="75" />
-					<TextBox Text="{Binding Item.Category}" />
+					<TextBox Text="{Binding Category}" />
 				</DockPanel>
 				<DockPanel Margin="5">
 					<Label Content="{x:Static loc:LogMessageLoc.State}" MinWidth="75" />
-					<TextBox Text="{Binding Item.State}" />
+					<TextBox Text="{Binding State}" />
 				</DockPanel>
 				<DockPanel Margin="5">
 					<Label Content="{x:Static loc:LogMessageLoc.Source}" MinWidth="75" />
-					<TextBox Text="{Binding Item.Source}" />
+					<TextBox Text="{Binding Source}" />
 				</DockPanel>
 				<DockPanel Margin="5">
 					<Label Content="{x:Static loc:LogMessageLoc.RawMessage}" MinWidth="75" />
-					<TextBox Text="{Binding Item.RawMessage}" />
+					<TextBox Text="{Binding RawMessage}" />
 				</DockPanel>
 				<DockPanel Margin="5">
 					<Label Content="{x:Static loc:LogMessageLoc.Message}" MinWidth="75" />
-					<TextBox Text="{Binding Item.Message}" />
+					<TextBox Text="{Binding Message}" />
 				</DockPanel>
 				<DockPanel Margin="5">
 					<Label Content="{x:Static loc:LogMessageLoc.Exception}" MinWidth="75" />
-					<TextBox Text="{Binding Item.Exception}" />
+					<TextBox Text="{Binding Exception}" />
 				</DockPanel>
 				<DockPanel Margin="5">
 					<Label Content="" MinWidth="75" />
-					<CheckBox IsChecked="{Binding Item.ExceptionIsValid}" Content="{x:Static loc:LogMessageLoc.ExceptionIsValid}" />
+					<CheckBox IsChecked="{Binding ExceptionIsValid}" Content="{x:Static loc:LogMessageLoc.ExceptionIsValid}" />
 				</DockPanel>
 				<DockPanel>
 					<DockPanel DockPanel.Dock="Top">
@@ -116,7 +116,7 @@
 							<DataGridTemplateColumn Header="{x:Static loc:LogArgumentLoc.Key}" Width="SizeToCells" MinWidth="100">
 								<DataGridTemplateColumn.CellTemplate>
 									<DataTemplate>
-										<TextBox Text="{Binding Item.Key, UpdateSourceTrigger=PropertyChanged}" Background="Transparent" BorderThickness="0" />
+										<TextBox Text="{Binding Key, UpdateSourceTrigger=PropertyChanged}" Background="Transparent" BorderThickness="0" />
 									</DataTemplate>
 								</DataGridTemplateColumn.CellTemplate>
 							</DataGridTemplateColumn>
@@ -124,7 +124,7 @@
 							<DataGridTemplateColumn Header="{x:Static loc:LogArgumentLoc.Value}" Width="SizeToCells" MinWidth="100">
 								<DataGridTemplateColumn.CellTemplate>
 									<DataTemplate>
-										<TextBox Text="{Binding Item.Value, UpdateSourceTrigger=PropertyChanged}" Background="Transparent" BorderThickness="0" />
+										<TextBox Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" Background="Transparent" BorderThickness="0" />
 									</DataTemplate>
 								</DataGridTemplateColumn.CellTemplate>
 							</DataGridTemplateColumn>

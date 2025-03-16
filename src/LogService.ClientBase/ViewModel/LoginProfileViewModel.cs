@@ -1,8 +1,7 @@
-﻿using LogService.ClientBase.Messages;
-using LogService.ClientBase.Models;
-using System;
-using System.Windows.Input;
+﻿using System.Windows.Input;
 using System.Threading.Tasks;
+using LogService.ClientBase.Messages;
+using LogService.ClientBase.Models;
 using LogService.Client.MVVM;
 using LogService.Client.MVVM.ViewModel;
 using LogService.Client.MVVM.Services;

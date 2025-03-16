@@ -1,5 +1,5 @@
-using LogService.Client.Data.Mappings;
 using Najlot.Map;
+using LogService.Client.Data.Mappings;
 
 namespace LogService.Client.Data;
 

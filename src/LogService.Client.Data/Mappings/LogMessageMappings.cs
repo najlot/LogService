@@ -61,6 +61,20 @@ internal sealed class LogMessageMappings
 			from.ExceptionIsValid,
 			map.From<LogArgumentModel>(from.Arguments).ToList<LogArgument>());
 
+	public void MapToModel(IMap map, LogMessageCreated from, LogMessageListItemModel to)
+	{
+		to.Id = from.Id;
+		to.DateTime = from.DateTime;
+		to.LogLevel = from.LogLevel;
+	}
+
+	public void MapToModel(IMap map, LogMessageUpdated from, LogMessageListItemModel to)
+	{
+		to.Id = from.Id;
+		to.DateTime = from.DateTime;
+		to.LogLevel = from.LogLevel;
+	}
+
 	public void MapToModel(IMap map, LogMessageListItem from, LogMessageListItemModel to)
 	{
 		to.Id = from.Id;

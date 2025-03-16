@@ -18,6 +18,7 @@ using LogService.Client.Data.Repositories;
 using LogService.Client.Data.Repositories.Implementation;
 using LogService.Client.Data.Services;
 using LogService.Client.Data.Services.Implementation;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace LogService.Blazor;
 
@@ -30,8 +31,10 @@ public class Program
 
 	public static void Main(string[] args)
 	{
-		var configPath = Path.Combine("config", "Log.config");
+		var configFolderPath = Path.GetFullPath("config");
+		var configPath = Path.Combine(configFolderPath, "Log.config");
 		configPath = Path.GetFullPath(configPath);
+		Directory.CreateDirectory(configFolderPath);
 
 		LogErrorHandler.Instance.ErrorOccured += LogErrorOccured;
 
@@ -48,8 +51,8 @@ public class Program
 			.ReadConfigurationFromXmlFile(configPath, true, true);
 
 		var builder = WebApplication.CreateBuilder(args);
-
-		builder.Services.AddSingleton(new Map().RegisterDataMappings());
+		var map = new Map();
+		builder.Services.AddSingleton(map.RegisterDataMappings());
 
 		// Configure Logging
 		builder.Logging.ClearProviders();
@@ -90,6 +93,16 @@ public class Program
 		builder.Services.AddScoped<ISubscriberProvider, SubscriberProvider>();
 
 		var app = builder.Build();
+		var serviceProvider = app.Services;
+		map.RegisterFactory(t =>
+		{
+			if (t.GetConstructor(Type.EmptyTypes) is not null)
+			{
+				return Activator.CreateInstance(t) ?? throw new NullReferenceException($"Could not create {t.FullName}. Result is null.");
+			}
+
+			return serviceProvider.GetRequiredService(t);
+		});
 
 		// Configure the HTTP request pipeline.
 		if (!app.Environment.IsDevelopment())
@@ -113,7 +126,7 @@ public class Program
 		app.MapBlazorHub();
 		app.MapFallbackToPage("/_Host");
 
-		var supportedCultures = new[] { "en-US", "de-DE" };
+		var supportedCultures = new[] { "en", "de" };
 		var localizationOptions = new RequestLocalizationOptions()
 			.SetDefaultCulture(supportedCultures[0])
 			.AddSupportedCultures(supportedCultures)

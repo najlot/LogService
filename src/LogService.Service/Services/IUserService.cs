@@ -10,8 +10,8 @@ namespace LogService.Service.Services;
 
 public interface IUserService
 {
-	Task<User?> GetItemAsync(Guid id);
-	IAsyncEnumerable<UserListItem> GetItemsForUserAsync(Guid userId);
+	Task<User?> GetItem(Guid id);
+	IAsyncEnumerable<UserListItem> GetItemsForUser(Guid userId);
 	Task<UserModel?> GetUserModelFromName(string username);
 
 	Task CreateUser(CreateUser command, Guid userId);

@@ -1,51 +1,45 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using LogService.Client.Data.Models;
 using LogService.Client.MVVM;
 using LogService.ClientBase.Messages;
-using LogService.ClientBase.Models;
-using LogService.ClientBase.Services;
-using LogService.ClientBase.Validation;
-using LogService.Contracts;
 
 namespace LogService.ClientBase.ViewModel;
 
 public partial class LogMessageViewModel
 {
-	private ObservableCollection<LogArgumentViewModel> _arguments = new ObservableCollection<LogArgumentViewModel>();
+	private ObservableCollection<LogArgumentViewModel> _arguments = [];
 	public ObservableCollection<LogArgumentViewModel> Arguments { get => _arguments; set => Set(nameof(Arguments), ref _arguments, value); }
 
-	public RelayCommand AddLogArgumentCommand => new RelayCommand(() =>
+	public RelayCommand AddLogArgumentCommand => new(() =>
 	{
 		var max = 0;
 
 		if (Arguments.Count > 0)
 		{
-			max = Arguments.Max(e => e.Item.Id) + 1;
+			max = Arguments.Max(e => e.Id) + 1;
 		}
 
 		var model = new LogArgumentModel() { Id = max };
-
-		var viewModel = _logArgumentViewModelFactory();
-		viewModel.ParentId = Item.Id;
-		viewModel.Item = model;
+		var viewModel = _map.From(model).To<LogArgumentViewModel>();
+		viewModel.Id = max;
+		viewModel.ParentId = Id;
 
 		Arguments.Add(viewModel);
 	});
 
 	public async Task Handle(DeleteLogArgument obj)
 	{
-		if (Item.Id != obj.ParentId)
+		if (Id != obj.ParentId)
 		{
 			return;
 		}
 
 		try
 		{
-			var oldItem = Arguments.FirstOrDefault(i => i.Item.Id == obj.Id);
+			var oldItem = Arguments.FirstOrDefault(i => i.Id == obj.Id);
 
 			if (oldItem != null)
 			{
@@ -70,7 +64,7 @@ public partial class LogMessageViewModel
 			return;
 		}
 
-		if (Item.Id != obj.ParentId)
+		if (Id != obj.ParentId)
 		{
 			return;
 		}
@@ -79,10 +73,9 @@ public partial class LogMessageViewModel
 		{
 			IsBusy = true;
 
-			var vm = Arguments.FirstOrDefault(e => e.Item.Id == obj.Id);
-			var viewModel = _logArgumentViewModelFactory();
-			viewModel.ParentId = Item.Id;
-			viewModel.Item = vm.Item;
+			var vm = Arguments.FirstOrDefault(e => e.Id == obj.Id);
+			var viewModel = _map.From(vm).To<LogArgumentViewModel>();
+			viewModel.ParentId = Id;
 
 			await _navigationService.NavigateForward(viewModel);
 		}
@@ -98,7 +91,7 @@ public partial class LogMessageViewModel
 
 	public async Task Handle(SaveLogArgument obj)
 	{
-		if (Item.Id != obj.ParentId)
+		if (Id != obj.ParentId)
 		{
 			return;
 		}
@@ -106,7 +99,7 @@ public partial class LogMessageViewModel
 		try
 		{
 			int index = -1;
-			var oldItem = Arguments.FirstOrDefault(i => i.Item.Id == obj.Item.Id);
+			var oldItem = Arguments.FirstOrDefault(i => i.Id == obj.Item.Id);
 
 			if (oldItem != null)
 			{
@@ -118,9 +111,8 @@ public partial class LogMessageViewModel
 				}
 			}
 
-			var viewModel = _logArgumentViewModelFactory();
-			viewModel.ParentId = Item.Id;
-			viewModel.Item = obj.Item;
+			var viewModel = _map.From(obj).To<LogArgumentViewModel>();
+			viewModel.ParentId = Id;
 
 			if (index == -1)
 			{

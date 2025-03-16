@@ -55,9 +55,9 @@ public class FileUserRepository : IUserRepository
 		{
 			var bytes = await File.ReadAllBytesAsync(path).ConfigureAwait(false);
 			var text = Encoding.UTF8.GetString(bytes);
-			var item = JsonSerializer.Deserialize<UserModel>(text, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
+			var item = JsonSerializer.Deserialize<UserModel>(text, _options);
 
-			if (item is not null && item.Username == username && item.IsActive)
+			if (item is not null && item.IsActive && item.Username == username)
 			{
 				return item;
 			}

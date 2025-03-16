@@ -10,6 +10,7 @@
 @using LogService.Client.Localisation;
 @using LogService.Contracts.Events;
 @inject ILogger<LogMessages> Log
+@inject Najlot.Map.IMap Map
 @inject ILogMessageService LogMessageService
 @inject ISubscriberProvider SubscriberProvider
 @inject IAuthenticationService AuthenticationService
@@ -103,12 +104,7 @@ else
 			return;
 		}
 
-		var item = new LogMessageListItemModel()
-		{
-			Id = message.Id,
-			DateTime = message.DateTime,
-			LogLevel = message.LogLevel
-		};
+		var item = Map.From(message).To<LogMessageListItemModel>();
 
 		logMessages.Insert(0, item);
 
@@ -126,8 +122,7 @@ else
 
 		if (entry is not null)
 		{
-			entry.DateTime = message.DateTime;
-			entry.LogLevel = message.LogLevel;
+			Map.From(message).To(entry);
 		}
 
 		await InvokeAsync(StateHasChanged);

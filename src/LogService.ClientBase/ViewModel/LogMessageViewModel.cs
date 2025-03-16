@@ -19,56 +19,56 @@ namespace LogService.ClientBase.ViewModel;
 
 public partial class LogMessageViewModel : AbstractValidationViewModel
 {
-	private bool _isBusy;
-	private LogMessageModel _item;
-
-	public List<LogLevel> AvailableLogLevels { get; } = new(Enum.GetValues(typeof(LogLevel)) as LogLevel[]);
-
-	private readonly Func<LogArgumentViewModel> _logArgumentViewModelFactory;
 	private readonly IErrorService _errorService;
 	private readonly INavigationService _navigationService;
 	private readonly ILogMessageService _logMessageService;
 	private readonly IMessenger _messenger;
 	private readonly IMap _map;
 
-	public LogMessageModel Item
-	{
-		get => _item;
-		set
-		{
-			Set(nameof(Item), ref _item, value);
+	public List<LogLevel> AvailableLogLevels { get; } = new(Enum.GetValues(typeof(LogLevel)) as LogLevel[]);
 
-			if (Item.Arguments == null)
-			{
-				Arguments = new();
-			}
-			else
-			{
-				Arguments = new(Item.Arguments.Select(e =>
-				{
-					var model = _map.From(e).To<LogArgumentModel>();
-					var viewModel = _logArgumentViewModelFactory();
-					viewModel.ParentId = Item.Id;
-					viewModel.Item = model;
-					return viewModel;
-				}));
-			}
-		}
-	}
+	private Guid _id;
+	public Guid Id { get => _id; set => Set(ref _id, value); }
 
-	public bool IsBusy { get => _isBusy; private set => Set(nameof(IsBusy), ref _isBusy, value); }
+	private DateTime _dateTime;
+	public DateTime DateTime { get => _dateTime; set => Set(ref _dateTime, value); }
+
+	private LogLevel _logLevel;
+	public LogLevel LogLevel { get => _logLevel; set => Set(ref _logLevel, value); }
+
+	private string _category = string.Empty;
+	public string Category { get => _category; set => Set(ref _category, value); }
+
+	private string _state = string.Empty;
+	public string State { get => _state; set => Set(ref _state, value); }
+
+	private string _source = string.Empty;
+	public string Source { get => _source; set => Set(ref _source, value); }
+
+	private string _rawMessage = string.Empty;
+	public string RawMessage { get => _rawMessage; set => Set(ref _rawMessage, value); }
+
+	private string _message = string.Empty;
+	public string Message { get => _message; set => Set(ref _message, value); }
+
+	private string _exception = string.Empty;
+	public string Exception { get => _exception; set => Set(ref _exception, value); }
+
+	private bool _exceptionIsValid;
+	public bool ExceptionIsValid { get => _exceptionIsValid; set => Set(ref _exceptionIsValid, value); }
+
+	private bool _isBusy;
+	public bool IsBusy { get => _isBusy; private set => Set(ref _isBusy, value); }
+
 	public bool IsNew { get; set; }
 
 	public LogMessageViewModel(
-		Func<LogArgumentViewModel> logArgumentViewModelFactory,
 		IErrorService errorService,
 		INavigationService navigationService,
 		ILogMessageService logMessageService,
 		IMessenger messenger,
 		IMap map)
 	{
-		_logArgumentViewModelFactory = logArgumentViewModelFactory;
-
 		_errorService = errorService;
 		_navigationService = navigationService;
 		_logMessageService = logMessageService;
@@ -88,21 +88,12 @@ public partial class LogMessageViewModel : AbstractValidationViewModel
 
 	public void Handle(LogMessageUpdated obj)
 	{
-		if (Item.Id != obj.Id)
+		if (Id != obj.Id)
 		{
 			return;
 		}
 
-		Item = _map.From(obj).To<LogMessageModel>();
-
-		Arguments = new(Item.Arguments.Select(e =>
-		{
-			var model = _map.From(e).To<LogArgumentModel>();
-			var viewModel = _logArgumentViewModelFactory();
-			viewModel.ParentId = Item.Id;
-			viewModel.Item = model;
-			return viewModel;
-		}));
+		_map.From(obj).To(this);
 	}
 
 	public AsyncCommand SaveCommand { get; }
@@ -116,8 +107,6 @@ public partial class LogMessageViewModel : AbstractValidationViewModel
 		try
 		{
 			IsBusy = true;
-
-			Item.Arguments = _map.From(Arguments.Select(e => e.Item)).ToList<LogArgumentModel>();
 
 			var errors = Errors
 				.Where(err => err.Severity > ValidationSeverity.Info)
@@ -147,14 +136,16 @@ public partial class LogMessageViewModel : AbstractValidationViewModel
 
 			await _navigationService.NavigateBack();
 
+			var model = _map.From(this).To<LogMessageModel>();
+
 			if (IsNew)
 			{
-				await _logMessageService.AddItemAsync(Item);
+				await _logMessageService.AddItemAsync(model);
 				IsNew = false;
 			}
 			else
 			{
-				await _logMessageService.UpdateItemAsync(Item);
+				await _logMessageService.UpdateItemAsync(model);
 			}
 		}
 		catch (Exception ex)
@@ -190,7 +181,7 @@ public partial class LogMessageViewModel : AbstractValidationViewModel
 			if (selection)
 			{
 				await _navigationService.NavigateBack();
-				await _logMessageService.DeleteItemAsync(Item.Id);
+				await _logMessageService.DeleteItemAsync(Id);
 			}
 		}
 		catch (Exception ex)

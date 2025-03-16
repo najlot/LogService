@@ -2,15 +2,16 @@ using Cosei.Service.Base;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
+using Najlot.Map;
 using LogService.Contracts;
 using LogService.Service.Model;
 using LogService.Service.Repository;
 using LogService.Contracts.Commands;
 using LogService.Contracts.Events;
 using LogService.Contracts.ListItems;
-using System.Text;
-using System.Security.Cryptography;
 
 namespace LogService.Service.Services;
 
@@ -18,13 +19,16 @@ public class UserService : IUserService
 {
 	private readonly IUserRepository _userRepository;
 	private readonly IPublisher _publisher;
+	private readonly IMap _map;
 
 	public UserService(
 		IUserRepository userRepository,
-		IPublisher publisher)
+		IPublisher publisher,
+		IMap map)
 	{
 		_userRepository = userRepository;
 		_publisher = publisher;
+		_map = map;
 	}
 
 	public async Task CreateUser(CreateUser command, Guid userId)
@@ -43,22 +47,17 @@ public class UserService : IUserService
 		}
 
 		var passwordBytes = Encoding.UTF8.GetBytes(command.Password);
+		var passwordHash = SHA256.HashData(passwordBytes);
 
-		var item = new UserModel()
-		{
-			Id = command.Id,
-			Username = username,
-			EMail = command.EMail,
-			PasswordHash = SHA256.HashData(passwordBytes),
-			IsActive = true
-		};
+		var item = _map.From(command).To<UserModel>();
+		item.Username = username;
+		item.PasswordHash = passwordHash;
+		item.IsActive = true;
 
 		await _userRepository.Insert(item).ConfigureAwait(false);
 
-		await _publisher.PublishAsync(new UserCreated(
-			command.Id,
-			username,
-			command.EMail)).ConfigureAwait(false);
+		var message = _map.From(item).To<UserCreated>();
+		await _publisher.PublishAsync(message).ConfigureAwait(false);
 	}
 
 	public async Task UpdateUser(UpdateUser command, Guid userId)
@@ -72,8 +71,6 @@ public class UserService : IUserService
 			throw new InvalidOperationException("User not found!");
 		}
 
-		item.Username = item.Username.Normalize().ToLower();
-
 		if (item.Id != userId)
 		{
 			throw new InvalidOperationException("You must not modify other users!");
@@ -84,7 +81,6 @@ public class UserService : IUserService
 			throw new InvalidOperationException("Username can not be modified!");
 		}
 
-		item.Username = username;
 		item.EMail = command.EMail;
 
 		if (!string.IsNullOrWhiteSpace(command.Password))
@@ -100,10 +96,8 @@ public class UserService : IUserService
 
 		await _userRepository.Update(item).ConfigureAwait(false);
 
-		await _publisher.PublishAsync(new UserUpdated(
-			command.Id,
-			username,
-			command.EMail)).ConfigureAwait(false);
+		var message = _map.From(item).To<UserUpdated>();
+		await _publisher.PublishAsync(message).ConfigureAwait(false);
 	}
 
 	public async Task DeleteUser(Guid id, Guid userId)
@@ -124,48 +118,25 @@ public class UserService : IUserService
 
 		await _userRepository.Update(item).ConfigureAwait(false);
 
-		await _publisher.PublishAsync(new UserDeleted(id)).ConfigureAwait(false);
+		var message = new UserDeleted(id);
+		await _publisher.PublishAsync(message).ConfigureAwait(false);
 	}
 
-	public async Task<User?> GetItemAsync(Guid id)
+	public async Task<User?> GetItem(Guid id)
 	{
 		var item = await _userRepository.Get(id).ConfigureAwait(false);
-
-		if (item == null)
-		{
-			return null;
-		}
-
-		return new User
-		{
-			Id = item.Id,
-			Username = item.Username,
-			EMail = item.EMail,
-		};
+		return _map.FromNullable(item)?.To<User>();
 	}
 
-	public async IAsyncEnumerable<UserListItem> GetItemsForUserAsync(Guid userId)
+	public IAsyncEnumerable<UserListItem> GetItemsForUser(Guid userId)
 	{
-		await foreach (var item in _userRepository.GetAll().ConfigureAwait(false))
-		{
-			if (!item.IsActive)
-			{
-				continue;
-			}
-
-			yield return new UserListItem
-			{
-				Id = item.Id,
-				Username = item.Username,
-				EMail = item.EMail,
-			};
-		}
+		var items = _userRepository.GetAll().Where(u => u.IsActive);
+		return _map.From(items).To<UserListItem>();
 	}
 
 	public async Task<UserModel?> GetUserModelFromName(string username)
 	{
 		username = username.Normalize().ToLower();
-
 		var user = await _userRepository.Get(username).ConfigureAwait(false);
 		return user;
 	}

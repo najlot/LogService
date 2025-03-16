@@ -24,7 +24,7 @@ public class LoginViewModel : AbstractViewModel
 	private readonly Func<ProfileViewModel> _createProfileViewModel;
 	private readonly Func<LoginProfileViewModel> _createLoginProfileViewModel;
 	private IServiceScope _serviceScope;
-	private ObservableCollection<LoginProfileViewModel> _loginProfiles = new ObservableCollection<LoginProfileViewModel>();
+	private ObservableCollection<LoginProfileViewModel> _loginProfiles = [];
 
 	public ObservableCollection<LoginProfileViewModel> LoginProfiles
 	{

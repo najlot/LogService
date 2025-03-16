@@ -9,6 +9,7 @@ using System;
 using LogService.Service.Configuration;
 using LogService.Service.Repository;
 using LogService.Service.Services;
+using LogService.Service.Mappings;
 
 namespace LogService.Service;
 
@@ -65,6 +66,8 @@ public class Startup
 			rmqConfig.QueueName = "LogService.Service";
 			services.AddCoseiRabbitMq(rmqConfig);
 		}
+
+		services.RegisterDataMappings();
 
 		services.AddCoseiHttp();
 
