@@ -3,23 +3,21 @@ using LogService.Contracts;
 using System;
 using System.Collections.Generic;
 
-namespace LogService.Service.Model
+namespace LogService.Service.Model;
+
+[BsonIgnoreExtraElements]
+public class LogMessageModel
 {
-	[BsonIgnoreExtraElements]
-	public class LogMessageModel
-	{
-		[BsonId]
-		public Guid Id { get; set; }
-		public Guid CreatedBy { get; set; }
-		public DateTime DateTime { get; set; }
-		public LogLevel LogLevel { get; set; }
-		public string Category { get; set; }
-		public string State { get; set; }
-		public string Source { get; set; }
-		public string RawMessage { get; set; }
-		public string Message { get; set; }
-		public string Exception { get; set; }
-		public bool ExceptionIsValid { get; set; }
-		public List<LogArgument> Arguments { get; set; }
-	}
+	[BsonId]
+	public Guid Id { get; set; }
+	public DateTime DateTime { get; set; }
+	public LogLevel LogLevel { get; set; }
+	public string Category { get; set; } = string.Empty;
+	public string State { get; set; } = string.Empty;
+	public string Source { get; set; } = string.Empty;
+	public string RawMessage { get; set; } = string.Empty;
+	public string Message { get; set; } = string.Empty;
+	public string Exception { get; set; } = string.Empty;
+	public bool ExceptionIsValid { get; set; }
+	public List<LogArgument> Arguments { get; set; } = [];
 }

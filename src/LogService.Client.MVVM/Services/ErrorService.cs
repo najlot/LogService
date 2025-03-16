@@ -2,36 +2,35 @@ using System;
 using System.Threading.Tasks;
 using LogService.Client.MVVM.ViewModel;
 
-namespace LogService.Client.MVVM.Services
+namespace LogService.Client.MVVM.Services;
+
+public class ErrorService : IErrorService
 {
-	public class ErrorService : IErrorService
+	private readonly INavigationService _navigationService;
+
+	public ErrorService(INavigationService navigationService)
 	{
-		private readonly INavigationService _navigationService;
+		_navigationService = navigationService;
+	}
 
-		public ErrorService(INavigationService navigationService)
+	public async Task ShowAlertAsync(string message, Exception ex)
+	{
+		await ShowAlertAsync(message, ex.Message);
+	}
+
+	public async Task ShowAlertAsync(Exception ex)
+	{
+		await ShowAlertAsync(ex.GetType().Name, ex.Message);
+	}
+
+	public async Task ShowAlertAsync(string title, string message)
+	{
+		var vm = new AlertViewModel()
 		{
-			_navigationService = navigationService;
-		}
+			Title = title,
+			Message = message
+		};
 
-		public async Task ShowAlertAsync(string message, Exception ex)
-		{
-			await ShowAlertAsync(message, ex.Message);
-		}
-
-		public async Task ShowAlertAsync(Exception ex)
-		{
-			await ShowAlertAsync(ex.GetType().Name, ex.Message);
-		}
-
-		public async Task ShowAlertAsync(string title, string message)
-		{
-			var vm = new AlertViewModel()
-			{
-				Title = title,
-				Message = message
-			};
-
-			await _navigationService.NavigateForward(vm);
-		}
+		await _navigationService.NavigateForward(vm);
 	}
 }

@@ -1,14 +1,20 @@
 using System;
 using System.Security.Claims;
 
-namespace LogService.Service.Controllers
+namespace LogService.Service.Controllers;
+
+public static class ClaimsPrincipalExtensions
 {
-	public static class ClaimsPrincipalExtensions
+	public static Guid GetUserId(this ClaimsPrincipal principal)
 	{
-		public static Guid GetUserId(this ClaimsPrincipal principal)
+		var name = principal.FindFirstValue(ClaimTypes.NameIdentifier);
+
+		if (string.IsNullOrEmpty(name))
 		{
-			var userId = Guid.Parse(principal.FindFirstValue(ClaimTypes.NameIdentifier));
-			return userId;
+			throw new InvalidOperationException("User id not found");
 		}
+
+		var userId = Guid.Parse(name);
+		return userId;
 	}
 }

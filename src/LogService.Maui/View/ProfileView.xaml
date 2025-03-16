@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 xmlns:d="http://schemas.microsoft.com/dotnet/2021/maui/design"
+			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:converter="clr-namespace:LogService.Maui.Converter"
+			 xmlns:loc="clr-namespace:LogService.Client.Localisation;assembly=LogService.Client.Localisation"
+			 mc:Ignorable="d"
+			 Title="Profile"
+			 x:Class="LogService.Maui.View.ProfileView">
+
+	<ContentPage.Resources>
+		<ResourceDictionary>
+			<converter:SourceToVisibilityConverter x:Key="SourceToVisibilityConverter" />
+			<converter:EnumToTranslationConverter x:Key="EnumToTranslationConverter" />
+		</ResourceDictionary>
+	</ContentPage.Resources>
+
+	<ContentPage.ToolbarItems>
+		<ToolbarItem Text="Save" 
+			  Order="Primary"
+			  Priority="0"
+			  IconImageSource="{StaticResource IconSave}"
+			  Command="{Binding SaveCommand}" />
+	</ContentPage.ToolbarItems>
+
+	<ContentPage.Content>
+		<ScrollView>
+			<StackLayout Margin="5">
+				<Label Text="{x:Static loc:ProfileLoc.ProfileType}" />
+				<Picker ItemsSource="{Binding PossibleSources, Converter={d:StaticResource EnumToTranslationConverter}, ConverterParameter={x:Type loc:SourceLoc}}" 
+						SelectedItem="{Binding Source, Converter={d:StaticResource EnumToTranslationConverter}, ConverterParameter={x:Type loc:SourceLoc}}" />
+
+				<Label Text="{x:Static loc:ProfileLoc.ProfileName}" />
+				<Entry Text="{Binding Profile.Name}" />
+
+				<ContentView BindingContext="{Binding Profile}"
+							 IsVisible="{Binding Source, Converter={StaticResource SourceToVisibilityConverter}, ConverterParameter=Local}">
+					<StackLayout Margin="5">
+						<Label Text="{x:Static loc:ProfileLoc.Foldername}" LineBreakMode="NoWrap" />
+						<Entry Text="{Binding FolderName}" />
+					</StackLayout>
+				</ContentView>
+
+				<ContentView BindingContext="{Binding Profile}"
+							 IsVisible="{Binding Source, Converter={StaticResource SourceToVisibilityConverter}, ConverterParameter=REST}">
+					<StackLayout Margin="5">
+						<Label Text="{x:Static loc:ProfileLoc.ServerName}" LineBreakMode="NoWrap" />
+						<Entry Text="{Binding ServerName}" />
+
+						<Label Text="{x:Static loc:ProfileLoc.User}" LineBreakMode="NoWrap" />
+						<Entry Text="{Binding ServerUser}" />
+
+						<Label Text="{x:Static loc:ProfileLoc.Password}" LineBreakMode="NoWrap" />
+						<Entry Text="{Binding ServerPassword}" />
+					</StackLayout>
+				</ContentView>
+
+				<ContentView BindingContext="{Binding Profile}"
+							 IsVisible="{Binding Source, Converter={StaticResource SourceToVisibilityConverter}, ConverterParameter=RMQ}">
+					<StackLayout Margin="5">
+						<Label Text="{x:Static loc:ProfileLoc.RmqHost}" LineBreakMode="NoWrap" />
+						<Entry Text="{Binding RabbitMqHost}" />
+
+						<Label Text="{x:Static loc:ProfileLoc.RmqVirtualHost}" LineBreakMode="NoWrap" />
+						<Entry Text="{Binding RabbitMqVirtualHost}" />
+
+						<Label Text="{x:Static loc:ProfileLoc.RmqUser}" LineBreakMode="NoWrap" />
+						<Entry Text="{Binding RabbitMqUser}" />
+
+						<Label Text="{x:Static loc:ProfileLoc.RmqPassword}" LineBreakMode="NoWrap" />
+						<Entry Text="{Binding RabbitMqPassword}" />
+
+						<Label Text="{x:Static loc:ProfileLoc.User}" LineBreakMode="NoWrap" />
+						<Entry Text="{Binding ServerUser}" />
+
+						<Label Text="{x:Static loc:ProfileLoc.Password}" LineBreakMode="NoWrap" />
+						<Entry Text="{Binding ServerPassword}" />
+					</StackLayout>
+				</ContentView>
+			</StackLayout>
+		</ScrollView>
+	</ContentPage.Content>
+</ContentPage>

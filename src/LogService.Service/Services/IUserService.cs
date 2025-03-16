@@ -6,18 +6,15 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace LogService.Service.Services
+namespace LogService.Service.Services;
+
+public interface IUserService
 {
-	public interface IUserService
-	{
-		Task<User> GetItemAsync(Guid id);
-		IAsyncEnumerable<UserListItem> GetItemsForUserAsync(Guid userId);
-		Task<UserModel> GetUserModelFromName(string username);
+	Task<User?> GetItem(Guid id);
+	IAsyncEnumerable<UserListItem> GetItemsForUser(Guid userId);
+	Task<UserModel?> GetUserModelFromName(string username);
 
-		Task CreateUser(CreateUser command, Guid userId);
-		Task UpdateUser(UpdateUser command, Guid userId);
-		Task DeleteUser(Guid id, Guid userId);
-
-		Task UpdateUserSettings(UpdateUserSettings command, Guid userId);
-	}
+	Task CreateUser(CreateUser command, Guid userId);
+	Task UpdateUser(UpdateUser command, Guid userId);
+	Task DeleteUser(Guid id, Guid userId);
 }

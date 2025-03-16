@@ -94,12 +94,12 @@
             Input.Password = "";
             Input.PasswordConfirm = "";
 
-            ErrorService?.HideError();
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error updating user.");
-            ErrorService?.ShowError("Login", "Could update user data. Server error.");
-        }
-    }
+			ErrorService?.HideError();
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex, "Error updating user.");
+			ErrorService?.ShowError("Login", "Could update user data. Server error.");
+		}
+	}
 }

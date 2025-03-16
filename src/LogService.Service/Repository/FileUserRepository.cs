@@ -7,79 +7,81 @@ using System.Threading.Tasks;
 using LogService.Service.Configuration;
 using LogService.Service.Model;
 
-namespace LogService.Service.Repository
+namespace LogService.Service.Repository;
+
+public class FileUserRepository : IUserRepository
 {
-	public class FileUserRepository : IUserRepository
+	private static readonly JsonSerializerOptions _options = new() { PropertyNameCaseInsensitive = true };
+	private readonly string _storagePath;
+
+	public FileUserRepository(FileConfiguration configuration)
 	{
-		private static readonly JsonSerializerOptions _options = new() { PropertyNameCaseInsensitive = true };
-		private readonly string _storagePath;
+		_storagePath = configuration.UsersPath;
+		Directory.CreateDirectory(_storagePath);
+	}
 
-		public FileUserRepository(FileConfiguration configuration)
+	public async IAsyncEnumerable<UserModel> GetAll()
+	{
+		foreach (var path in Directory.GetFiles(_storagePath))
 		{
-			_storagePath = configuration.UsersPath;
-			Directory.CreateDirectory(_storagePath);
-		}
-
-		public async IAsyncEnumerable<UserModel> GetAll()	
-		{
-			foreach (var path in Directory.GetFiles(_storagePath))
+			var bytes = await File.ReadAllBytesAsync(path).ConfigureAwait(false);
+			var text = Encoding.UTF8.GetString(bytes);
+			var item = JsonSerializer.Deserialize<UserModel>(text, _options);
+			if (item is not null)
 			{
-				var bytes = await File.ReadAllBytesAsync(path).ConfigureAwait(false);
-				var text = Encoding.UTF8.GetString(bytes);
-				var item = JsonSerializer.Deserialize<UserModel>(text, _options);
 				yield return item;
 			}
 		}
+	}
 
-		public async Task<UserModel> Get(Guid id)
+	public async Task<UserModel?> Get(Guid id)
+	{
+		var path = Path.Combine(_storagePath, id.ToString());
+
+		if (!File.Exists(path))
 		{
-			var path = Path.Combine(_storagePath, id.ToString());
-
-			if (!File.Exists(path))
-			{
-				return null;
-			}
-
-			var bytes = await File.ReadAllBytesAsync(path).ConfigureAwait(false);
-			var item = JsonSerializer.Deserialize<UserModel>(bytes, _options);
-
-			return item;
-		}
-
-		public async Task<UserModel> Get(string username)
-		{
-			foreach (var path in Directory.GetFiles(_storagePath))
-			{
-				var bytes = await File.ReadAllBytesAsync(path).ConfigureAwait(false);
-				var text = Encoding.UTF8.GetString(bytes);
-				var item = JsonSerializer.Deserialize<UserModel>(text, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
-
-				if (item.Username == username && item.IsActive)
-				{
-					return item;
-				}
-			}
-
 			return null;
 		}
 
-		public async Task Insert(UserModel model)
+		var bytes = await File.ReadAllBytesAsync(path).ConfigureAwait(false);
+		var item = JsonSerializer.Deserialize<UserModel>(bytes, _options);
+
+		return item;
+	}
+
+	public async Task<UserModel?> Get(string username)
+	{
+		foreach (var path in Directory.GetFiles(_storagePath))
 		{
-			await Update(model).ConfigureAwait(false);
+			var bytes = await File.ReadAllBytesAsync(path).ConfigureAwait(false);
+			var text = Encoding.UTF8.GetString(bytes);
+			var item = JsonSerializer.Deserialize<UserModel>(text, _options);
+
+			if (item is not null && item.IsActive && item.Username == username)
+			{
+				return item;
+			}
 		}
 
-		public async Task Update(UserModel model)
-		{
-			var path = Path.Combine(_storagePath, model.Id.ToString());
-			var bytes = JsonSerializer.SerializeToUtf8Bytes(model);
-			await File.WriteAllBytesAsync(path, bytes).ConfigureAwait(false);
-		}
+		return null;
+	}
 
-		public Task Delete(Guid id)
-		{
-			var path = Path.Combine(_storagePath, id.ToString());
-			File.Delete(path);
-			return Task.CompletedTask;
-		}
+	public async Task Insert(UserModel model)
+	{
+		await Update(model).ConfigureAwait(false);
+	}
+
+	public async Task Update(UserModel model)
+	{
+		var path = Path.Combine(_storagePath, model.Id.ToString());
+		var bytes = JsonSerializer.SerializeToUtf8Bytes(model);
+		await File.WriteAllBytesAsync(path, bytes).ConfigureAwait(false);
+	}
+
+	public Task Delete(Guid id)
+	{
+		var path = Path.Combine(_storagePath, id.ToString());
+		File.Delete(path);
+		return Task.CompletedTask;
 	}
 }

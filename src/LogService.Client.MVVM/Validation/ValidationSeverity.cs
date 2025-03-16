@@ -1,10 +1,9 @@
-namespace LogService.Client.MVVM.Validation
+namespace LogService.Client.MVVM.Validation;
+
+public enum ValidationSeverity
 {
-	public enum ValidationSeverity
-	{
-		None,
-		Info,
-		Warning,
-		Error
-	}
+	None,
+	Info,
+	Warning,
+	Error
 }

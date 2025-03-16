@@ -1,8 +1,7 @@
-namespace LogService.Blazor.Services
+namespace LogService.Blazor.Services;
+
+public interface IErrorService
 {
-	public interface IErrorService
-	{
-		void ShowError(string title, string message);
-		void HideError();
-	}
+	void ShowError(string title, string message);
+	void HideError();
 }

@@ -1,27 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 
-namespace LogService.Contracts.Commands
+namespace LogService.Contracts.Commands;
+
+public class UpdateUser(
+	Guid id,
+	string username,
+	string eMail,
+	string password)
 {
-	public class UpdateUser
-	{
-		public Guid Id { get; set; }
-		public string Username { get; set; }
-		public string EMail { get; set; }
-		public string Password { get; set; }
-
-		private UpdateUser() { }
-
-		public UpdateUser(
-			Guid id,
-			string username,
-			string eMail,
-			string password)
-		{
-			Id = id;
-			Username = username;
-			EMail = eMail;
-			Password = password;
-		}
-	}
+	public Guid Id { get; } = id;
+	public string Username { get; } = username;
+	public string EMail { get; } = eMail;
+	public string Password { get; } = password;
 }

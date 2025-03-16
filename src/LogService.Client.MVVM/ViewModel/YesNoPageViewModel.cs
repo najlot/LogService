@@ -1,17 +1,16 @@
-namespace LogService.Client.MVVM.ViewModel
+namespace LogService.Client.MVVM.ViewModel;
+
+public class YesNoPageViewModel : AbstractPopupViewModel<bool>
 {
-	public class YesNoPageViewModel : AbstractPopupViewModel<bool>
+	public string Title { get; set; }
+	public string Message { get; set; }
+
+	public RelayCommand YesCommand { get; }
+	public RelayCommand NoCommand { get; }
+
+	public YesNoPageViewModel()
 	{
-		public string Title { get; set; }
-		public string Message { get; set; }
-
-		public RelayCommand YesCommand { get; }
-		public RelayCommand NoCommand { get; }
-
-		public YesNoPageViewModel()
-		{
-			YesCommand = new RelayCommand(() => SetResult(true));
-			NoCommand = new RelayCommand(() => SetResult(false));
-		}
+		YesCommand = new RelayCommand(() => SetResult(true));
+		NoCommand = new RelayCommand(() => SetResult(false));
 	}
 }

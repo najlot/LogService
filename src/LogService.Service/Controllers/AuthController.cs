@@ -6,86 +6,75 @@ using LogService.Contracts;
 using LogService.Contracts.Commands;
 using LogService.Service.Services;
 
-namespace LogService.Service.Controllers
+namespace LogService.Service.Controllers;
+
+[Route("api/[controller]")]
+[ApiController]
+public class AuthController : ControllerBase
 {
-	[Route("api/[controller]")]
-	[ApiController]
-	public class AuthController : ControllerBase
+	private readonly IUserService _userService;
+	private readonly TokenService _tokenService;
+
+	public AuthController(
+		IUserService userService,
+		TokenService tokenService)
 	{
-		private readonly IUserService _userService;
-		private readonly TokenService _tokenService;
+		_userService = userService;
+		_tokenService = tokenService;
+	}
 
-		public AuthController(
-			IUserService userService,
-			TokenService tokenService)
+	[Authorize]
+	[HttpGet("Refresh")]
+	public ActionResult<string> Refresh()
+	{
+		if (!ModelState.IsValid)
 		{
-			_userService = userService;
-			_tokenService = tokenService;
+			return BadRequest();
 		}
 
-		[Authorize]
-		[HttpGet("Refresh")]
-		public ActionResult<string> Refresh()
+		var userId = User.GetUserId();
+		var userName = User.Identity?.Name;
+
+		if (userName is null)
 		{
-			if (!ModelState.IsValid)
-			{
-				return BadRequest();
-			}
-
-			var userId = User.GetUserId();
-			var userName = User.Identity.Name;
-			var token = _tokenService.GetRefreshToken(userName, userId);
-
-			return Ok(token);
+			return BadRequest();
 		}
 
-		[Authorize]
-		[HttpGet("ServiceToken")]
-		public ActionResult<string> GetServiceToken([FromQuery]string source, [FromQuery]DateTime validUntil)
+		var token = _tokenService.GetRefreshToken(userName, userId);
+
+		return Ok(token);
+	}
+
+	[AllowAnonymous]
+	[HttpPost]
+	public async Task<ActionResult<string>> Auth([FromBody] AuthRequest request)
+	{
+		if (!ModelState.IsValid)
 		{
-			if (!ModelState.IsValid)
-			{
-				return BadRequest();
-			}
-
-			var userId = User.GetUserId();
-			var userName = User.Identity.Name;
-			var token = _tokenService.GetServiceToken(userName, userId, source ?? "", validUntil);
-
-			return Ok(token);
+			return BadRequest();
 		}
 
-		[AllowAnonymous]
-		[HttpPost]
-		public async Task<ActionResult<string>> Auth([FromBody] AuthRequest request)
+		var token = await _tokenService.GetToken(request.Username, request.Password).ConfigureAwait(false);
+
+		if (token == null)
 		{
-			if (!ModelState.IsValid)
-			{
-				return BadRequest();
-			}
-
-			var token = await _tokenService.GetToken(request.Username, request.Password).ConfigureAwait(false);
-
-			if (token == null)
-			{
-				return Forbid();
-			}
-
-			return Ok(token);
+			return Forbid();
 		}
 
-		[AllowAnonymous]
-		[HttpPost("Register")]
-		public async Task<ActionResult> Register([FromBody] CreateUser command)
+		return Ok(token);
+	}
+
+	[AllowAnonymous]
+	[HttpPost("Register")]
+	public async Task<ActionResult> Register([FromBody] CreateUser command)
+	{
+		if (!ModelState.IsValid)
 		{
-			if (!ModelState.IsValid)
-			{
-				return BadRequest();
-			}
-
-			await _userService.CreateUser(command, Guid.Empty).ConfigureAwait(false);
-
-			return Ok();
+			return BadRequest();
 		}
+
+		await _userService.CreateUser(command, Guid.Empty).ConfigureAwait(false);
+
+		return Ok();
 	}
 }

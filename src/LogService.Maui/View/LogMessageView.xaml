@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 xmlns:d="http://schemas.microsoft.com/dotnet/2021/maui/design"
+			 xmlns:local="clr-namespace:LogService.Maui.View"
+			 xmlns:converter="clr-namespace:LogService.Maui.Converter"
+			 xmlns:controls="clr-namespace:LogService.Maui.Controls"
+			 xmlns:loc="clr-namespace:LogService.Client.Localisation;assembly=LogService.Client.Localisation"
+			 x:Class="LogService.Maui.View.LogMessageView"
+			 Title="LogMessage">
+
+	<ContentPage.Resources>
+		<ResourceDictionary>
+			<converter:IdToItemConverter x:Key="IdToItemConverter" />
+			<converter:EnumToTranslationConverter x:Key="EnumToTranslationConverter" />
+		</ResourceDictionary>
+	</ContentPage.Resources>
+
+	<ContentPage.ToolbarItems>
+		<ToolbarItem Text="Save" 
+			  Order="Primary"
+			  Priority="0"
+			  IconImageSource="{StaticResource IconSave}"
+			  Command="{Binding SaveCommand}" />
+		<ToolbarItem Text="Delete" 
+			 Order="Primary"
+			 Priority="0"
+			 IconImageSource="{StaticResource IconDelete}"
+			 Command="{Binding DeleteCommand}" >
+		</ToolbarItem>
+	</ContentPage.ToolbarItems>
+
+	<ContentPage.Content>
+		<ScrollView>
+			<StackLayout Margin="2,0">
+				<Label Text="{x:Static loc:LogMessageLoc.DateTime}" LineBreakMode="NoWrap" />
+				<DatePicker Date="{Binding DateTime}" />
+				<Label Text="{x:Static loc:LogMessageLoc.LogLevel}" LineBreakMode="NoWrap" />
+				<Picker ItemsSource="{Binding AvailableLogLevels, Converter={d:StaticResource EnumToTranslationConverter}, ConverterParameter={x:Type loc:LogLevelLoc}}" 
+						SelectedItem="{Binding LogLevel, Converter={d:StaticResource EnumToTranslationConverter}, ConverterParameter={x:Type loc:LogLevelLoc}}" />
+				<Label Text="{x:Static loc:LogMessageLoc.Category}" LineBreakMode="NoWrap" />
+				<Entry Text="{Binding Category}" />
+				<Label Text="{x:Static loc:LogMessageLoc.State}" LineBreakMode="NoWrap" />
+				<Entry Text="{Binding State}" />
+				<Label Text="{x:Static loc:LogMessageLoc.Source}" LineBreakMode="NoWrap" />
+				<Entry Text="{Binding Source}" />
+				<Label Text="{x:Static loc:LogMessageLoc.RawMessage}" LineBreakMode="NoWrap" />
+				<Entry Text="{Binding RawMessage}" />
+				<Label Text="{x:Static loc:LogMessageLoc.Message}" LineBreakMode="NoWrap" />
+				<Entry Text="{Binding Message}" />
+				<Label Text="{x:Static loc:LogMessageLoc.Exception}" LineBreakMode="NoWrap" />
+				<Entry Text="{Binding Exception}" />
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="Auto" />
+						<ColumnDefinition Width="Auto" />
+					</Grid.ColumnDefinitions>
+					<CheckBox Grid.Column="0" IsChecked="{Binding ExceptionIsValid}" />
+					<Label Grid.Column="1" Text="{x:Static loc:LogMessageLoc.ExceptionIsValid}" LineBreakMode="NoWrap" />
+				</Grid>
+				<Grid Margin="5,0">
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="*" />
+						<ColumnDefinition Width="Auto" />
+					</Grid.ColumnDefinitions>
+					<Label Grid.Column="0" Text="{x:Static loc:LogMessageLoc.Arguments}" LineBreakMode="NoWrap" FontAttributes="Bold" />
+					<Button Grid.Column="1" Command="{Binding AddLogArgumentCommand}"
+							Margin="1" Padding="5"
+							HeightRequest="36" WidthRequest="36"
+							BackgroundColor="#00375a" TextColor="#ffffff"
+							ImageSource="{StaticResource IconAdd}"/>
+				</Grid>
+				<ListView ItemsSource="{Binding Arguments}"
+					VerticalOptions="FillAndExpand"
+					HasUnevenRows="true"
+					CachingStrategy="RecycleElement">
+					<ListView.ItemTemplate>
+						<DataTemplate>
+							<ViewCell>
+								<StackLayout Padding="10">
+									<StackLayout.GestureRecognizers>
+										<TapGestureRecognizer Command="{Binding EditLogArgumentCommand}" />
+									</StackLayout.GestureRecognizers>
+									<StackLayout Orientation="Vertical">
+										<Label Text="{Binding Key}" VerticalOptions="FillAndExpand" />
+										<Label Text="{Binding Value}" VerticalOptions="FillAndExpand" />
+									</StackLayout>
+								</StackLayout>
+							</ViewCell>
+						</DataTemplate>
+					</ListView.ItemTemplate>
+				</ListView>
+			</StackLayout>
+		</ScrollView>
+	</ContentPage.Content>
+</ContentPage>

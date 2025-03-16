@@ -4,34 +4,33 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using LogService.Contracts;
 
-namespace LogService.Client.Data.Identity
+namespace LogService.Client.Data.Identity;
+
+public class TokenService : ITokenService
 {
-	public class TokenService : ITokenService
+	private readonly IRequestClient _client;
+
+	public TokenService(IRequestClient client)
 	{
-		private readonly IRequestClient _client;
+		_client = client;
+	}
 
-		public TokenService(IRequestClient client)
+	public async Task<string> CreateToken(string username, string password)
+	{
+		var request = new AuthRequest
 		{
-			_client = client;
+			Username = username,
+			Password = password
+		};
+
+		var response = await _client.PostAsync("api/Auth", JsonSerializer.Serialize(request), "application/json");
+
+		if (response.StatusCode >= 200 && response.StatusCode < 300)
+		{
+			var token = Encoding.UTF8.GetString(response.Body.ToArray());
+			return token;
 		}
 
-		public async Task<string> CreateToken(string username, string password)
-		{
-			var request = new AuthRequest
-			{
-				Username = username,
-				Password = password
-			};
-
-			var response = await _client.PostAsync("api/Auth", JsonSerializer.Serialize(request), "application/json");
-
-			if (response.StatusCode >= 200 && response.StatusCode < 300)
-			{
-				var token = Encoding.UTF8.GetString(response.Body.ToArray());
-				return token;
-			}
-
-			return null;
-		}
+		return string.Empty;
 	}
 }

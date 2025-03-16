@@ -1,19 +1,30 @@
-﻿using LogService.Contracts;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
-namespace LogService.Contracts.Commands
+namespace LogService.Contracts.Commands;
+
+public class CreateLogMessage(
+	Guid id,
+	DateTime dateTime,
+	LogLevel logLevel,
+	string category,
+	string state,
+	string source,
+	string rawMessage,
+	string message,
+	string exception,
+	bool exceptionIsValid,
+	List<LogArgument> arguments)
 {
-	public class CreateLogMessage
-	{
-		public DateTime DateTime { get; set; }
-		public int LogLevel { get; set; }
-		public string? Category { get; set; }
-		public string? State { get; set; }
-		public string? RawMessage { get; set; }
-		public string? Message { get; set; }
-		public string? Exception { get; set; }
-		public bool ExceptionIsValid { get; set; }
-		public KeyValuePair<string, string>[]? Arguments { get; set; }
-	}
+	public Guid Id { get; } = id;
+	public DateTime DateTime { get; } = dateTime;
+	public LogLevel LogLevel { get; } = logLevel;
+	public string Category { get; } = category;
+	public string State { get; } = state;
+	public string Source { get; } = source;
+	public string RawMessage { get; } = rawMessage;
+	public string Message { get; } = message;
+	public string Exception { get; } = exception;
+	public bool ExceptionIsValid { get; } = exceptionIsValid;
+	public List<LogArgument> Arguments { get; } = arguments;
 }

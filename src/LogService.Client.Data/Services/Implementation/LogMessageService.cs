@@ -5,71 +5,61 @@ using LogService.Client.Data.Models;
 using LogService.Client.Data.Repositories;
 using LogService.Contracts.Filters;
 
-namespace LogService.Client.Data.Services.Implementation
+namespace LogService.Client.Data.Services.Implementation;
+
+public sealed class LogMessageService : ILogMessageService
 {
-	public class LogMessageService : ILogMessageService
+	private readonly ILogMessageRepository _repository;
+
+	public LogMessageService(ILogMessageRepository repository)
 	{
-		private ILogMessageRepository _store;
-
-		public LogMessageService(ILogMessageRepository dataStore)
-		{
-			_store = dataStore;
-		}
-
-		public LogMessageModel CreateLogMessage()
-		{
-			return new LogMessageModel()
-			{
-				Id = Guid.NewGuid(),
-				Category = "",
-				State = "",
-				Source = "",
-				RawMessage = "",
-				Message = "",
-				Exception = "",
-				Arguments = new ()
-			};
-		}
-
-		public async Task<bool> DeleteItemAsync(Guid id)
-		{
-			return await _store.DeleteItemAsync(id);
-		}
-
-		public async Task<LogMessageModel> GetItemAsync(Guid id)
-		{
-			return await _store.GetItemAsync(id);
-		}
-
-		public async Task<IEnumerable<LogMessageListItemModel>> GetItemsAsync(bool forceRefresh = false)
-		{
-			return await _store.GetItemsAsync(forceRefresh);
-		}
-
-		public async Task<IEnumerable<LogMessageListItemModel>> GetItemsAsync(LogMessageFilter filter)
-		{
-			return await _store.GetItemsAsync(filter);
-		}
-
-		private bool _disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				_disposedValue = true;
-
-				if (disposing)
-				{
-					_store.Dispose();
-				}
-			}
-		}
-
-		public void Dispose()
-		{
-			Dispose(true);
-			GC.SuppressFinalize(this);
-		}
+		_repository = repository;
 	}
+
+	public LogMessageModel CreateLogMessage()
+	{
+		return new LogMessageModel()
+		{
+			Id = Guid.NewGuid(),
+			Category = "",
+			State = "",
+			Source = "",
+			RawMessage = "",
+			Message = "",
+			Exception = "",
+			Arguments = []
+		};
+	}
+
+	public async Task AddItemAsync(LogMessageModel item)
+	{
+		await _repository.AddItemAsync(item);
+	}
+
+	public async Task DeleteItemAsync(Guid id)
+	{
+		await _repository.DeleteItemAsync(id);
+	}
+
+	public async Task<LogMessageModel> GetItemAsync(Guid id)
+	{
+		return await _repository.GetItemAsync(id);
+	}
+
+	public async Task<IEnumerable<LogMessageListItemModel>> GetItemsAsync()
+	{
+		return await _repository.GetItemsAsync();
+	}
+
+	public async Task<IEnumerable<LogMessageListItemModel>> GetItemsAsync(LogMessageFilter filter)
+	{
+		return await _repository.GetItemsAsync(filter);
+	}
+
+	public async Task UpdateItemAsync(LogMessageModel item)
+	{
+		await _repository.UpdateItemAsync(item);
+	}
+
+	public void Dispose() => _repository.Dispose();
 }

@@ -3,18 +3,15 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using LogService.Client.Data.Models;
 
-namespace LogService.Client.Data.Services
-{
-	public interface IUserService : IDisposable
-	{
-		UserModel CreateUser();
-		Task<bool> AddItemAsync(UserModel item);
-		Task<IEnumerable<UserListItemModel>> GetItemsAsync(bool forceRefresh = false);
-		Task<UserModel> GetItemAsync(Guid id);
-		Task<bool> UpdateItemAsync(UserModel item);
-		Task<bool> DeleteItemAsync(Guid id);
-		Task<UserModel> GetCurrentUserAsync();
+namespace LogService.Client.Data.Services;
 
-        Task<bool> UpdateSettingsAsync(UserSettingsModel item);
-    }
+public interface IUserService : IDisposable
+{
+	UserModel CreateUser();
+	Task AddItemAsync(UserModel item);
+	Task<IEnumerable<UserListItemModel>> GetItemsAsync();
+	Task<UserModel> GetItemAsync(Guid id);
+	Task UpdateItemAsync(UserModel item);
+	Task DeleteItemAsync(Guid id);
+	Task<UserModel> GetCurrentUserAsync();
 }

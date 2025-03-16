@@ -1,15 +1,11 @@
 ﻿using System.Windows.Controls;
 
-namespace LogService.Wpf.View
+namespace LogService.Wpf.View;
+
+public partial class AllLogMessagesView : UserControl
 {
-	/// <summary>
-	/// Interaction logic for AllLogMessagesView.xaml
-	/// </summary>
-	public partial class AllLogMessagesView : UserControl
+	public AllLogMessagesView()
 	{
-		public AllLogMessagesView()
-		{
-			InitializeComponent();
-		}
+		InitializeComponent();
 	}
 }

@@ -1,18 +1,21 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using LogService.Client.Data.Models;
 using LogService.Contracts.Filters;
 
-namespace LogService.Client.Data.Repositories
+namespace LogService.Client.Data.Repositories;
+
+public interface ILogMessageRepository : IDisposable
 {
-	public interface ILogMessageRepository : IDisposable
-	{
-		Task<bool> DeleteItemAsync(Guid id);
+	Task<LogMessageListItemModel[]> GetItemsAsync();
 
-		Task<LogMessageModel> GetItemAsync(Guid id);
+	Task<LogMessageListItemModel[]> GetItemsAsync(LogMessageFilter filter);
 
-		Task<IEnumerable<LogMessageListItemModel>> GetItemsAsync(bool forceRefresh = false);
-		Task<IEnumerable<LogMessageListItemModel>> GetItemsAsync(LogMessageFilter filter);
-	}
+	Task<LogMessageModel> GetItemAsync(Guid id);
+
+	Task AddItemAsync(LogMessageModel item);
+
+	Task UpdateItemAsync(LogMessageModel item);
+
+	Task DeleteItemAsync(Guid id);
 }

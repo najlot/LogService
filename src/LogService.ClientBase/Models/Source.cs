@@ -1,9 +1,8 @@
-﻿namespace LogService.ClientBase.Models
+﻿namespace LogService.ClientBase.Models;
+
+public enum Source
 {
-	public enum Source
-	{
-		Local,
-		REST,
-		RMQ
-	}
+	Local,
+	REST,
+	RMQ
 }

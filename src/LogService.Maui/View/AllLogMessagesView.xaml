@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 xmlns:converter="clr-namespace:LogService.Maui.Converter"
+			 xmlns:loc="clr-namespace:LogService.Client.Localisation;assembly=LogService.Client.Localisation"
+			 x:Class="LogService.Maui.View.AllLogMessagesView"
+			 x:Name="This"
+			 Title="LogMessages">
+
+	<ContentPage.ToolbarItems>
+		<ToolbarItem Text="New"
+			Order="Primary"
+			Priority="0"
+			IconImageSource="{StaticResource IconAdd}"
+			Command="{Binding AddLogMessageCommand}"/>
+	</ContentPage.ToolbarItems>
+
+	<ContentPage.Content>
+		<StackLayout>
+			<StackLayout Orientation="Horizontal" Padding="10,5">
+				<Label Text="Filter:" VerticalOptions="Center" />
+				<Entry Text="{Binding Filter}" HorizontalOptions="FillAndExpand" />
+			</StackLayout>
+
+			<ListView ItemsSource="{Binding LogMessagesView}"
+					VerticalOptions="FillAndExpand"
+					HasUnevenRows="true"
+					RefreshCommand="{Binding RefreshLogMessagesCommand}"
+					IsPullToRefreshEnabled="true"
+					IsRefreshing="{Binding IsBusy}"
+					CachingStrategy="RecycleElement">
+				<ListView.ItemTemplate>
+					<DataTemplate>
+						<ViewCell>
+							<StackLayout Padding="10">
+								<StackLayout.GestureRecognizers>
+									<TapGestureRecognizer
+										Command="{Binding BindingContext.EditLogMessageCommand, Source={x:Reference This}}"
+										CommandParameter="{Binding .}" />
+								</StackLayout.GestureRecognizers>
+								<Label Text="{Binding DateTime}" />
+								<Label Text="{Binding LogLevel}" />
+							</StackLayout>
+						</ViewCell>
+					</DataTemplate>
+				</ListView.ItemTemplate>
+			</ListView>
+		</StackLayout>
+	</ContentPage.Content>
+</ContentPage>

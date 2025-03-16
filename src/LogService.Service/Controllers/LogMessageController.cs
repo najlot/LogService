@@ -10,66 +10,72 @@ using LogService.Contracts.Commands;
 using LogService.Contracts.ListItems;
 using LogService.Contracts.Filters;
 
-namespace LogService.Service.Controllers
+namespace LogService.Service.Controllers;
+
+[Route("api/[controller]")]
+[ApiController]
+[Authorize]
+public class LogMessageController : ControllerBase
 {
-	[Route("api/[controller]")]
-	[ApiController]
-	[Authorize]
-	public class LogMessageController : ControllerBase
+	private readonly LogMessageService _logMessageService;
+
+	public LogMessageController(LogMessageService logMessageService)
 	{
-		private readonly LogMessageService _logMessageService;
+		_logMessageService = logMessageService;
+	}
 
-		public LogMessageController(LogMessageService logMessageService)
+	[HttpGet]
+	public async Task<ActionResult<List<LogMessageListItem>>> List()
+	{
+		var userId = User.GetUserId();
+		var query = _logMessageService.GetItemsForUserAsync(userId);
+		var items = await query.ToListAsync().ConfigureAwait(false);
+		return Ok(items);
+	}
+
+	[HttpPost("[action]")]
+	public async Task<ActionResult<List<LogMessageListItem>>> ListFiltered(LogMessageFilter filter)
+	{
+		var userId = User.GetUserId();
+		var query = _logMessageService.GetItemsForUserAsync(filter, userId);
+		var items = await query.ToListAsync().ConfigureAwait(false);
+		return Ok(items);
+	}
+
+	[HttpGet("{id}")]
+	public async Task<ActionResult<LogMessage>> GetItem(Guid id)
+	{
+		var userId = User.GetUserId();
+		var item = await _logMessageService.GetItemAsync(id, userId).ConfigureAwait(false);
+		if (item == null)
 		{
-			_logMessageService = logMessageService;
+			return NotFound();
 		}
 
-		[HttpGet]
-		public async Task<ActionResult<List<LogMessageListItem>>> List()
-		{
-			var userId = User.GetUserId();
-			var query = _logMessageService.GetItemsForUserAsync(userId);
-			var items = await query.ToListAsync().ConfigureAwait(false);
-			return Ok(items);
-		}
+		return Ok(item);
+	}
 
-		[HttpPost("[action]")]
-		public async Task<ActionResult<List<LogMessageListItem>>> ListFiltered(LogMessageFilter filter)
-		{
-			var userId = User.GetUserId();
-			var query = _logMessageService.GetItemsForUserAsync(filter, userId);
-			var items = await query.ToListAsync().ConfigureAwait(false);
-			return Ok(items);
-		}
+	[HttpPost]
+	public async Task<ActionResult> Create([FromBody] CreateLogMessage command)
+	{
+		var userId = User.GetUserId();
+		await _logMessageService.CreateLogMessage(command, userId).ConfigureAwait(false);
+		return Ok();
+	}
 
-		[HttpGet("{id}")]
-		public async Task<ActionResult<LogMessage>> GetItem(Guid id)
-		{
-			var userId = User.GetUserId();
-			var item = await _logMessageService.GetItemAsync(id, userId).ConfigureAwait(false);
-			if (item == null)
-			{
-				return NotFound();
-			}
+	[HttpPut]
+	public async Task<ActionResult> Update([FromBody] UpdateLogMessage command)
+	{
+		var userId = User.GetUserId();
+		await _logMessageService.UpdateLogMessage(command, userId).ConfigureAwait(false);
+		return Ok();
+	}
 
-			return Ok(item);
-		}
-
-		[HttpPut]
-		public async Task<ActionResult> Create([FromBody] CreateLogMessage[] commands)
-		{
-			var userId = User.GetUserId();
-			var source = User.Claims.FirstOrDefault(c => c.Type == "Source")?.Value ?? "";
-			await _logMessageService.CreateLogMessages(commands, source, userId).ConfigureAwait(false);
-			return Ok();
-		}
-
-		[HttpDelete("{id}")]
-		public async Task<ActionResult> Delete(Guid id)
-		{
-			var userId = User.GetUserId();
-			await _logMessageService.DeleteLogMessage(id, userId).ConfigureAwait(false);
-			return Ok();
-		}
+	[HttpDelete("{id}")]
+	public async Task<ActionResult> Delete(Guid id)
+	{
+		var userId = User.GetUserId();
+		await _logMessageService.DeleteLogMessage(id, userId).ConfigureAwait(false);
+		return Ok();
 	}
 }

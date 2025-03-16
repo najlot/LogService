@@ -1,5 +1,6 @@
 ﻿using Cosei.Client.Base;
 using Cosei.Client.RabbitMq;
+using Najlot.Map;
 using System.Threading.Tasks;
 using LogService.ClientBase.Models;
 using LogService.ClientBase.Services.Implementation;
@@ -9,66 +10,67 @@ using LogService.Client.Data.Repositories.Implementation;
 using LogService.Client.Data.Services.Implementation;
 using LogService.Client.Data.Identity;
 
-namespace LogService.ClientBase.ProfileHandler
+namespace LogService.ClientBase.ProfileHandler;
+
+public sealed class RmqProfileHandler : AbstractProfileHandler
 {
-	public sealed class RmqProfileHandler : AbstractProfileHandler
+	private RmqProfile _profile;
+	private RabbitMqModelFactory _rabbitMqModelFactory;
+	private readonly IMessenger _messenger;
+	private readonly IDispatcherHelper _dispatcher;
+	private readonly IErrorService _errorService;
+	private readonly IMap _map;
+
+	public RmqProfileHandler(IMessenger messenger, IDispatcherHelper dispatcher, IErrorService errorService, IMap map)
 	{
-		private RmqProfile _profile;
-		private RabbitMqModelFactory _rabbitMqModelFactory;
-		private readonly IMessenger _messenger;
-		private readonly IDispatcherHelper _dispatcher;
-		private readonly IErrorService _errorService;
+		_messenger = messenger;
+		_dispatcher = dispatcher;
+		_errorService = errorService;
+		_map = map;
+	}
 
-		public RmqProfileHandler(IMessenger messenger, IDispatcherHelper dispatcher, IErrorService errorService)
+	private IRequestClient CreateRequestClient()
+	{
+		return new RabbitMqClient(_rabbitMqModelFactory, "LogService.Service");
+	}
+
+	protected override async Task ApplyProfile(ProfileBase profile)
+	{
+		if (_rabbitMqModelFactory != null)
 		{
-			_messenger = messenger;
-			_dispatcher = dispatcher;
-			_errorService = errorService;
+			_rabbitMqModelFactory.Dispose();
+			_rabbitMqModelFactory = null;
 		}
 
-		private IRequestClient CreateRequestClient()
+		if (profile is RmqProfile rmqProfile)
 		{
-			return new RabbitMqClient(_rabbitMqModelFactory, "LogService.Service");
-		}
+			_profile = rmqProfile;
 
-		protected override async Task ApplyProfile(ProfileBase profile)
-		{
-			if (_rabbitMqModelFactory != null)
-			{
-				_rabbitMqModelFactory.Dispose();
-				_rabbitMqModelFactory = null;
-			}
+			_rabbitMqModelFactory = new RabbitMqModelFactory(
+				_profile.RabbitMqHost,
+				_profile.RabbitMqVirtualHost,
+				_profile.RabbitMqUser,
+				_profile.RabbitMqPassword);
 
-			if (profile is RmqProfile rmqProfile)
-			{
-				_profile = rmqProfile;
+			var requestClient = CreateRequestClient();
+			var tokenProvider = new TokenProvider(CreateRequestClient, _profile.ServerUser, _profile.ServerPassword);
+			var subscriber = new RabbitMqSubscriber(
+				_rabbitMqModelFactory,
+				exception =>
+				{
+					_dispatcher.BeginInvokeOnMainThread(async () => await _errorService.ShowAlertAsync(exception));
+				});
 
-				_rabbitMqModelFactory = new RabbitMqModelFactory(
-					_profile.RabbitMqHost,
-					_profile.RabbitMqVirtualHost,
-					_profile.RabbitMqUser,
-					_profile.RabbitMqPassword);
+			var userStore = new UserRepository(requestClient, tokenProvider, _map);
+			UserService = new UserService(userStore);
+			UserMessagingService = new UserMessagingService(_messenger, _dispatcher, subscriber);
+			var logMessageStore = new LogMessageRepository(requestClient, tokenProvider, _map);
+			LogMessageService = new LogMessageService(logMessageStore);
+			LogMessageMessagingService = new LogMessageMessagingService(_messenger, _dispatcher, subscriber);
 
-				var requestClient = CreateRequestClient();
-				var tokenProvider = new TokenProvider(CreateRequestClient, _profile.ServerUser, _profile.ServerPassword);
-				var subscriber = new RabbitMqSubscriber(
-					_rabbitMqModelFactory,
-					exception =>
-					{
-						_dispatcher.BeginInvokeOnMainThread(async () => await _errorService.ShowAlertAsync(exception));
-					});
+			await subscriber.StartAsync();
 
-				var userStore = new UserRepository(requestClient, tokenProvider);
-				UserService = new UserService(userStore);
-				UserMessagingService = new UserMessagingService(_messenger, _dispatcher, subscriber);
-				var logMessageStore = new LogMessageRepository(requestClient, tokenProvider);
-				LogMessageService = new LogMessageService(logMessageStore);
-				LogMessageMessagingService = new LogMessageMessagingService(_messenger, _dispatcher, subscriber);
-
-				await subscriber.StartAsync();
-
-				Subscriber = subscriber;
-			}
+			Subscriber = subscriber;
 		}
 	}
 }

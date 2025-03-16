@@ -1,8 +1,7 @@
-﻿namespace LogService.Service.Configuration
+﻿namespace LogService.Service.Configuration;
+
+public class FileConfiguration
 {
-	public class FileConfiguration
-	{
-		public string UsersPath { get; set; } = "Users";
-		public string LogMessagesPath { get; set; } = "LogMessages";
-	}
+	public string UsersPath { get; set; } = "Data/Users";
+	public string LogMessagesPath { get; set; } = "Data/LogMessages";
 }

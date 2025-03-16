@@ -1,15 +1,11 @@
 ﻿using System.Windows.Controls;
 
-namespace LogService.Wpf.View
+namespace LogService.Wpf.View;
+
+public partial class AlertView : UserControl
 {
-	/// <summary>
-	/// Interaction logic for AlertView.xaml
-	/// </summary>
-	public partial class AlertView : UserControl
+	public AlertView()
 	{
-		public AlertView()
-		{
-			InitializeComponent();
-		}
+		InitializeComponent();
 	}
 }

@@ -1,62 +1,61 @@
 using System;
 
-namespace LogService.Client.Data.Identity
+namespace LogService.Client.Data.Identity;
+
+public class RegistrationResult : IEquatable<RegistrationResult>
 {
-	public class RegistrationResult : IEquatable<RegistrationResult>
+	public bool IsSuccess { get; }
+	public string ErrorMessage { get; }
+
+	private RegistrationResult(bool isSuccess, string errorMessage)
 	{
-		public bool IsSuccess { get; }
-		public string ErrorMessage { get; }
+		IsSuccess = isSuccess;
+		ErrorMessage = errorMessage;
+	}
 
-		private RegistrationResult(bool isSuccess, string errorMessage)
+	public static RegistrationResult Success()
+	{
+		return new RegistrationResult(true, "");
+	}
+
+	public static RegistrationResult Failure(string errorMessage)
+	{
+		if (string.IsNullOrWhiteSpace(errorMessage))
 		{
-			IsSuccess = isSuccess;
-			ErrorMessage = errorMessage;
+			throw new ArgumentException("Error message must be provided for failure result.", nameof(errorMessage));
 		}
 
-		public static RegistrationResult Success()
-		{
-			return new RegistrationResult(true, "");
-		}
+		return new RegistrationResult(false, errorMessage);
+	}
 
-		public static RegistrationResult Failure(string errorMessage)
-		{
-			if (string.IsNullOrWhiteSpace(errorMessage))
-			{
-				throw new ArgumentException("Error message must be provided for failure result.", nameof(errorMessage));
-			}
+	public override bool Equals(object? obj)
+	{
+		return Equals(obj as RegistrationResult);
+	}
 
-			return new RegistrationResult(false, errorMessage);
-		}
+	public bool Equals(RegistrationResult? other)
+	{
+		if (other is null) return false;
+		if (ReferenceEquals(this, other)) return true;
+		return IsSuccess == other.IsSuccess && ErrorMessage == other.ErrorMessage;
+	}
 
-		public override bool Equals(object? obj)
-		{
-			return Equals(obj as RegistrationResult);
-		}
+	public override int GetHashCode()
+	{
+		return (IsSuccess, ErrorMessage).GetHashCode();
+	}
 
-		public bool Equals(RegistrationResult? other)
+	public static bool operator ==(RegistrationResult left, RegistrationResult right)
+	{
+		if (left is null)
 		{
-			if (other is null) return false;
-			if (ReferenceEquals(this, other)) return true;
-			return IsSuccess == other.IsSuccess && ErrorMessage == other.ErrorMessage;
+			return right is null;
 		}
+		return left.Equals(right);
+	}
 
-		public override int GetHashCode()
-		{
-			return (IsSuccess, ErrorMessage).GetHashCode();
-		}
-
-		public static bool operator ==(RegistrationResult left, RegistrationResult right)
-		{
-			if (left is null)
-			{
-				return right is null;
-			}
-			return left.Equals(right);
-		}
-
-		public static bool operator !=(RegistrationResult left, RegistrationResult right)
-		{
-			return !(left == right);
-		}
+	public static bool operator !=(RegistrationResult left, RegistrationResult right)
+	{
+		return !(left == right);
 	}
 }

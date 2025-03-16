@@ -1,7 +1,6 @@
-﻿namespace LogService.Service.Configuration
+﻿namespace LogService.Service.Configuration;
+
+public class ServiceConfiguration
 {
-	public class ServiceConfiguration
-	{
-		public string Secret { get; set; } = "";
-	}
+	public string Secret { get; set; } = "";
 }

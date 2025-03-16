@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using LogService.Client.Data.Mappings;
+using Najlot.Map;
 using LogService.Client.Data.Models;
 using LogService.Client.Data.Services;
 using LogService.Client.MVVM;
@@ -15,221 +15,182 @@ using LogService.ClientBase.Validation;
 using LogService.Contracts;
 using LogService.Contracts.Events;
 
-namespace LogService.ClientBase.ViewModel
+namespace LogService.ClientBase.ViewModel;
+
+public partial class LogMessageViewModel : AbstractValidationViewModel
 {
-	public partial class LogMessageViewModel : AbstractValidationViewModel
+	private readonly IErrorService _errorService;
+	private readonly INavigationService _navigationService;
+	private readonly ILogMessageService _logMessageService;
+	private readonly IMessenger _messenger;
+	private readonly IMap _map;
+
+	public List<LogLevel> AvailableLogLevels { get; } = new(Enum.GetValues(typeof(LogLevel)) as LogLevel[]);
+
+	private Guid _id;
+	public Guid Id { get => _id; set => Set(ref _id, value); }
+
+	private DateTime _dateTime;
+	public DateTime DateTime { get => _dateTime; set => Set(ref _dateTime, value); }
+
+	private LogLevel _logLevel;
+	public LogLevel LogLevel { get => _logLevel; set => Set(ref _logLevel, value); }
+
+	private string _category = string.Empty;
+	public string Category { get => _category; set => Set(ref _category, value); }
+
+	private string _state = string.Empty;
+	public string State { get => _state; set => Set(ref _state, value); }
+
+	private string _source = string.Empty;
+	public string Source { get => _source; set => Set(ref _source, value); }
+
+	private string _rawMessage = string.Empty;
+	public string RawMessage { get => _rawMessage; set => Set(ref _rawMessage, value); }
+
+	private string _message = string.Empty;
+	public string Message { get => _message; set => Set(ref _message, value); }
+
+	private string _exception = string.Empty;
+	public string Exception { get => _exception; set => Set(ref _exception, value); }
+
+	private bool _exceptionIsValid;
+	public bool ExceptionIsValid { get => _exceptionIsValid; set => Set(ref _exceptionIsValid, value); }
+
+	private bool _isBusy;
+	public bool IsBusy { get => _isBusy; private set => Set(ref _isBusy, value); }
+
+	public bool IsNew { get; set; }
+
+	public LogMessageViewModel(
+		IErrorService errorService,
+		INavigationService navigationService,
+		ILogMessageService logMessageService,
+		IMessenger messenger,
+		IMap map)
 	{
-		private bool _isBusy;
-		private LogMessageModel _item;
+		_errorService = errorService;
+		_navigationService = navigationService;
+		_logMessageService = logMessageService;
+		_messenger = messenger;
+		_map = map;
 
-		public List<LogLevel> AvailableLogLevels { get; } = new List<LogLevel>(Enum.GetValues(typeof(LogLevel)) as LogLevel[]);
+		SaveCommand = new AsyncCommand(SaveAsync, DisplayError);
+		DeleteCommand = new AsyncCommand(DeleteAsync, DisplayError);
 
-		private readonly Func<LogArgumentViewModel> _logArgumentViewModelFactory;
-		private readonly IErrorService _errorService;
-		private readonly INavigationService _navigationService;
-		private readonly ILogMessageService _logMessageService;
-		private readonly IMessenger _messenger;
+		SetValidation(new LogMessageValidationList());
+	}
 
-		public LogMessageModel Item
+	private async Task DisplayError(Task task)
+	{
+		await _errorService.ShowAlertAsync("Error...", task.Exception);
+	}
+
+	public void Handle(LogMessageUpdated obj)
+	{
+		if (Id != obj.Id)
 		{
-			get => _item;
-			set
-			{
-				Set(nameof(Item), ref _item, value);
-
-				if (Item.Arguments == null)
-				{
-					Arguments = new ObservableCollection<LogArgumentViewModel>();
-				}
-				else
-				{
-					Arguments = new ObservableCollection<LogArgumentViewModel>(Item.Arguments.Select(e =>
-					{
-						var model = new LogArgumentModel()
-						{
-							Id = e.Id,
-							Key = e.Key,
-							Value = e.Value,
-						};
-
-						var viewModel = _logArgumentViewModelFactory();
-						viewModel.ParentId = Item.Id;
-						viewModel.Item = model;
-						return viewModel;
-					}));
-				}
-			}
+			return;
 		}
 
-		public bool IsBusy { get => _isBusy; private set => Set(nameof(IsBusy), ref _isBusy, value); }
-		public bool IsNew { get; set; }
+		_map.From(obj).To(this);
+	}
 
-		public LogMessageViewModel(
-			Func<LogArgumentViewModel> logArgumentViewModelFactory,
-			IErrorService errorService,
-			INavigationService navigationService,
-			ILogMessageService logMessageService,
-			IMessenger messenger)
+	public AsyncCommand SaveCommand { get; }
+	public async Task SaveAsync()
+	{
+		if (IsBusy)
 		{
-			_logArgumentViewModelFactory = logArgumentViewModelFactory;
-
-			_errorService = errorService;
-			_navigationService = navigationService;
-			_logMessageService = logMessageService;
-			_messenger = messenger;
-
-			SaveCommand = new AsyncCommand(SaveAsync, DisplayError);
-			DeleteCommand = new AsyncCommand(DeleteAsync, DisplayError);
-
-			SetValidation(new LogMessageValidationList());
+			return;
 		}
 
-		private async Task DisplayError(Task task)
+		try
 		{
-			await _errorService.ShowAlertAsync("Error...", task.Exception);
-		}
+			IsBusy = true;
 
-		public void Handle(LogMessageUpdated obj)
-		{
-			if (Item.Id != obj.Id)
+			var errors = Errors
+				.Where(err => err.Severity > ValidationSeverity.Info)
+				.Select(e => e.Text);
+
+			if (errors.Any())
 			{
-				return;
-			}
-
-			var logArgumentMapper = new LogArgumentMapper();
-
-			Item = new LogMessageModel()
-			{
-				Id = obj.Id,
-				DateTime = obj.DateTime,
-				LogLevel = obj.LogLevel,
-				Category = obj.Category,
-				State = obj.State,
-				Source = obj.Source,
-				RawMessage = obj.RawMessage,
-				Message = obj.Message,
-				Exception = obj.Exception,
-				ExceptionIsValid = obj.ExceptionIsValid,
-				Arguments = obj.Arguments.Select(e => logArgumentMapper.Map(e, new LogArgumentModel())).ToList(),
-			};
-
-			Arguments = new ObservableCollection<LogArgumentViewModel>(Item.Arguments.Select(e =>
-			{
-				var model = new LogArgumentModel()
-				{
-					Id = e.Id,
-					Key = e.Key,
-					Value = e.Value,
-				};
-
-				var viewModel = _logArgumentViewModelFactory();
-				viewModel.ParentId = Item.Id;
-				viewModel.Item = model;
-				return viewModel;
-			}));
-		}
-
-		public AsyncCommand SaveCommand { get; }
-		public async Task SaveAsync()
-		{
-			if (IsBusy)
-			{
-				return;
-			}
-
-			try
-			{
-				IsBusy = true;
-
-				Item.Arguments = Arguments.Select(e => new LogArgumentModel()
-				{
-					Id = e.Item.Id,
-					Key = e.Item.Key,
-					Value = e.Item.Value,
-				}).ToList();
-
-				var errors = Errors
-					.Where(err => err.Severity > ValidationSeverity.Info)
-					.Select(e => e.Text);
-
-				if (errors.Any())
-				{
-					var message = "There are some validation errors:";
-					message += Environment.NewLine + Environment.NewLine;
-					message += string.Join(Environment.NewLine, errors);
-					message += Environment.NewLine + Environment.NewLine;
-					message += "Do you want to continue?";
-
-					var vm = new YesNoPageViewModel()
-					{
-						Title = "Validation",
-						Message = message
-					};
-
-					var selection = await _navigationService.RequestInputAsync(vm);
-
-					if (!selection)
-					{
-						return;
-					}
-				}
-
-				await _navigationService.NavigateBack();
-
-				if (IsNew)
-				{
-					await _logMessageService.AddItemAsync(Item);
-					IsNew = false;
-				}
-				else
-				{
-					await _logMessageService.UpdateItemAsync(Item);
-				}
-			}
-			catch (Exception ex)
-			{
-				await _errorService.ShowAlertAsync("Error saving...", ex);
-			}
-			finally
-			{
-				IsBusy = false;
-			}
-		}
-
-		public AsyncCommand DeleteCommand { get; }
-		public async Task DeleteAsync()
-		{
-			if (IsBusy)
-			{
-				return;
-			}
-
-			try
-			{
-				IsBusy = true;
+				var message = "There are some validation errors:";
+				message += Environment.NewLine + Environment.NewLine;
+				message += string.Join(Environment.NewLine, errors);
+				message += Environment.NewLine + Environment.NewLine;
+				message += "Do you want to continue?";
 
 				var vm = new YesNoPageViewModel()
 				{
-					Title = "Delete?",
-					Message = "Should the item be deleted?"
+					Title = "Validation",
+					Message = message
 				};
 
 				var selection = await _navigationService.RequestInputAsync(vm);
 
-				if (selection)
+				if (!selection)
 				{
-					await _navigationService.NavigateBack();
-					await _logMessageService.DeleteItemAsync(Item.Id);
+					return;
 				}
 			}
-			catch (Exception ex)
+
+			await _navigationService.NavigateBack();
+
+			var model = _map.From(this).To<LogMessageModel>();
+
+			if (IsNew)
 			{
-				await _errorService.ShowAlertAsync("Error deleting...", ex);
+				await _logMessageService.AddItemAsync(model);
+				IsNew = false;
 			}
-			finally
+			else
 			{
-				IsBusy = false;
+				await _logMessageService.UpdateItemAsync(model);
 			}
+		}
+		catch (Exception ex)
+		{
+			await _errorService.ShowAlertAsync("Error saving...", ex);
+		}
+		finally
+		{
+			IsBusy = false;
+		}
+	}
+
+	public AsyncCommand DeleteCommand { get; }
+	public async Task DeleteAsync()
+	{
+		if (IsBusy)
+		{
+			return;
+		}
+
+		try
+		{
+			IsBusy = true;
+
+			var vm = new YesNoPageViewModel()
+			{
+				Title = "Delete?",
+				Message = "Should the item be deleted?"
+			};
+
+			var selection = await _navigationService.RequestInputAsync(vm);
+
+			if (selection)
+			{
+				await _navigationService.NavigateBack();
+				await _logMessageService.DeleteItemAsync(Id);
+			}
+		}
+		catch (Exception ex)
+		{
+			await _errorService.ShowAlertAsync("Error deleting...", ex);
+		}
+		finally
+		{
+			IsBusy = false;
 		}
 	}
 }

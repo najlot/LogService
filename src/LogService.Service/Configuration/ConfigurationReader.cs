@@ -2,41 +2,41 @@
 using System.IO;
 using System.Text.Json;
 
-namespace LogService.Service.Configuration
+namespace LogService.Service.Configuration;
+
+public static class ConfigurationReader
 {
-	public static class ConfigurationReader
+	private static readonly JsonSerializerOptions _options = new() { PropertyNameCaseInsensitive = true };
+	private static readonly Logger _logger = LogAdministrator.Instance
+			.GetLogger(typeof(ConfigurationReader));
+
+	public static T? ReadConfiguration<T>() where T : class, new()
 	{
-		private static readonly Logger _logger = LogAdministrator.Instance
-				.GetLogger(typeof(ConfigurationReader));
+		var configDir = "config";
+		var configPath = Path.Combine(configDir, typeof(T).Name + ".json");
+		configPath = Path.GetFullPath(configPath);
 
-		public static T ReadConfiguration<T>() where T : class, new()
+		if (!File.Exists(configPath))
 		{
-			var configDir = "config";
-			var configPath = Path.Combine(configDir, typeof(T).Name + ".json");
-			configPath = Path.GetFullPath(configPath);
+			_logger.Info(configPath + " not found.");
 
-			if (!File.Exists(configPath))
+			if (!File.Exists(configPath + ".example"))
 			{
-				_logger.Info(configPath + " not found.");
+				_logger.Info("Writing " + configPath + ".example...");
 
-				if (!File.Exists(configPath + ".example"))
+				if (!Directory.Exists(configDir))
 				{
-					_logger.Info("Writing " + configPath + ".example...");
-
-					if (!Directory.Exists(configDir))
-					{
-						Directory.CreateDirectory(configDir);
-					}
-
-					File.WriteAllText(configPath + ".example", JsonSerializer.Serialize(new T()));
+					Directory.CreateDirectory(configDir);
 				}
 
-				return null;
+				File.WriteAllText(configPath + ".example", JsonSerializer.Serialize(new T()));
 			}
 
-			var configContent = File.ReadAllText(configPath);
-
-			return JsonSerializer.Deserialize<T>(configContent, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
+			return null;
 		}
+
+		var configContent = File.ReadAllText(configPath);
+
+		return JsonSerializer.Deserialize<T>(configContent, _options);
 	}
 }

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 xmlns:converter="clr-namespace:LogService.Maui.Converter"
+			 xmlns:loc="clr-namespace:LogService.Client.Localisation;assembly=LogService.Client.Localisation"
+			 x:Class="LogService.Maui.View.LoginView"
+			 Title="Profiles">
+
+	<ContentPage.ToolbarItems>
+		<ToolbarItem Text="New"
+			Order="Primary"
+			Priority="0"
+			IconImageSource="{x:DynamicResource IconAdd}"
+			Command="{Binding CreateProfileCommand}"/>
+	</ContentPage.ToolbarItems>
+
+	<ContentPage.Content>
+		<Grid>
+			<ListView ItemsSource="{Binding LoginProfiles}"
+			  HasUnevenRows="true"
+			  CachingStrategy="RecycleElement"
+			  SelectionMode="None">
+				<ListView.ItemTemplate>
+					<DataTemplate>
+						<ViewCell>
+							<Grid>
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="*" />
+									<ColumnDefinition Width="Auto" />
+									<ColumnDefinition Width="Auto" />
+								</Grid.ColumnDefinitions>
+								<Button Grid.Column="0" Text="{Binding Profile.Name}" Command="{Binding LoginCommand}"
+									Margin="1" BackgroundColor="#00375a" TextColor="#ffffff" />
+
+								<Button Grid.Column="1" Command="{Binding EditCommand}" Margin="1" Padding="0"
+									HeightRequest="36" WidthRequest="36"
+									BackgroundColor="#00375a"
+									ImageSource="{StaticResource IconEdit}"/>
+
+								<Button Grid.Column="2" Command="{Binding DeleteCommand}" Margin="1" Padding="0"
+									HeightRequest="36" WidthRequest="36"
+									BackgroundColor="#00375a"
+									ImageSource="{StaticResource IconDelete}"/>
+							</Grid>
+						</ViewCell>
+					</DataTemplate>
+				</ListView.ItemTemplate>
+			</ListView>
+		</Grid>
+		
+	</ContentPage.Content>
+</ContentPage>

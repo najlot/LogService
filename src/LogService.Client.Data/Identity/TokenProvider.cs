@@ -5,89 +5,62 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using LogService.Contracts;
-using System.Collections.Generic;
-using System.Web;
 
-namespace LogService.Client.Data.Identity
+namespace LogService.Client.Data.Identity;
+
+public class TokenProvider : ITokenProvider
 {
-	public class TokenProvider : ITokenProvider
+	private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+	private readonly Func<IRequestClient> _clientFactory;
+	private readonly string _userName;
+	private readonly string _password;
+	private DateTime _tokenValidTo;
+	private string? _token;
+
+	public TokenProvider(Func<IRequestClient> clientFactory, string userName, string password)
 	{
-		private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
-		private readonly Func<IRequestClient> _clientFactory;
-		private readonly string _userName;
-		private readonly string _password;
-		private DateTime _tokenValidTo;
-		private string? _token;
+		_clientFactory = clientFactory;
+		_userName = userName;
+		_password = password;
+	}
 
-		public TokenProvider(Func<IRequestClient> clientFactory, string userName, string password)
+	public async Task<string> GetToken()
+	{
+		if (_tokenValidTo > DateTime.UtcNow.AddMinutes(5))
 		{
-			_clientFactory = clientFactory;
-			_userName = userName;
-			_password = password;
+			return _token ?? string.Empty;
 		}
 
-		public async Task<string> GetServiceToken(string source, DateTime validUntil)
-		{
-			var token = await GetToken();
-			var client = _clientFactory();
+		await _semaphore.WaitAsync();
 
-			var headers = new Dictionary<string, string>
-			{
-				{ "Authorization", $"Bearer {token}" }
-			};
-
-			var encodedSource = HttpUtility.UrlEncode(source);
-			var encodedValidUntil = HttpUtility.UrlEncode(validUntil.ToString("o"));
-			var query = $"?source={encodedSource}&validUntil={encodedValidUntil}";
-			var response = await client.GetAsync("api/Auth/ServiceToken", headers);
-
-			if (response.StatusCode >= 200 && response.StatusCode < 300)
-			{
-				token = Encoding.UTF8.GetString(response.Body.ToArray());
-				return token;
-			}
-
-			return string.Empty;
-		}
-
-		public async Task<string> GetToken()
+		try
 		{
 			if (_tokenValidTo > DateTime.UtcNow.AddMinutes(5))
 			{
 				return _token ?? string.Empty;
 			}
 
-			await _semaphore.WaitAsync();
-
-			try
+			using (var client = _clientFactory())
 			{
-				if (_tokenValidTo > DateTime.UtcNow.AddMinutes(5))
+				var request = new AuthRequest
 				{
-					return _token ?? string.Empty;
-				}
+					Username = _userName,
+					Password = _password
+				};
 
-				using (var client = _clientFactory())
-				{
-					var request = new AuthRequest
-					{
-						Username = _userName,
-						Password = _password
-					};
-
-					var response = await client.PostAsync("api/Auth", JsonSerializer.Serialize(request), "application/json");
-					response = response.EnsureSuccessStatusCode();
-					_token = Encoding.UTF8.GetString(response.Body.ToArray());
-				}
-
-				var securityToken = new System.IdentityModel.Tokens.Jwt.JwtSecurityToken(_token);
-				_tokenValidTo = securityToken.Payload.ValidTo;
-
-				return _token ?? string.Empty;
+				var response = await client.PostAsync("api/Auth", JsonSerializer.Serialize(request), "application/json");
+				response = response.EnsureSuccessStatusCode();
+				_token = Encoding.UTF8.GetString(response.Body.ToArray());
 			}
-			finally
-			{
-				_semaphore.Release();
-			}
+
+			var securityToken = new System.IdentityModel.Tokens.Jwt.JwtSecurityToken(_token);
+			_tokenValidTo = securityToken.Payload.ValidTo;
+
+			return _token ?? string.Empty;
+		}
+		finally
+		{
+			_semaphore.Release();
 		}
 	}
 }
