@@ -16,10 +16,10 @@ public class MySqlLogMessageRepository : ILogMessageRepository
 		_context = context;
 	}
 
-	public IAsyncEnumerable<LogMessageModel> GetAll()
+	public IAsyncEnumerable<LogMessageModel> GetAll(Guid userId)
 	{
-		return _context
-			.LogMessages
+		return _context.LogMessages
+			.Where(m => m.CreatedBy == userId)
 			.AsNoTracking()
 			.AsAsyncEnumerable();
 	}
@@ -45,6 +45,20 @@ public class MySqlLogMessageRepository : ILogMessageRepository
 		return e;
 	}
 
+	public async Task Insert(LogMessageModel[] models)
+	{
+		foreach (var model in models)
+		{
+			foreach (var entry in model.Arguments)
+			{
+				entry.Id = 0;
+			}
+		}
+
+		await _context.AddRangeAsync(models).ConfigureAwait(false);
+		await _context.SaveChangesAsync().ConfigureAwait(false);
+	}
+
 	public async Task Insert(LogMessageModel model)
 	{
 
@@ -54,13 +68,6 @@ public class MySqlLogMessageRepository : ILogMessageRepository
 		}
 
 		await _context.LogMessages.AddAsync(model).ConfigureAwait(false);
-
-		await _context.SaveChangesAsync().ConfigureAwait(false);
-	}
-
-	public async Task Update(LogMessageModel model)
-	{
-		_context.LogMessages.Update(model);
 
 		await _context.SaveChangesAsync().ConfigureAwait(false);
 	}

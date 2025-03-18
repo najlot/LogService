@@ -10,6 +10,8 @@ public interface IUserRepository : IDisposable
 
 	Task<UserListItemModel[]> GetItemsAsync();
 
+	Task UpdateSettingsAsync(UserSettingsModel item);
+
 	Task<UserModel> GetItemAsync(Guid id);
 
 	Task AddItemAsync(UserModel item);

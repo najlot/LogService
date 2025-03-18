@@ -45,6 +45,28 @@ public class AuthController : ControllerBase
 		return Ok(token);
 	}
 
+	[Authorize]
+	[HttpGet("ServiceToken")]
+	public ActionResult<string> GetServiceToken([FromQuery] string source, [FromQuery] DateTime validUntil)
+	{
+		if (!ModelState.IsValid)
+		{
+			return BadRequest();
+		}
+
+		var userId = User.GetUserId();
+		var userName = User.Identity?.Name;
+
+		if (userName is null)
+		{
+			return BadRequest();
+		}
+
+		var token = _tokenService.GetServiceToken(userName, userId, source ?? "", validUntil);
+
+		return Ok(token);
+	}
+
 	[AllowAnonymous]
 	[HttpPost]
 	public async Task<ActionResult<string>> Auth([FromBody] AuthRequest request)

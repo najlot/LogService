@@ -14,21 +14,11 @@
 @inject ILogger<LogMessage> Log
 @inject Najlot.Map.IMap Map;
 @inject ILogMessageService LogMessageService
-@inject ISubscriberProvider SubscriberProvider
 @inject IAuthenticationService AuthenticationService
 @inject NavigationManager NavigationManager
 @inject IStringLocalizer<LogLevelLoc> LogLevelLocalizer
 
-@implements IDisposable
-
-@if (isNew)
-{
-	<PageTitle>@LogMessageLoc.CreateLogMessage</PageTitle>
-}
-else
-{
-	<PageTitle>@LogMessageLoc.EditLogMessage</PageTitle>
-}
+<PageTitle>@LogMessageLoc.LogMessage</PageTitle>
 
 @if (Model == null)
 {
@@ -36,106 +26,128 @@ else
 }
 else
 {
-	<EditForm Model="@Model" OnValidSubmit="@Save">
-		<section class="w-100 p-4 pb-4">
-			<div class="form-outline align-content-md-end mb-4 float-end">
-				<button type="submit" class="btn btn-success">@CommonLoc.Save</button>
-				<button @onclick="Remove" type="button" class="btn btn-danger">@CommonLoc.Delete</button>
-			</div>
+	<EditForm Model="@Model">
+		<section class="w-100">
 			<div class="form-outline mb-4">
-				@if (isNew)
-				{
-					<h1>@LogMessageLoc.CreateLogMessage</h1>
-				}
-				else
-				{
-					<h1>@LogMessageLoc.EditLogMessage</h1>
-				}
+				<h1>@LogMessageLoc.LogMessage</h1>
 			</div>
+
 			<div class="w-auto h-auto">
 				<DataAnnotationsValidator />
 				<ValidationSummary />
 
-				<!-- DateTime input -->
-				<div class="form-outline mb-2">
-					<label class="form-label" for="DateTimeInput">@LogMessageLoc.DateTime</label>
-					<InputDate id="DateTimeInput" class="form-control" @bind-Value="Model.DateTime" ParsingErrorMessage="Must be a date" />
+				<div class="row">
+					<!-- DateTime -->
+					<div class="col-4 col-xl-2 fw-bold">
+						@LogMessageLoc.DateTime
+					</div>
+					<div class="col-8 col-xl-4">
+						@Model.DateTime
+					</div>
+
+					<!-- LogLevel -->
+					<div class="col-4 col-xl-2 fw-bold">
+						@LogMessageLoc.LogLevel
+					</div>
+					<div class="col-8 col-xl-4">
+						@LogLevelLocalizer[Model.LogLevel.ToString()]
+					</div>
 				</div>
 
-				<!-- LogLevel input -->
-				<div class="form-outline mb-2">
-					<label class="form-label" for="LogLevelInput">@LogMessageLoc.LogLevel</label>
-					<InputSelect id="LogLevelInput" class="form-control" @bind-Value="Model.LogLevel" >
-						@foreach (var value in Enum.GetValues(typeof(Contracts.LogLevel)))
-						{
-							<option value="@value">@LogLevelLocalizer[$"{@value}"]</option>
-						}
-					</InputSelect>
+				<!-- Source -->
+				<div class="row">
+					<div class="col-4 col-xl-2 fw-bold">
+						@LogMessageLoc.Source
+					</div>
+					<div class="col-8 col-xl-4">
+						@Model.Source
+					</div>
+
+					<div class="col-4 col-xl-2 fw-bold">
+						@LogMessageLoc.Category
+					</div>
+					<div class="col-8 col-xl-4 text-break">
+						@Model.Category
+					</div>
 				</div>
 
-				<!-- Category input -->
-				<div class="form-outline mb-2">
-					<label class="form-label" for="CategoryInput">@LogMessageLoc.Category</label>
-					<InputText type="text" id="CategoryInput" class="form-control" @bind-Value="Model.Category" />
+				@if (!string.IsNullOrEmpty(Model.State))
+				{
+					<!-- State -->
+					<div class="row">
+						<div class="col-4 col-xl-2 fw-bold">
+							@LogMessageLoc.State
+						</div>
+						<div class="col-8 col-xl-10 text-break">
+							@Model.State
+						</div>
+					</div>
+				}
+
+				<!-- Message -->
+				<div class="row">
+					<div class="col-4 col-xl-2 fw-bold">
+						@LogMessageLoc.Message
+					</div>
+					<div class="col-8 col-xl-10 text-break">
+						@Model.Message
+					</div>
 				</div>
 
-				<!-- State input -->
-				<div class="form-outline mb-2">
-					<label class="form-label" for="StateInput">@LogMessageLoc.State</label>
-					<InputText type="text" id="StateInput" class="form-control" @bind-Value="Model.State" />
-				</div>
-
-				<!-- Source input -->
-				<div class="form-outline mb-2">
-					<label class="form-label" for="SourceInput">@LogMessageLoc.Source</label>
-					<InputText type="text" id="SourceInput" class="form-control" @bind-Value="Model.Source" />
-				</div>
-
-				<!-- RawMessage input -->
-				<div class="form-outline mb-2">
-					<label class="form-label" for="RawMessageInput">@LogMessageLoc.RawMessage</label>
-					<InputText type="text" id="RawMessageInput" class="form-control" @bind-Value="Model.RawMessage" />
-				</div>
-
-				<!-- Message input -->
-				<div class="form-outline mb-2">
-					<label class="form-label" for="MessageInput">@LogMessageLoc.Message</label>
-					<InputText type="text" id="MessageInput" class="form-control" @bind-Value="Model.Message" />
-				</div>
-
-				<!-- Exception input -->
-				<div class="form-outline mb-2">
-					<label class="form-label" for="ExceptionInput">@LogMessageLoc.Exception</label>
-					<InputText type="text" id="ExceptionInput" class="form-control" @bind-Value="Model.Exception" />
-				</div>
-
-				<!-- ExceptionIsValid input -->
-				<div class="form-outline mb-2">
-					<label class="form-label" for="ExceptionIsValidInput">@LogMessageLoc.ExceptionIsValid</label>
-					<InputCheckbox id="ExceptionIsValidInput" class="form-control" @bind-Value="Model.ExceptionIsValid" />
-				</div>
+				@if (Model.RawMessage != Model.Message)
+				{
+					<!-- RawMessage -->
+					<div class="row">
+						<div class="col-4 col-xl-2 fw-bold">
+							@LogMessageLoc.RawMessage
+						</div>
+						<div class="col-8 col-xl-10 text-break">
+							@Model.RawMessage
+						</div>
+					</div>
+				}
+				
+				@if (Model.ExceptionIsValid)
+				{
+					<!-- Exception -->
+					<div class="row">
+						<div class="col">
+							<div class="col-4 col-xl-2 fw-bold">
+								@LogMessageLoc.Exception
+							</div>
+							<div class="col-12 col-xl-10 text-break">
+								@Model.Exception
+							</div>
+						</div>
+					</div>
+				}
 			</div>
-		</section>
-		<section>
-			<table class="table table-striped">
-				<thead>
-					<tr>
-						<th>@LogArgumentLoc.Key</th>
-						<th>@LogArgumentLoc.Value</th>
-						<th><button type="button" class="btn btn-success w-100" @onclick="AddArgumentsEntry">@CommonLoc.New</button></th>
-					</tr>
-				</thead>
-				<tbody>
-					@foreach (var entry in Model.Arguments)
-					{
-						<tr scope="row">
-							<td><input type="text" class="form-control" @bind=entry.Key /></td>
-							<td><input type="text" class="form-control" @bind=entry.Value /></td>
-							<td><button type="button" class="btn btn-danger w-100" @onclick="() => RemoveArgumentsEntry(entry.Id)">@CommonLoc.Delete</button></td>
-						</tr>
-					}
-				</tbody>
-			</table>
+
+			<!-- Arguments -->
+			@if (Model.Arguments.Any())
+			{
+				<br />
+				<div class="row">
+					<div class="col-4 col-xl-2 fw-bold">
+						@LogArgumentLoc.Key
+					</div>
+					<div class="col-8 col-xl-10 fw-bold">
+						@LogArgumentLoc.Value
+					</div>
+				</div>
+
+				@foreach (var entry in Model.Arguments)
+				{
+					<div class="row border-top">
+						<div class="col-4 col-xl-2">
+							@entry.Key
+						</div>
+						<div class="col-8 col-xl-10 text-break">
+							@entry.Value
+						</div>
+					</div>
+				}
+			}
 		</section>
 	</EditForm>
 }
@@ -147,11 +159,7 @@ else
 	[Parameter]
 	public Guid Id { get; set; }
 
-	private ISubscriber? Subscriber;
-
-	private bool isNew = false;
 	private LogMessageModel? Model;
-
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -166,22 +174,7 @@ else
 
 		try
 		{
-			if (Id == Guid.Empty)
-			{
-				Model = LogMessageService.CreateLogMessage();
-				isNew = true;
-			}
-			else
-			{
-				Model = await LogMessageService.GetItemAsync(Id);
-			}
-
-
-			Subscriber = await SubscriberProvider.GetSubscriber();
-
-			Subscriber.Register<LogMessageUpdated>(Handle);
-
-			await Subscriber.StartAsync();
+			Model = await LogMessageService.GetItemAsync(Id);
 		}
 		catch (System.Security.Authentication.AuthenticationException)
 		{
@@ -193,126 +186,5 @@ else
 			Log.LogError(ex, "Error loading logmessage.");
 			ErrorService?.ShowError("Error", "Could not load. Server error.");
 		}
-	}
-
-	private async Task Save()
-	{
-		if (Model is null)
-		{
-			ErrorService?.ShowError("Error", "Model is null. Please reload the page.");
-			return;
-		}
-
-		try
-		{
-			if (isNew)
-			{
-				await LogMessageService.AddItemAsync(Model);
-				Id = Model.Id;
-				NavigationManager.NavigateTo($"/logmessage/{Model.Id}", false, true);
-				isNew = false;
-			}
-			else
-			{
-				await LogMessageService.UpdateItemAsync(Model);
-			}
-
-			NavigationManager.NavigateTo("/logmessages");
-		}
-		catch (System.Security.Authentication.AuthenticationException)
-		{
-			var url = NavigationManager.BuildReturnUrl("/login");
-			NavigationManager.NavigateTo(url);
-		}
-		catch (Exception ex)
-		{
-			Log.LogError(ex, "Error saving logmessage.");
-			ErrorService?.ShowError("Error", "Could not save. Server error.");
-		}
-	}
-
-	private async Task Remove()
-	{
-		if (Model is null)
-		{
-			ErrorService?.ShowError("Error", "Model is null. Please reload the page.");
-			return;
-		}
-
-		try
-		{
-			if (!isNew)
-			{
-				await LogMessageService.DeleteItemAsync(Model.Id);
-			}
-
-			NavigationManager.NavigateTo("/logmessages");
-		}
-		catch (System.Security.Authentication.AuthenticationException)
-		{
-			var url = NavigationManager.BuildReturnUrl("/login");
-			NavigationManager.NavigateTo(url);
-		}
-		catch (Exception ex)
-		{
-			Log.LogError(ex, "Error saving logmessage.");
-			ErrorService?.ShowError("Error", "Could not save. Server error.");
-		}
-	}
-
-	private async Task Handle(LogMessageUpdated message)
-	{
-		if (Model is null || Model.Id != message.Id)
-		{
-			return;
-		}
-
-		Map.From(message).To(Model);
-
-		await InvokeAsync(StateHasChanged);
-	}
-
-	private void AddArgumentsEntry()
-	{
-		if (Model is null)
-		{
-			return;
-		}
-
-		var max = 0;
-
-		if (Model.Arguments.Count > 0)
-		{
-			max = Model.Arguments.Max(e => e.Id) + 1;
-		}
-
-		var model = new LogArgumentModel() { Id = max };
-
-		Model.Arguments.Add(model);
-	}
-
-	private void RemoveArgumentsEntry(int id)
-	{
-		if (Model is null)
-		{
-			return;
-		}
-
-		var oldItem = Model.Arguments.FirstOrDefault(i => i.Id == id);
-
-		if (oldItem != null)
-		{
-			var index = Model.Arguments.IndexOf(oldItem);
-
-			if (index != -1)
-			{
-				Model.Arguments.RemoveAt(index);
-			}
-		}
-	}
-
-	public void Dispose()
-	{
-		Subscriber?.Unregister(this);
 	}
 }

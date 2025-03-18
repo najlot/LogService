@@ -12,4 +12,5 @@ public class UserModel
 	public string EMail { get; set; } = string.Empty;
 	public byte[] PasswordHash { get; set; } = [];
 	public bool IsActive { get; set; }
+	public UserSettingsModel Settings { get; set; } = new();
 }

@@ -9,10 +9,8 @@ namespace LogService.Client.Data.Services;
 public interface ILogMessageService : IDisposable
 {
 	LogMessageModel CreateLogMessage();
-	Task AddItemAsync(LogMessageModel item);
-	Task<IEnumerable<LogMessageListItemModel>> GetItemsAsync();
-	Task<IEnumerable<LogMessageListItemModel>> GetItemsAsync(LogMessageFilter filter);
+	Task<LogMessageListItemModel[]> GetItemsAsync();
+	Task<LogMessageListItemModel[]> GetItemsAsync(LogMessageFilter filter);
 	Task<LogMessageModel> GetItemAsync(Guid id);
-	Task UpdateItemAsync(LogMessageModel item);
 	Task DeleteItemAsync(Guid id);
 }

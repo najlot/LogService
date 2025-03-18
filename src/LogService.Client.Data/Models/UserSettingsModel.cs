@@ -1,7 +1,6 @@
-﻿namespace LogService.Client.Data.Models
+﻿namespace LogService.Client.Data.Models;
+
+public class UserSettingsModel
 {
-	public class UserSettingsModel
-	{
-		public int LogRetentionDays { get; set; }
-	}
+	public int LogRetentionDays { get; set; }
 }

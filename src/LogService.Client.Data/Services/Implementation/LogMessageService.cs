@@ -31,34 +31,24 @@ public sealed class LogMessageService : ILogMessageService
 		};
 	}
 
-	public async Task AddItemAsync(LogMessageModel item)
-	{
-		await _repository.AddItemAsync(item);
-	}
-
-	public async Task DeleteItemAsync(Guid id)
-	{
-		await _repository.DeleteItemAsync(id);
-	}
-
 	public async Task<LogMessageModel> GetItemAsync(Guid id)
 	{
 		return await _repository.GetItemAsync(id);
 	}
 
-	public async Task<IEnumerable<LogMessageListItemModel>> GetItemsAsync()
+	public async Task<LogMessageListItemModel[]> GetItemsAsync()
 	{
 		return await _repository.GetItemsAsync();
 	}
 
-	public async Task<IEnumerable<LogMessageListItemModel>> GetItemsAsync(LogMessageFilter filter)
+	public async Task<LogMessageListItemModel[]> GetItemsAsync(LogMessageFilter filter)
 	{
 		return await _repository.GetItemsAsync(filter);
 	}
 
-	public async Task UpdateItemAsync(LogMessageModel item)
+	public async Task DeleteItemAsync(Guid id)
 	{
-		await _repository.UpdateItemAsync(item);
+		await _repository.DeleteItemAsync(id);
 	}
 
 	public void Dispose() => _repository.Dispose();

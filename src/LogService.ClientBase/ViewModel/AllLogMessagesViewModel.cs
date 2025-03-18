@@ -2,7 +2,6 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using Najlot.Map;
 using LogService.ClientBase.Messages;
 using LogService.ClientBase.Validation;
 using LogService.Client.Localisation;
@@ -10,6 +9,7 @@ using LogService.Client.MVVM;
 using LogService.Client.MVVM.ViewModel;
 using LogService.Client.MVVM.Services;
 using LogService.Client.Data.Services;
+using LogService.Client.Data.Mappings;
 using LogService.Client.Data.Models;
 using LogService.Contracts.Events;
 
@@ -17,11 +17,11 @@ namespace LogService.ClientBase.ViewModel;
 
 public class AllLogMessagesViewModel : AbstractViewModel, IDisposable
 {
-	private readonly IErrorService _errorService;
+	private readonly Func<LogMessageViewModel> _logMessageViewModelFactory;
 	private readonly ILogMessageService _logMessageService;
 	private readonly INavigationService _navigationService;
 	private readonly IMessenger _messenger;
-	private readonly IMap _map;
+	private readonly IErrorService _errorService;
 
 	private bool _isBusy;
 	private string _filter;
@@ -43,20 +43,20 @@ public class AllLogMessagesViewModel : AbstractViewModel, IDisposable
 	}
 
 	public ObservableCollectionView<LogMessageListItemModel> LogMessagesView { get; }
-	public ObservableCollection<LogMessageListItemModel> LogMessages { get; } = [];
+	public ObservableCollection<LogMessageListItemModel> LogMessages { get; } = new ObservableCollection<LogMessageListItemModel>();
 
 	public AllLogMessagesViewModel(
+		Func<LogMessageViewModel> logMessageViewModelFactory,
 		IErrorService errorService,
 		ILogMessageService logMessageService,
 		INavigationService navigationService,
-		IMessenger messenger,
-		IMap map)
+		IMessenger messenger)
 	{
+		_logMessageViewModelFactory = logMessageViewModelFactory;
 		_errorService = errorService;
 		_logMessageService = logMessageService;
 		_navigationService = navigationService;
 		_messenger = messenger;
-		_map = map;
 
 		LogMessagesView = new ObservableCollectionView<LogMessageListItemModel>(LogMessages, FilterLogMessage);
 
@@ -157,7 +157,10 @@ public class AllLogMessagesViewModel : AbstractViewModel, IDisposable
 			IsBusy = true;
 
 			var item = await _logMessageService.GetItemAsync(model.Id);
-			var viewModel = _map.From(item).To<LogMessageViewModel>();
+			var viewModel = _logMessageViewModelFactory();
+
+
+			viewModel.Item = item;
 
 			_messenger.Register<EditLogArgument>(viewModel.Handle);
 			_messenger.Register<DeleteLogArgument>(viewModel.Handle);
@@ -190,7 +193,10 @@ public class AllLogMessagesViewModel : AbstractViewModel, IDisposable
 			IsBusy = true;
 
 			var item = _logMessageService.CreateLogMessage();
-			var viewModel = _map.From(item).To<LogMessageViewModel>();
+			var viewModel = _logMessageViewModelFactory();
+
+
+			viewModel.Item = item;
 			viewModel.IsNew = true;
 
 			_messenger.Register<EditLogArgument>(viewModel.Handle);
@@ -243,5 +249,24 @@ public class AllLogMessagesViewModel : AbstractViewModel, IDisposable
 		}
 	}
 
-	public void Dispose() => _messenger.Unregister(this);
+	private bool _disposedValue = false;
+
+	protected virtual void Dispose(bool disposing)
+	{
+		if (!_disposedValue)
+		{
+			_disposedValue = true;
+
+			if (disposing)
+			{
+				_messenger.Unregister(this);
+			}
+		}
+	}
+
+	public void Dispose()
+	{
+		Dispose(true);
+		GC.SuppressFinalize(this);
+	}
 }

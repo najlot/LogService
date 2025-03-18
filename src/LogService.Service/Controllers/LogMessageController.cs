@@ -25,20 +25,18 @@ public class LogMessageController : ControllerBase
 	}
 
 	[HttpGet]
-	public async Task<ActionResult<List<LogMessageListItem>>> List()
+	public ActionResult<LogMessageListItem[]> List()
 	{
 		var userId = User.GetUserId();
-		var query = _logMessageService.GetItemsForUserAsync(userId);
-		var items = await query.ToListAsync().ConfigureAwait(false);
+		var items = _logMessageService.GetItemsForUserAsync(userId);
 		return Ok(items);
 	}
 
 	[HttpPost("[action]")]
-	public async Task<ActionResult<List<LogMessageListItem>>> ListFiltered(LogMessageFilter filter)
+	public ActionResult<LogMessageListItem[]> ListFiltered(LogMessageFilter filter)
 	{
 		var userId = User.GetUserId();
-		var query = _logMessageService.GetItemsForUserAsync(filter, userId);
-		var items = await query.ToListAsync().ConfigureAwait(false);
+		var items = _logMessageService.GetItemsForUserAsync(filter, userId);
 		return Ok(items);
 	}
 
@@ -55,27 +53,12 @@ public class LogMessageController : ControllerBase
 		return Ok(item);
 	}
 
-	[HttpPost]
-	public async Task<ActionResult> Create([FromBody] CreateLogMessage command)
-	{
-		var userId = User.GetUserId();
-		await _logMessageService.CreateLogMessage(command, userId).ConfigureAwait(false);
-		return Ok();
-	}
-
 	[HttpPut]
-	public async Task<ActionResult> Update([FromBody] UpdateLogMessage command)
+	public async Task<ActionResult> Create([FromBody] CreateLogMessage[] commands)
 	{
 		var userId = User.GetUserId();
-		await _logMessageService.UpdateLogMessage(command, userId).ConfigureAwait(false);
-		return Ok();
-	}
-
-	[HttpDelete("{id}")]
-	public async Task<ActionResult> Delete(Guid id)
-	{
-		var userId = User.GetUserId();
-		await _logMessageService.DeleteLogMessage(id, userId).ConfigureAwait(false);
+		var source = User.Claims.FirstOrDefault(c => c.Type == "Source")?.Value ?? "";
+		await _logMessageService.CreateLogMessages(commands, source, userId).ConfigureAwait(false);
 		return Ok();
 	}
 }

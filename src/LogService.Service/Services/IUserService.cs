@@ -17,4 +17,6 @@ public interface IUserService
 	Task CreateUser(CreateUser command, Guid userId);
 	Task UpdateUser(UpdateUser command, Guid userId);
 	Task DeleteUser(Guid id, Guid userId);
+
+	Task UpdateUserSettings(UpdateUserSettings command, Guid userId);
 }

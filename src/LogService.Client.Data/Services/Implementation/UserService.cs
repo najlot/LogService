@@ -51,6 +51,11 @@ public sealed class UserService : IUserService
 		return await _repository.GetItemsAsync();
 	}
 
+	public async Task UpdateSettingsAsync(UserSettingsModel item)
+	{
+		await _repository.UpdateSettingsAsync(item);
+	}
+
 	public async Task UpdateItemAsync(UserModel item)
 	{
 		await _repository.UpdateItemAsync(item);

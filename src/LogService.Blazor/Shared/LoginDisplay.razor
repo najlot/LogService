@@ -9,7 +9,7 @@
 			<a class="nav-link" href="Manage">@CommonLoc.Hello, @context.User.Identity?.Name!</a>
 		</div>
 		<div class="nav-item">
-			<button class="nav-link" type="button" @onclick="Logout">@CommonLoc.Logout</button>
+			<button class="nav-link btn btn-secondary" @onclick="Logout">@CommonLoc.Logout</button>
 		</div>
 	</Authorized>
 	<NotAuthorized>

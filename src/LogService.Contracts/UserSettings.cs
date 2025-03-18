@@ -1,7 +1,6 @@
-﻿namespace LogService.Contracts
+﻿namespace LogService.Contracts;
+
+public class UserSettings
 {
-	public class UserSettings
-	{
-		public int LogRetentionDays { get; set; } = 7;
-	}
+	public int LogRetentionDays { get; set; } = 7;
 }

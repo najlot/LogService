@@ -18,7 +18,6 @@ using LogService.Client.Data.Repositories;
 using LogService.Client.Data.Repositories.Implementation;
 using LogService.Client.Data.Services;
 using LogService.Client.Data.Services.Implementation;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace LogService.Blazor;
 

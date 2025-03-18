@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using LogService.Client.MVVM.Validation;
 
 namespace LogService.Client.MVVM.ViewModel;
@@ -11,14 +10,14 @@ namespace LogService.Client.MVVM.ViewModel;
 public abstract class AbstractValidationViewModel : AbstractViewModel, INotifyDataErrorInfo
 {
 	private Action _validateAction = () => { };
-	private IEnumerable<ValidationResult> _errors = [];
-	private IEnumerable<string> _previousProperties = [];
+	private IEnumerable<ValidationResult> _errors = new List<ValidationResult>();
+	private IEnumerable<string> _previousProperties = new List<string>();
 
 	protected void RaiseErrorsChanged(string propertyName) => ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
 
 	public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
 
-	protected void SetValidation<T>(ValidationList<T> validations, bool validate = true) where T : AbstractValidationViewModel
+	public void SetValidation<T>(ValidationList<T> validations, bool validate = true) where T : AbstractValidationViewModel
 	{
 		if (!typeof(T).IsAssignableFrom(GetType()))
 		{
@@ -37,18 +36,7 @@ public abstract class AbstractValidationViewModel : AbstractViewModel, INotifyDa
 		}
 	}
 
-	protected override bool Set<T>(ref T oldValue, T newValue, [CallerMemberName] string propertyName = null)
-	{
-		if (base.Set(ref oldValue, newValue, propertyName))
-		{
-			_validateAction();
-			return true;
-		}
-
-		return false;
-	}
-
-	protected override bool Set<T>(string propertyName, ref T oldValue, T newValue)
+	public override bool Set<T>(string propertyName, ref T oldValue, T newValue)
 	{
 		if (base.Set(propertyName, ref oldValue, newValue))
 		{

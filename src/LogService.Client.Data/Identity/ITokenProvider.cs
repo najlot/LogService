@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -6,6 +7,7 @@ namespace LogService.Client.Data.Identity;
 public interface ITokenProvider
 {
 	Task<string> GetToken();
+	Task<string> GetServiceToken(string source, DateTime validUntil);
 }
 
 public static class TokenProviderExtensions

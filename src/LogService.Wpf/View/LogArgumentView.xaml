@@ -44,11 +44,11 @@
 						HorizontalAlignment="Center" VerticalAlignment="Center">
 				<DockPanel Margin="5">
 					<Label Content="{x:Static loc:LogArgumentLoc.Key}" MinWidth="75" />
-					<TextBox Text="{Binding Key}" />
+					<TextBox Text="{Binding Item.Key}" />
 				</DockPanel>
 				<DockPanel Margin="5">
 					<Label Content="{x:Static loc:LogArgumentLoc.Value}" MinWidth="75" />
-					<TextBox Text="{Binding Value}" />
+					<TextBox Text="{Binding Item.Value}" />
 				</DockPanel>
 			</StackPanel>
 		</ScrollViewer>

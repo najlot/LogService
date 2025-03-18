@@ -46,20 +46,6 @@ public class LogMessageRepository : ILogMessageRepository
 		return _map.From(item).To<LogMessageModel>();
 	}
 
-	public async Task AddItemAsync(LogMessageModel item)
-	{
-		var headers = await _tokenProvider.GetAuthorizationHeaders();
-		var request = _map.From(item).To<CreateLogMessage>();
-		await _client.PostAsync("api/LogMessage", request, headers);
-	}
-
-	public async Task UpdateItemAsync(LogMessageModel item)
-	{
-		var headers = await _tokenProvider.GetAuthorizationHeaders();
-		var request = _map.From(item).To<UpdateLogMessage>();
-		await _client.PutAsync("api/LogMessage", request, headers);
-	}
-
 	public async Task DeleteItemAsync(Guid id)
 	{
 		var headers = await _tokenProvider.GetAuthorizationHeaders();

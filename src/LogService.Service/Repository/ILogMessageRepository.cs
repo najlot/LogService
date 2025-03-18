@@ -8,15 +8,14 @@ namespace LogService.Service.Repository;
 
 public interface ILogMessageRepository
 {
-	IAsyncEnumerable<LogMessageModel> GetAll();
+	IAsyncEnumerable<LogMessageModel> GetAll(Guid userId);
 
 	IQueryable<LogMessageModel> GetAllQueryable();
 
 	Task<LogMessageModel?> Get(Guid id);
 
 	Task Insert(LogMessageModel model);
-
-	Task Update(LogMessageModel model);
+	Task Insert(LogMessageModel[] models);
 
 	Task Delete(Guid id);
 }

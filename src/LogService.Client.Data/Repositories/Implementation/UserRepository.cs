@@ -58,6 +58,13 @@ public sealed class UserRepository : IUserRepository
 		await _client.PutAsync("api/User", request, headers);
 	}
 
+	public async Task UpdateSettingsAsync(UserSettingsModel item)
+	{
+		var headers = await _tokenProvider.GetAuthorizationHeaders();
+		var request = new UpdateUserSettings(item.LogRetentionDays);
+		await _client.PutAsync($"api/User/Settings", request, headers);
+	}
+
 	public async Task DeleteItemAsync(Guid id)
 	{
 		var headers = await _tokenProvider.GetAuthorizationHeaders();

@@ -1,6 +1,7 @@
 using Najlot.Map;
 using LogService.Client.Data.Models;
 using LogService.Contracts;
+using System.Collections.Generic;
 
 namespace LogService.Client.Data.Mappings;
 
@@ -26,4 +27,6 @@ internal sealed class LogArgumentMappings
 		to.Key = from.Key;
 		to.Value = from.Value;
 	}
+
+	public KeyValuePair<string, string> MapToPair(IMap map, LogArgument from) => new(from.Key, from.Value);
 }

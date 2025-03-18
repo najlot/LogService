@@ -73,6 +73,14 @@ public class UserController : ControllerBase
 		return Ok();
 	}
 
+	[HttpPut("settings")]
+	public async Task<ActionResult> UpdateSettings([FromBody] UpdateUserSettings command)
+	{
+		var userId = User.GetUserId();
+		await _userService.UpdateUserSettings(command, userId).ConfigureAwait(false);
+		return Ok();
+	}
+
 	[HttpDelete("{id}")]
 	public async Task<ActionResult> Delete(Guid id)
 	{

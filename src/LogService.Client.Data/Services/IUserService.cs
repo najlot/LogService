@@ -14,4 +14,6 @@ public interface IUserService : IDisposable
 	Task UpdateItemAsync(UserModel item);
 	Task DeleteItemAsync(Guid id);
 	Task<UserModel> GetCurrentUserAsync();
+
+	Task UpdateSettingsAsync(UserSettingsModel item);
 }

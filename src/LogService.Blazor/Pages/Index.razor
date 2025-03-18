@@ -16,8 +16,8 @@
 <PageTitle>@CommonLoc.Home</PageTitle>
 
 
-	<AuthorizeView>
-		<Authorized>
+<AuthorizeView>
+	<Authorized>
 		<section class="w-100 p-4 d-flex justify-content-center pb-4">
 			<div>
 				<div class="form-outline">
@@ -68,8 +68,8 @@
 						<div>
 							<script>
 								function auto_grow(element) {
-									element.style.height = "5px";
-									element.style.height = (element.scrollHeight) + "px";
+								element.style.height = "5px";
+								element.style.height = (element.scrollHeight) + "px";
 								}
 							</script>
 
@@ -93,7 +93,7 @@
 						<div class="col-xl-1 mb-2">
 							<InputNumber @bind-Value="logRetentionDays" class="form-control" />
 						</div>
-						
+
 						<div class="col-xl-9">
 							<div class="d-flex justify-content-end justify-content-xl-between">
 								<button @onclick="SaveSettings" class="btn btn-primary">
@@ -106,24 +106,24 @@
 			</div>
 		</section>
 
-		</Authorized>
-		<NotAuthorized>
-			<section class="w-100 p-4 d-flex justify-content-center pb-4">
-				<div>
-					<div class="form-outline mb-4">
-						<h1>@CommonLoc.Welcome!</h1>
-						<p>@CommonLoc.RegisterOrLogin</p>
-					</div>
-					<div class="form-outline mb-4">
-						<a href="/login" class="btn btn-primary w-100">@CommonLoc.Login</a>
-					</div>
-					<div class="form-outline mb-4">
-						<a href="/register" class="btn btn-primary w-100">@CommonLoc.Register</a>
-					</div>
+	</Authorized>
+	<NotAuthorized>
+		<section class="w-100 p-4 d-flex justify-content-center pb-4">
+			<div>
+				<div class="form-outline mb-4">
+					<h1>@CommonLoc.Welcome!</h1>
+					<p>@CommonLoc.RegisterOrLogin</p>
 				</div>
-			</section>
-		</NotAuthorized>
-	</AuthorizeView>
+				<div class="form-outline mb-4">
+					<a href="/login" class="btn btn-primary w-100">@CommonLoc.Login</a>
+				</div>
+				<div class="form-outline mb-4">
+					<a href="/register" class="btn btn-primary w-100">@CommonLoc.Register</a>
+				</div>
+			</div>
+		</section>
+	</NotAuthorized>
+</AuthorizeView>
 
 
 @code {
@@ -143,21 +143,29 @@
 
 	protected override async Task OnInitializedAsync()
 	{
+		await base.OnInitializedAsync();
+
 		name = "";
 		ErrorService?.HideError();
 
-		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-		var user = authState.User;
-
-		if (user.Identity is not null && user.Identity.IsAuthenticated)
+		try
 		{
-			name = user.FindFirst(c => c.Type == System.Security.Claims.ClaimTypes.Name)?.Value;
+			var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+			var user = authState.User;
 
-			var userModel = await UserService.GetCurrentUserAsync();
-			logRetentionDays = userModel.Settings.LogRetentionDays;
+			if (user.Identity is not null && user.Identity.IsAuthenticated)
+			{
+				name = user.FindFirst(c => c.Type == System.Security.Claims.ClaimTypes.Name)?.Value;
+
+				var userModel = await UserService.GetCurrentUserAsync();
+				logRetentionDays = userModel.Settings.LogRetentionDays;
+			}
 		}
-
-		await base.OnInitializedAsync();
+		catch (Exception ex)
+		{
+			Logger.LogError(ex, "Initialization failed.");
+			ErrorService?.ShowError("Error", "Initialization failed!");
+		}
 	}
 
 	private async Task SaveSettings()

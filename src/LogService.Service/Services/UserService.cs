@@ -57,7 +57,20 @@ public class UserService : IUserService
 		await _userRepository.Insert(item).ConfigureAwait(false);
 
 		var message = _map.From(item).To<UserCreated>();
-		await _publisher.PublishAsync(message).ConfigureAwait(false);
+		await _publisher.PublishToUserAsync(userId.ToString(), message).ConfigureAwait(false);
+	}
+
+	public async Task UpdateUserSettings(UpdateUserSettings command, Guid userId)
+	{
+		var item = await _userRepository.Get(userId).ConfigureAwait(false);
+
+		if (item == null)
+		{
+			throw new InvalidOperationException("User not found!");
+		}
+
+		item.Settings.LogRetentionDays = command.LogRetentionDays;
+		await _userRepository.Update(item);
 	}
 
 	public async Task UpdateUser(UpdateUser command, Guid userId)
@@ -97,7 +110,7 @@ public class UserService : IUserService
 		await _userRepository.Update(item).ConfigureAwait(false);
 
 		var message = _map.From(item).To<UserUpdated>();
-		await _publisher.PublishAsync(message).ConfigureAwait(false);
+		await _publisher.PublishToUserAsync(userId.ToString(), message).ConfigureAwait(false);
 	}
 
 	public async Task DeleteUser(Guid id, Guid userId)
@@ -119,7 +132,7 @@ public class UserService : IUserService
 		await _userRepository.Update(item).ConfigureAwait(false);
 
 		var message = new UserDeleted(id);
-		await _publisher.PublishAsync(message).ConfigureAwait(false);
+		await _publisher.PublishToUserAsync(userId.ToString(), message).ConfigureAwait(false);
 	}
 
 	public async Task<User?> GetItem(Guid id)
@@ -130,7 +143,7 @@ public class UserService : IUserService
 
 	public IAsyncEnumerable<UserListItem> GetItemsForUser(Guid userId)
 	{
-		var items = _userRepository.GetAll().Where(u => u.IsActive);
+		var items = _userRepository.GetAll().Where(u => u.IsActive && u.Id == userId);
 		return _map.From(items).To<UserListItem>();
 	}
 
