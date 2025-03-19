@@ -13,8 +13,8 @@ namespace LogService.Maui;
 
 public static class MauiProgramExtensions
 {
-    public static MauiAppBuilder UseSharedMauiApp(this MauiAppBuilder builder)
-    {
+	public static MauiAppBuilder UseSharedMauiApp(this MauiAppBuilder builder)
+	{
 		builder.UseMauiApp<App>();
 
 		var map = new Najlot.Map.Map().RegisterDataMappings().RegisterViewModelMappings();
@@ -42,7 +42,7 @@ public static class MauiProgramExtensions
 		builder.Services.AddSingleton(c => new NavigationPage(c.GetRequiredService<LoginView>()));
 		builder.Services.AddSingleton(c => c.GetRequiredService<LoginView>().Dispatcher);
 		builder.Services.AddSingleton(c => c.GetRequiredService<NavigationPage>().Navigation);
-		
+
 		return builder;
-    }
+	}
 }

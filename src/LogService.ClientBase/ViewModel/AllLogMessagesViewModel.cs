@@ -159,10 +159,6 @@ public class AllLogMessagesViewModel : AbstractViewModel, IDisposable
 			var item = await _logMessageService.GetItemAsync(model.Id);
 			var viewModel = _map.From(item).To<LogMessageViewModel>();
 
-			_messenger.Register<EditLogArgument>(viewModel.Handle);
-			_messenger.Register<DeleteLogArgument>(viewModel.Handle);
-			_messenger.Register<SaveLogArgument>(viewModel.Handle);
-
 			_messenger.Register<LogMessageUpdated>(viewModel.Handle);
 
 			await _navigationService.NavigateForward(viewModel);
@@ -192,10 +188,6 @@ public class AllLogMessagesViewModel : AbstractViewModel, IDisposable
 			var item = _logMessageService.CreateLogMessage();
 			var viewModel = _map.From(item).To<LogMessageViewModel>();
 			viewModel.IsNew = true;
-
-			_messenger.Register<EditLogArgument>(viewModel.Handle);
-			_messenger.Register<DeleteLogArgument>(viewModel.Handle);
-			_messenger.Register<SaveLogArgument>(viewModel.Handle);
 
 			await _navigationService.NavigateForward(viewModel);
 		}

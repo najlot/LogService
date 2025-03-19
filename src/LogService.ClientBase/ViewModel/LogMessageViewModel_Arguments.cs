@@ -4,7 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using LogService.Client.Data.Models;
 using LogService.Client.MVVM;
-using LogService.ClientBase.Messages;
+using LogService.Client.MVVM.Services;
+using LogService.Client.MVVM.ViewModel;
 
 namespace LogService.ClientBase.ViewModel;
 
@@ -30,41 +31,9 @@ public partial class LogMessageViewModel
 		Arguments.Add(viewModel);
 	});
 
-	public async Task Handle(DeleteLogArgument obj)
-	{
-		if (Id != obj.ParentId)
-		{
-			return;
-		}
-
-		try
-		{
-			var oldItem = Arguments.FirstOrDefault(i => i.Id == obj.Id);
-
-			if (oldItem != null)
-			{
-				var index = Arguments.IndexOf(oldItem);
-
-				if (index != -1)
-				{
-					Arguments.RemoveAt(index);
-				}
-			}
-		}
-		catch (Exception ex)
-		{
-			await _errorService.ShowAlertAsync("Error saving...", ex);
-		}
-	}
-
-	public async Task Handle(EditLogArgument obj)
+	public AsyncCommand<LogArgumentViewModel> EditLogArgumentCommand => new(async vm =>
 	{
 		if (IsBusy)
-		{
-			return;
-		}
-
-		if (Id != obj.ParentId)
 		{
 			return;
 		}
@@ -73,9 +42,11 @@ public partial class LogMessageViewModel
 		{
 			IsBusy = true;
 
-			var vm = Arguments.FirstOrDefault(e => e.Id == obj.Id);
 			var viewModel = _map.From(vm).To<LogArgumentViewModel>();
 			viewModel.ParentId = Id;
+
+			viewModel.OnSaveRequested(SaveLogArgumentAsync);
+			viewModel.OnDeleteRequested(DeleteLogArgumentAsync);
 
 			await _navigationService.NavigateForward(viewModel);
 		}
@@ -87,45 +58,70 @@ public partial class LogMessageViewModel
 		{
 			IsBusy = false;
 		}
-	}
+	}, DisplayError);
 
-	public async Task Handle(SaveLogArgument obj)
+	private async Task SaveLogArgumentAsync(LogArgumentViewModel viewModel)
 	{
-		if (Id != obj.ParentId)
-		{
-			return;
-		}
-
 		try
 		{
-			int index = -1;
-			var oldItem = Arguments.FirstOrDefault(i => i.Id == obj.Item.Id);
+			var vm = Arguments.FirstOrDefault(i => i.Id == viewModel.Id);
+			_map.From(viewModel).ToNullable(vm);
 
-			if (oldItem != null)
-			{
-				index = Arguments.IndexOf(oldItem);
-
-				if (index != -1)
-				{
-					Arguments.RemoveAt(index);
-				}
-			}
-
-			var viewModel = _map.From(obj).To<LogArgumentViewModel>();
-			viewModel.ParentId = Id;
-
-			if (index == -1)
-			{
-				Arguments.Insert(0, viewModel);
-			}
-			else
-			{
-				Arguments.Insert(index, viewModel);
-			}
+			await _navigationService.NavigateBack();
 		}
 		catch (Exception ex)
 		{
 			await _errorService.ShowAlertAsync("Error saving...", ex);
 		}
+	}
+
+	public AsyncCommand<LogArgumentViewModel> DeleteLogArgumentCommand => new(DeleteLogArgumentAsync, DisplayError);
+
+	private async Task<bool> DeleteLogArgumentAsync(LogArgumentViewModel viewModel)
+	{
+		if (IsBusy)
+		{
+			return false;
+		}
+
+		try
+		{
+			IsBusy = true;
+
+			var yesNoPageViewModel = new YesNoPageViewModel()
+			{
+				Title = "Delete?",
+				Message = "Should the item be deleted?"
+			};
+
+			var selection = await _navigationService.RequestInputAsync(yesNoPageViewModel);
+
+			if (selection)
+			{
+				var oldItem = Arguments.FirstOrDefault(i => i.Id == viewModel.Id);
+
+				if (oldItem != null)
+				{
+					var index = Arguments.IndexOf(oldItem);
+
+					if (index != -1)
+					{
+						Arguments.RemoveAt(index);
+					}
+				}
+			}
+
+			return selection;
+		}
+		catch (Exception ex)
+		{
+			await _errorService.ShowAlertAsync("Error deleting...", ex);
+		}
+		finally
+		{
+			IsBusy = false;
+		}
+
+		return false;
 	}
 }

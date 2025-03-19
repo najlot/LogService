@@ -1,7 +1,6 @@
-using Najlot.Map;
+﻿using Najlot.Map;
 using Najlot.Map.Attributes;
 using LogService.Client.Data.Models;
-using LogService.ClientBase.Messages;
 using LogService.ClientBase.ViewModel;
 using LogService.Contracts;
 
@@ -16,8 +15,6 @@ internal sealed class LogArgumentViewModelMappings
 		to.Value = from.Value;
 	}
 
-	[MapIgnoreProperty(nameof(to.IsNew))]
-	[MapIgnoreProperty(nameof(to.IsBusy))]
 	[MapIgnoreProperty(nameof(to.HasErrors))]
 	[MapIgnoreProperty(nameof(to.Errors))]
 	public void MapFromViewModelToViewModel(IMap map, LogArgumentViewModel from, LogArgumentViewModel to)
@@ -28,15 +25,6 @@ internal sealed class LogArgumentViewModelMappings
 		to.Value = from.Value;
 	}
 
-	[MapIgnoreMethod]
-	public void MapToViewModel(IMap map, SaveLogArgument from, LogArgumentViewModel to)
-	{
-		to.ParentId = from.ParentId;
-		MapToViewModel(map, from.Item, to);
-	}
-
-	[MapIgnoreProperty(nameof(to.IsNew))]
-	[MapIgnoreProperty(nameof(to.IsBusy))]
 	[MapIgnoreProperty(nameof(to.ParentId))]
 	[MapIgnoreProperty(nameof(to.HasErrors))]
 	[MapIgnoreProperty(nameof(to.Errors))]
@@ -47,8 +35,6 @@ internal sealed class LogArgumentViewModelMappings
 		to.Value = from.Value;
 	}
 
-	[MapIgnoreProperty(nameof(to.IsNew))]
-	[MapIgnoreProperty(nameof(to.IsBusy))]
 	[MapIgnoreProperty(nameof(to.ParentId))]
 	[MapIgnoreProperty(nameof(to.HasErrors))]
 	[MapIgnoreProperty(nameof(to.Errors))]

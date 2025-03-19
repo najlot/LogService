@@ -1,13 +1,14 @@
-<?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-			 xmlns:d="http://schemas.microsoft.com/dotnet/2021/maui/design"
-			 xmlns:local="clr-namespace:LogService.Maui.View"
-			 xmlns:converter="clr-namespace:LogService.Maui.Converter"
-			 xmlns:controls="clr-namespace:LogService.Maui.Controls"
-			 xmlns:loc="clr-namespace:LogService.Client.Localisation;assembly=LogService.Client.Localisation"
-			 x:Class="LogService.Maui.View.LogMessageView"
-			 Title="LogMessage">
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+	x:Class="LogService.Maui.View.LogMessageView"
+	xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+	xmlns:controls="clr-namespace:LogService.Maui.Controls"
+	xmlns:converter="clr-namespace:LogService.Maui.Converter"
+	xmlns:d="http://schemas.microsoft.com/dotnet/2021/maui/design"
+	xmlns:loc="clr-namespace:LogService.Client.Localisation;assembly=LogService.Client.Localisation"
+	xmlns:local="clr-namespace:LogService.Maui.View"
+	Title="LogMessage">
 
 	<ContentPage.Resources>
 		<ResourceDictionary>
@@ -36,8 +37,8 @@
 				<Label Text="{x:Static loc:LogMessageLoc.DateTime}" LineBreakMode="NoWrap" />
 				<DatePicker Date="{Binding DateTime}" />
 				<Label Text="{x:Static loc:LogMessageLoc.LogLevel}" LineBreakMode="NoWrap" />
-				<Picker ItemsSource="{Binding AvailableLogLevels, Converter={d:StaticResource EnumToTranslationConverter}, ConverterParameter={x:Type loc:LogLevelLoc}}" 
-						SelectedItem="{Binding LogLevel, Converter={d:StaticResource EnumToTranslationConverter}, ConverterParameter={x:Type loc:LogLevelLoc}}" />
+				<Picker ItemsSource="{Binding AvailableLogLevels, Converter={StaticResource EnumToTranslationConverter}, ConverterParameter={x:Type loc:LogLevelLoc}}" 
+						SelectedItem="{Binding LogLevel, Converter={StaticResource EnumToTranslationConverter}, ConverterParameter={x:Type loc:LogLevelLoc}}" />
 				<Label Text="{x:Static loc:LogMessageLoc.Category}" LineBreakMode="NoWrap" />
 				<Entry Text="{Binding Category}" />
 				<Label Text="{x:Static loc:LogMessageLoc.State}" LineBreakMode="NoWrap" />
@@ -79,7 +80,7 @@
 							<ViewCell>
 								<StackLayout Padding="10">
 									<StackLayout.GestureRecognizers>
-										<TapGestureRecognizer Command="{Binding EditLogArgumentCommand}" />
+										<TapGestureRecognizer Command="{Binding BindingContext.EditLogArgumentCommand, Source={RelativeSource AncestorType={x:Type local:LogMessageView}}}" CommandParameter="{Binding .}" />
 									</StackLayout.GestureRecognizers>
 									<StackLayout Orientation="Vertical">
 										<Label Text="{Binding Key}" VerticalOptions="FillAndExpand" />

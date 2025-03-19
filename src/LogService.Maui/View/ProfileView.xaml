@@ -28,8 +28,8 @@
 		<ScrollView>
 			<StackLayout Margin="5">
 				<Label Text="{x:Static loc:ProfileLoc.ProfileType}" />
-				<Picker ItemsSource="{Binding PossibleSources, Converter={d:StaticResource EnumToTranslationConverter}, ConverterParameter={x:Type loc:SourceLoc}}" 
-						SelectedItem="{Binding Source, Converter={d:StaticResource EnumToTranslationConverter}, ConverterParameter={x:Type loc:SourceLoc}}" />
+				<Picker ItemsSource="{Binding PossibleSources, Converter={StaticResource EnumToTranslationConverter}, ConverterParameter={x:Type loc:SourceLoc}}" 
+						SelectedItem="{Binding Source, Converter={StaticResource EnumToTranslationConverter}, ConverterParameter={x:Type loc:SourceLoc}}" />
 
 				<Label Text="{x:Static loc:ProfileLoc.ProfileName}" />
 				<Entry Text="{Binding Profile.Name}" />
