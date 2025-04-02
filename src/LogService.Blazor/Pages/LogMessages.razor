@@ -29,7 +29,7 @@ else
 {
 	@if (ShowFilter)
 	{
-		<div class="border mb-4 p-1">
+		<div class="border border-dark mb-4 p-1">
 			<div class="row mb-1">
 				<div>
 					<button @onclick="() => ShowFilter = false" type="button" class="btn btn-secondary mb-2 w-100">
@@ -49,7 +49,7 @@ else
 				</div>
 
 				<!-- DateTime -->
-				<div class="col-4 col-xl-2">
+				<div class="col-4 col-xl-2 mt-1">
 					<label class="form-label ms-1 ms-xl-0">@LogMessageLoc.DateTime</label>
 				</div>
 
@@ -188,12 +188,16 @@ else
 
 	@foreach (var logMessage in GetLogMessages())
 	{
-		<div class="row border-bottom">
+		<div class="row border-bottom border-dark">
 			<div class="col-6 col-xl-2">
-				@logMessage.DateTime
+				<a href="/LogMessage/@logMessage.Id" class="nav-link text-break">
+					@logMessage.DateTime
+				</a>
 			</div>
 			<div class="col-6 col-xl-1">
-				@logMessage.LogLevel
+				<a href="/LogMessage/@logMessage.Id" class="nav-link text-break">
+					@logMessage.LogLevel
+				</a>
 			</div>
 			<div class="nav-item col-xl-9">
 				<a href="/LogMessage/@logMessage.Id" class="nav-link text-break">

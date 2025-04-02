@@ -6,6 +6,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Content Include="config\MySqlConfiguration.json.example" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="Cosei.Service.Http" Version="0.1.0" />
 		<PackageReference Include="Cosei.Service.RabbitMq" Version="0.1.0" />
 		<PackageReference Include="Dapper" Version="2.1.66" />
