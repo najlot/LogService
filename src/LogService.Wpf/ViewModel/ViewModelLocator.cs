@@ -1,5 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Najlot.Map;
+﻿using System;
+using Microsoft.Extensions.DependencyInjection;
 using LogService.Client.Data;
 using LogService.Client.MVVM;
 using LogService.Client.MVVM.Services;
@@ -14,38 +14,51 @@ namespace LogService.Wpf.ViewModel;
 
 public class ViewModelLocator
 {
-	/// <summary>
-	/// Initializes a new instance of the ViewModelLocator class.
-	/// </summary>
 	public ViewModelLocator()
 	{
-		var messenger = new Messenger();
-		var dispatcher = new DispatcherHelper();
 		var serviceCollection = new ServiceCollection();
-		var map = new Map().RegisterDataMappings().RegisterViewModelMappings();
+		var map = new Najlot.Map.Map().RegisterDataMappings().RegisterViewModelMappings();
 		serviceCollection.AddSingleton(map);
 
 		// Register services
-		serviceCollection.AddSingleton<IErrorService>(errorService);
+		serviceCollection.AddSingleton<IDispatcherHelper, DispatcherHelper>();
+		serviceCollection.AddSingleton<INavigationService>(Main);
+		serviceCollection.AddSingleton<IErrorService, ErrorService>();
 		serviceCollection.AddSingleton<IProfilesService, ProfilesService>();
-		serviceCollection.AddSingleton<IMessenger>(messenger);
+		serviceCollection.AddSingleton<IMessenger, Messenger>();
 
-		var profileHandler = new LocalProfileHandler(messenger, dispatcher, map);
-		profileHandler
-			.SetNext(new RestProfileHandler(messenger, dispatcher, errorService, map))
-			.SetNext(new RmqProfileHandler(messenger, dispatcher, errorService, map));
+		serviceCollection.AddSingleton(c => c.GetRequiredKeyedService<IProfileHandler>(nameof(Source.Local)));
+		serviceCollection.AddKeyedSingleton<IProfileHandler, LocalProfileHandler>(nameof(Source.Local));
+		serviceCollection.AddKeyedSingleton<IProfileHandler, RestProfileHandler>(nameof(Source.REST));
+		serviceCollection.AddKeyedSingleton<IProfileHandler, RmqProfileHandler>(nameof(Source.RMQ));
 
-		serviceCollection.AddSingleton<IProfileHandler>(profileHandler);
 		serviceCollection.AddTransient((c) => c.GetRequiredService<IProfileHandler>().GetUserService());
 		serviceCollection.AddTransient((c) => c.GetRequiredService<IProfileHandler>().GetLogMessageService());
 
+		// Register views and view models
 		serviceCollection.RegisterViewModels();
 
 		serviceCollection.AddSingleton<INavigationService>(Main);
 
 		var serviceProvider = serviceCollection.BuildServiceProvider();
 
-		Main.NavigateForward(serviceProvider.GetRequiredService<LoginViewModel>());
+		serviceProvider.GetRequiredService<Najlot.Map.IMap>().RegisterFactory(t =>
+		{
+			if (t.GetConstructor(Type.EmptyTypes) is not null)
+			{
+				return Activator.CreateInstance(t) ?? throw new NullReferenceException("Could not create " + t.FullName);
+			}
+
+			return serviceProvider.GetRequiredService(t);
+		});
+
+		var localProfileHandler = serviceProvider.GetRequiredKeyedService<IProfileHandler>(nameof(Source.Local));
+		var restProfileHandler = serviceProvider.GetRequiredKeyedService<IProfileHandler>(nameof(Source.REST));
+		var rmqProfileHandler = serviceProvider.GetRequiredKeyedService<IProfileHandler>(nameof(Source.RMQ));
+		localProfileHandler.SetNext(restProfileHandler).SetNext(rmqProfileHandler);
+
+		var loginViewModel = serviceProvider.GetRequiredService<LoginViewModel>();
+		serviceProvider.GetRequiredService<INavigationService>().NavigateForward(loginViewModel);
 	}
 
 	public MainViewModel Main { get; }

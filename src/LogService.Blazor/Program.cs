@@ -5,7 +5,6 @@ using Najlot.Log.Middleware;
 using Najlot.Log;
 using Najlot.Log.Configuration.FileSource;
 using Najlot.Log.Extensions.Logging;
-using Najlot.Map;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Options;
@@ -50,7 +49,7 @@ public class Program
 			.ReadConfigurationFromXmlFile(configPath, true, true);
 
 		var builder = WebApplication.CreateBuilder(args);
-		var map = new Map();
+		var map = new Najlot.Map.Map();
 		builder.Services.AddSingleton(map.RegisterDataMappings());
 
 		// Configure Logging

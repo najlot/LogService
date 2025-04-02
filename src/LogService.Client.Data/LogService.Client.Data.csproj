@@ -7,8 +7,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Cosei.Client.Http" Version="0.1.0" />
-		<PackageReference Include="Cosei.Client.RabbitMq" Version="0.1.0" />
+		<PackageReference Include="Cosei.Client.Http" Version="0.1.1" />
+		<PackageReference Include="Cosei.Client.RabbitMq" Version="0.1.1" />
 		<PackageReference Include="Najlot.Map" Version="0.0.5" />
 		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.7.0" />
 	</ItemGroup>
