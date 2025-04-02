@@ -1,11 +1,10 @@
-using Najlot.Map;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace LogService.Service.Mappings;
 
 public static class ServiceCollectionExtensions
 {
-	public static IMap RegisterDataMappings(this IMap map)
+	public static Najlot.Map.IMap RegisterDataMappings(this Najlot.Map.IMap map)
 	{
 		map.Register<LogArgumentMappings>();
 		map.Register<LogMessageMappings>();
@@ -16,7 +15,7 @@ public static class ServiceCollectionExtensions
 
 	public static IServiceCollection RegisterDataMappings(this IServiceCollection services)
 	{
-		var map = new Map().RegisterDataMappings();
+		var map = new Najlot.Map.Map().RegisterDataMappings();
 		return services.AddSingleton(map);
 	}
 }

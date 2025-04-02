@@ -1,5 +1,4 @@
 ﻿using System;
-using Najlot.Map;
 using Microsoft.Extensions.DependencyInjection;
 using LogService.Client.Data;
 using LogService.Client.MVVM;
@@ -18,7 +17,7 @@ public class ViewModelLocator
 	public ViewModelLocator()
 	{
 		var serviceCollection = new ServiceCollection();
-		var map = new Map().RegisterDataMappings().RegisterViewModelMappings();
+		var map = new Najlot.Map.Map().RegisterDataMappings().RegisterViewModelMappings();
 		serviceCollection.AddSingleton(map);
 
 		// Register services
@@ -41,7 +40,7 @@ public class ViewModelLocator
 
 		var serviceProvider = serviceCollection.BuildServiceProvider();
 
-		serviceProvider.GetRequiredService<IMap>().RegisterFactory(t =>
+		serviceProvider.GetRequiredService<Najlot.Map.IMap>().RegisterFactory(t =>
 		{
 			if (t.GetConstructor(Type.EmptyTypes) is not null)
 			{

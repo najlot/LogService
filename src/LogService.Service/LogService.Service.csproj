@@ -6,8 +6,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Cosei.Service.Http" Version="0.1.0" />
-		<PackageReference Include="Cosei.Service.RabbitMq" Version="0.1.0" />
+		<PackageReference Include="Cosei.Service.Http" Version="0.1.1" />
+		<PackageReference Include="Cosei.Service.RabbitMq" Version="0.1.1" />
 		<PackageReference Include="Dapper" Version="2.1.66" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.3" />
 		<PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.7.0" />
