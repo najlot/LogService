@@ -27,7 +27,7 @@
 	</UserControl.Resources>
 
 	<DockPanel>
-		<WrapPanel FlowDirection="RightToLeft" DockPanel.Dock="Top">
+		<WrapPanel HorizontalAlignment="Right" DockPanel.Dock="Top">
 			<Button ToolTip="{x:Static loc:CommonLoc.Save}" Command="{Binding SaveCommand}" Margin="5">
 				<Button.Content>
 					<Path

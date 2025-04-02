@@ -6,18 +6,18 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Cosei.Service.Http" Version="0.0.13" />
-		<PackageReference Include="Cosei.Service.RabbitMq" Version="0.0.13" />
+		<PackageReference Include="Cosei.Service.Http" Version="0.1.0" />
+		<PackageReference Include="Cosei.Service.RabbitMq" Version="0.1.0" />
 		<PackageReference Include="Dapper" Version="2.1.66" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.3" />
-		<PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.6.1" />
-		<PackageReference Include="MongoDB.Driver" Version="3.2.1" />
+		<PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.7.0" />
+		<PackageReference Include="MongoDB.Driver" Version="3.3.0" />
 		<PackageReference Include="Najlot.Log.Configuration.FileSource" Version="4.0.1" />
 		<PackageReference Include="Najlot.Log.Extensions.Logging" Version="4.0.1" />
 		<PackageReference Include="Najlot.Map" Version="0.0.5" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.3" />
-		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.6.1" />
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.7.0" />
 		<PackageReference Include="System.Linq.Async.Queryable" Version="6.0.1" />
 		<PackageReference Include="System.Text.Encodings.Web" Version="9.0.3" />
 		<PackageReference Include="System.Text.Json" Version="9.0.3" />

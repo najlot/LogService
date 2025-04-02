@@ -25,11 +25,11 @@ public class Startup
 	// This method gets called by the runtime. Use this method to add services to the container.
 	public void ConfigureServices(IServiceCollection services)
 	{
-		var rmqConfig = ConfigurationReader.ReadConfiguration<RabbitMqConfiguration>();
-		var fileConfig = ConfigurationReader.ReadConfiguration<FileConfiguration>();
-		var mysqlConfig = ConfigurationReader.ReadConfiguration<MySqlConfiguration>();
-		var mongoDbConfig = ConfigurationReader.ReadConfiguration<MongoDbConfiguration>();
-		var serviceConfig = ConfigurationReader.ReadConfiguration<ServiceConfiguration>();
+		var rmqConfig = Configuration.ReadConfiguration<RabbitMqConfiguration>();
+		var fileConfig = Configuration.ReadConfiguration<FileConfiguration>();
+		var mysqlConfig = Configuration.ReadConfiguration<MySqlConfiguration>();
+		var mongoDbConfig = Configuration.ReadConfiguration<MongoDbConfiguration>();
+		var serviceConfig = Configuration.ReadConfiguration<ServiceConfiguration>();
 
 		if (string.IsNullOrWhiteSpace(serviceConfig?.Secret))
 		{
@@ -41,22 +41,20 @@ public class Startup
 		if (mongoDbConfig != null)
 		{
 			services.AddSingleton(mongoDbConfig);
-			services.AddScoped(sp => new MongoDbContext(sp.GetRequiredService<MongoDbConfiguration>()));
+			services.AddSingleton<MongoDbContext>();
 			services.AddScoped<IUserRepository, MongoDbUserRepository>();
 			services.AddScoped<ILogMessageRepository, MongoDbLogMessageRepository>();
 		}
 		else if (mysqlConfig != null)
 		{
 			services.AddSingleton(mysqlConfig);
+			services.AddScoped<MySqlDbContext>();
 			services.AddScoped<IUserRepository, MySqlUserRepository>();
 			services.AddScoped<ILogMessageRepository, MySqlLogMessageRepository>();
-			services.AddScoped<MySqlDbContext>();
 		}
 		else
 		{
-			if (fileConfig == null) fileConfig = new FileConfiguration();
-
-			services.AddSingleton(fileConfig);
+			services.AddSingleton(fileConfig ?? new FileConfiguration());
 			services.AddScoped<IUserRepository, FileUserRepository>();
 			services.AddScoped<ILogMessageRepository, FileLogMessageRepository>();
 		}

@@ -11,9 +11,19 @@
 	<DockPanel Margin="0,1">
 		<Label Content="{Binding Title}" DockPanel.Dock="Top" Foreground="{StaticResource ForegroundColor}" Background="{StaticResource BackgroundColor}" />
 
-		<WrapPanel FlowDirection="RightToLeft" DockPanel.Dock="Bottom">
-			<Button Command="{Binding NoCommand}" Content="{x:Static loc:CommonLoc.No}" Margin="5" Padding="10,5" MinWidth="100" />
-			<Button Command="{Binding YesCommand}" Content="{x:Static loc:CommonLoc.Yes}" Margin="5" Padding="10,5" MinWidth="100" />
+		<WrapPanel HorizontalAlignment="Right" DockPanel.Dock="Bottom">
+			<Button
+				MinWidth="100"
+				Margin="5"
+				Padding="10,5"
+				Command="{Binding YesCommand}"
+				Content="{x:Static loc:CommonLoc.Yes}" />
+			<Button
+				MinWidth="100"
+				Margin="5"
+				Padding="10,5"
+				Command="{Binding NoCommand}"
+				Content="{x:Static loc:CommonLoc.No}" />
 		</WrapPanel>
 
 		<ScrollViewer Padding="30,10">

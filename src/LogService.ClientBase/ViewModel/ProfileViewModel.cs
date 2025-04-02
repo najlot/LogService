@@ -5,7 +5,6 @@ using LogService.Client.MVVM;
 using LogService.Client.MVVM.Services;
 using LogService.Client.MVVM.ViewModel;
 using LogService.Client.Localisation;
-using LogService.ClientBase.Messages;
 using LogService.ClientBase.Models;
 
 namespace LogService.ClientBase.ViewModel;
@@ -13,11 +12,10 @@ namespace LogService.ClientBase.ViewModel;
 public class ProfileViewModel : AbstractViewModel
 {
 	private ProfileBase profile;
-	private readonly IMessenger _messenger;
 	private readonly IErrorService _errorService;
 	private readonly INavigationService _navigationService;
 
-	public ProfileBase Profile { get => profile; set => Set(nameof(Profile), ref profile, value); }
+	public ProfileBase Profile { get => profile; set => Set(ref profile, value); }
 
 	public Source Source
 	{
@@ -26,25 +24,13 @@ public class ProfileViewModel : AbstractViewModel
 		{
 			if (profile.Source != value)
 			{
-				ProfileBase newProfile;
-
-				switch (value)
+				ProfileBase newProfile = value switch
 				{
-					case Source.Local:
-						newProfile = new LocalProfile();
-						break;
-
-					case Source.RMQ:
-						newProfile = new RmqProfile();
-						break;
-
-					case Source.REST:
-						newProfile = new RestProfile();
-						break;
-
-					default:
-						throw new NotImplementedException(value.ToString());
-				}
+					Source.Local => new LocalProfile(),
+					Source.RMQ => new RmqProfile(),
+					Source.REST => new RestProfile(),
+					_ => throw new NotImplementedException(value.ToString()),
+				};
 
 				newProfile.Id = Profile.Id;
 				newProfile.Name = Profile.Name;
@@ -57,10 +43,15 @@ public class ProfileViewModel : AbstractViewModel
 		}
 	}
 
-	public List<Source> PossibleSources { get; } = new List<Source>(Enum.GetValues(typeof(Source)) as Source[]);
+	public List<Source> PossibleSources { get; } = new(Enum.GetValues(typeof(Source)) as Source[]);
 
-	public ProfileViewModel(IMessenger messenger, IErrorService errorService, INavigationService navigationService)
+	public ProfileViewModel(IErrorService errorService, INavigationService navigationService)
 	{
+		_errorService = errorService;
+		_navigationService = navigationService;
+
+		SaveCommand = new AsyncCommand(RequestSave, DisplayError);
+
 		var id = Guid.NewGuid();
 
 		Profile = new LocalProfile
@@ -69,12 +60,6 @@ public class ProfileViewModel : AbstractViewModel
 			Name = ProfileLoc.NewProfile,
 			FolderName = id.ToString()
 		};
-
-		_messenger = messenger;
-		_errorService = errorService;
-		_navigationService = navigationService;
-
-		SaveCommand = new AsyncCommand(SaveAsync, DisplayError);
 	}
 
 	private async Task DisplayError(Task task)
@@ -82,10 +67,17 @@ public class ProfileViewModel : AbstractViewModel
 		await _errorService.ShowAlertAsync(CommonLoc.Error, task.Exception);
 	}
 
+	private readonly List<Func<ProfileViewModel, Task>> _onSaveRequested = [];
+	public void OnSaveRequested(Func<ProfileViewModel, Task> func) => _onSaveRequested.Add(func);
+
 	public AsyncCommand SaveCommand { get; }
-	public async Task SaveAsync()
+	private async Task RequestSave()
 	{
-		await _messenger.SendAsync(new SaveProfile(Profile));
+		foreach (var func in _onSaveRequested)
+		{
+			await func(this);
+		}
+
 		await _navigationService.NavigateBack();
 	}
 }

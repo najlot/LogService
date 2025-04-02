@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Najlot.Map;
 using LogService.ClientBase.Messages;
 using LogService.ClientBase.Validation;
 using LogService.Client.Localisation;
@@ -157,16 +158,7 @@ public class AllLogMessagesViewModel : AbstractViewModel, IDisposable
 			IsBusy = true;
 
 			var item = await _logMessageService.GetItemAsync(model.Id);
-			var viewModel = _logMessageViewModelFactory();
-
-
-			viewModel.Item = item;
-
-			_messenger.Register<EditLogArgument>(viewModel.Handle);
-			_messenger.Register<DeleteLogArgument>(viewModel.Handle);
-			_messenger.Register<SaveLogArgument>(viewModel.Handle);
-
-			_messenger.Register<LogMessageUpdated>(viewModel.Handle);
+			var viewModel = _map.From(item).To<LogMessageViewModel>();
 
 			await _navigationService.NavigateForward(viewModel);
 		}
@@ -198,10 +190,6 @@ public class AllLogMessagesViewModel : AbstractViewModel, IDisposable
 
 			viewModel.Item = item;
 			viewModel.IsNew = true;
-
-			_messenger.Register<EditLogArgument>(viewModel.Handle);
-			_messenger.Register<DeleteLogArgument>(viewModel.Handle);
-			_messenger.Register<SaveLogArgument>(viewModel.Handle);
 
 			await _navigationService.NavigateForward(viewModel);
 		}

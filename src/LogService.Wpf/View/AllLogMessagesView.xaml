@@ -7,14 +7,13 @@
 	xmlns:loc="clr-namespace:LogService.Client.Localisation;assembly=LogService.Client.Localisation"
 	xmlns:local="clr-namespace:LogService.Wpf.View"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-	x:Name="This"
 	d:DesignHeight="450"
 	d:DesignWidth="800"
 	mc:Ignorable="d">
 
 	<DockPanel>
 		<DockPanel DockPanel.Dock="Top">
-			<WrapPanel DockPanel.Dock="Right" FlowDirection="RightToLeft">
+			<WrapPanel HorizontalAlignment="Right" DockPanel.Dock="Right">
 				<Button
 					Margin="5"
 					Command="{Binding RefreshLogMessagesCommand}"
@@ -55,26 +54,20 @@
 
 		<ScrollViewer>
 			<ItemsControl ItemsSource="{Binding LogMessagesView}">
-				<ItemsControl.ItemsPanel>
-					<ItemsPanelTemplate>
-						<StackPanel />
-					</ItemsPanelTemplate>
-				</ItemsControl.ItemsPanel>
-
 				<ItemsControl.ItemTemplate>
 					<DataTemplate>
 						<StackPanel Margin="5">
 							<TextBlock Padding="5,5,5,0" Text="{Binding DateTime}">
 								<i:Interaction.Triggers>
 									<i:EventTrigger EventName="MouseLeftButtonUp">
-										<i:InvokeCommandAction Command="{Binding ElementName=This, Path=DataContext.EditLogMessageCommand}" CommandParameter="{Binding .}" />
+										<i:InvokeCommandAction Command="{Binding DataContext.EditLogMessageCommand, RelativeSource={RelativeSource AncestorType=local:AllLogMessagesView}}" CommandParameter="{Binding .}" />
 									</i:EventTrigger>
 								</i:Interaction.Triggers>
 							</TextBlock>
 							<TextBlock Padding="5,5,5,0" Text="{Binding LogLevel}">
 								<i:Interaction.Triggers>
 									<i:EventTrigger EventName="MouseLeftButtonUp">
-										<i:InvokeCommandAction Command="{Binding ElementName=This, Path=DataContext.EditLogMessageCommand}" CommandParameter="{Binding .}" />
+										<i:InvokeCommandAction Command="{Binding DataContext.EditLogMessageCommand, RelativeSource={RelativeSource AncestorType=local:AllLogMessagesView}}" CommandParameter="{Binding .}" />
 									</i:EventTrigger>
 								</i:Interaction.Triggers>
 							</TextBlock>

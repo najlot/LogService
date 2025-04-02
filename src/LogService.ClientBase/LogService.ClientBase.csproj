@@ -6,9 +6,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Cosei.Client.Http" Version="0.0.13" />
-		<PackageReference Include="Cosei.Client.RabbitMq" Version="0.0.13" />
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.2" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.3" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="System.Text.Json" Version="9.0.2" />
 	</ItemGroup>

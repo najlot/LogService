@@ -400,4 +400,5 @@ FodyWeavers.xsd
 /src/LogService.Service/LogMessages
 /src/LogService.Service/Users
 /src/LogService.Service/Data
+/src/LogService.Blazor/config
 /deploy_linux_arm

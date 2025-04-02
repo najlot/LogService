@@ -1,6 +1,5 @@
 using MongoDB.Driver;
 using LogService.Service.Configuration;
-using System;
 
 namespace LogService.Service.Repository;
 

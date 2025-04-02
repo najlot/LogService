@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Najlot.Map;
@@ -10,14 +9,13 @@ using LogService.Client.MVVM;
 using LogService.Client.MVVM.Services;
 using LogService.Client.MVVM.Validation;
 using LogService.Client.MVVM.ViewModel;
-using LogService.ClientBase.Messages;
 using LogService.ClientBase.Validation;
 using LogService.Contracts;
 using LogService.Contracts.Events;
 
 namespace LogService.ClientBase.ViewModel;
 
-public partial class LogMessageViewModel : AbstractValidationViewModel
+public partial class LogMessageViewModel : AbstractValidationViewModel, IDisposable
 {
 	private bool _isBusy;
 	private LogMessageModel _item;
@@ -79,6 +77,8 @@ public partial class LogMessageViewModel : AbstractValidationViewModel
 		DeleteCommand = new AsyncCommand(DeleteAsync, DisplayError);
 
 		SetValidation(new LogMessageValidationList());
+
+		_messenger.Register<LogMessageUpdated>(Handle);
 	}
 
 	private async Task DisplayError(Task task)
@@ -202,4 +202,6 @@ public partial class LogMessageViewModel : AbstractValidationViewModel
 			IsBusy = false;
 		}
 	}
+
+	public void Dispose() => _messenger.Unregister(this);
 }

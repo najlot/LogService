@@ -5,11 +5,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using LogService.Client.Data.Models;
 using LogService.Client.MVVM;
-using LogService.ClientBase.Messages;
-using LogService.ClientBase.Models;
-using LogService.ClientBase.Services;
-using LogService.ClientBase.Validation;
-using LogService.Contracts;
+using LogService.Client.MVVM.Services;
+using LogService.Client.MVVM.ViewModel;
 
 namespace LogService.ClientBase.ViewModel;
 
@@ -18,7 +15,8 @@ public partial class LogMessageViewModel
 	private ObservableCollection<LogArgumentViewModel> _arguments = new ObservableCollection<LogArgumentViewModel>();
 	public ObservableCollection<LogArgumentViewModel> Arguments { get => _arguments; set => Set(nameof(Arguments), ref _arguments, value); }
 
-	public RelayCommand AddLogArgumentCommand => new RelayCommand(() =>
+	public RelayCommand AddLogArgumentCommand => new(AddLogArgument);
+	private void AddLogArgument()
 	{
 		var max = 0;
 
@@ -34,43 +32,12 @@ public partial class LogMessageViewModel
 		viewModel.Item = model;
 
 		Arguments.Add(viewModel);
-	});
-
-	public async Task Handle(DeleteLogArgument obj)
-	{
-		if (Item.Id != obj.ParentId)
-		{
-			return;
-		}
-
-		try
-		{
-			var oldItem = Arguments.FirstOrDefault(i => i.Item.Id == obj.Id);
-
-			if (oldItem != null)
-			{
-				var index = Arguments.IndexOf(oldItem);
-
-				if (index != -1)
-				{
-					Arguments.RemoveAt(index);
-				}
-			}
-		}
-		catch (Exception ex)
-		{
-			await _errorService.ShowAlertAsync("Error saving...", ex);
-		}
 	}
 
-	public async Task Handle(EditLogArgument obj)
+	public AsyncCommand<LogArgumentViewModel> EditLogArgumentCommand => new(EditLogArgument, DisplayError);
+	private async Task EditLogArgument(LogArgumentViewModel vm)
 	{
 		if (IsBusy)
-		{
-			return;
-		}
-
-		if (Item.Id != obj.ParentId)
 		{
 			return;
 		}
@@ -79,10 +46,11 @@ public partial class LogMessageViewModel
 		{
 			IsBusy = true;
 
-			var vm = Arguments.FirstOrDefault(e => e.Item.Id == obj.Id);
-			var viewModel = _logArgumentViewModelFactory();
-			viewModel.ParentId = Item.Id;
-			viewModel.Item = vm.Item;
+			var viewModel = _map.From(vm).To<LogArgumentViewModel>();
+			viewModel.ParentId = Id;
+
+			viewModel.OnSaveRequested(SaveLogArgumentAsync);
+			viewModel.OnDeleteRequested(DeleteLogArgumentAsync);
 
 			await _navigationService.NavigateForward(viewModel);
 		}
@@ -96,44 +64,67 @@ public partial class LogMessageViewModel
 		}
 	}
 
-	public async Task Handle(SaveLogArgument obj)
+	private async Task SaveLogArgumentAsync(LogArgumentViewModel viewModel)
 	{
-		if (Item.Id != obj.ParentId)
-		{
-			return;
-		}
-
 		try
 		{
-			int index = -1;
-			var oldItem = Arguments.FirstOrDefault(i => i.Item.Id == obj.Item.Id);
+			var vm = Arguments.FirstOrDefault(i => i.Id == viewModel.Id);
+			_map.From(viewModel).ToNullable(vm);
 
-			if (oldItem != null)
-			{
-				index = Arguments.IndexOf(oldItem);
-
-				if (index != -1)
-				{
-					Arguments.RemoveAt(index);
-				}
-			}
-
-			var viewModel = _logArgumentViewModelFactory();
-			viewModel.ParentId = Item.Id;
-			viewModel.Item = obj.Item;
-
-			if (index == -1)
-			{
-				Arguments.Insert(0, viewModel);
-			}
-			else
-			{
-				Arguments.Insert(index, viewModel);
-			}
+			await _navigationService.NavigateBack();
 		}
 		catch (Exception ex)
 		{
 			await _errorService.ShowAlertAsync("Error saving...", ex);
 		}
+	}
+
+	public AsyncCommand<LogArgumentViewModel> DeleteLogArgumentCommand => new(DeleteLogArgumentAsync, DisplayError);
+	private async Task<bool> DeleteLogArgumentAsync(LogArgumentViewModel viewModel)
+	{
+		if (IsBusy)
+		{
+			return false;
+		}
+
+		try
+		{
+			IsBusy = true;
+
+			var yesNoPageViewModel = new YesNoPageViewModel()
+			{
+				Title = "Delete?",
+				Message = "Should the item be deleted?"
+			};
+
+			var selection = await _navigationService.RequestInputAsync(yesNoPageViewModel);
+
+			if (selection)
+			{
+				var oldItem = Arguments.FirstOrDefault(i => i.Id == viewModel.Id);
+
+				if (oldItem != null)
+				{
+					var index = Arguments.IndexOf(oldItem);
+
+					if (index != -1)
+					{
+						Arguments.RemoveAt(index);
+					}
+				}
+			}
+
+			return selection;
+		}
+		catch (Exception ex)
+		{
+			await _errorService.ShowAlertAsync("Error deleting...", ex);
+		}
+		finally
+		{
+			IsBusy = false;
+		}
+
+		return false;
 	}
 }
