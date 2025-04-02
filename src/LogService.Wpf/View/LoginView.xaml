@@ -44,7 +44,8 @@
 				<DataGridTemplateColumn Width="SizeToCells" MinWidth="50">
 					<DataGridTemplateColumn.CellTemplate>
 						<DataTemplate>
-							<Button Content="{Binding Profile.Name}" Command="{Binding LoginCommand}" Margin="5" FontSize="20" Padding="20,5" MinWidth="100" />
+							<Button Content="{Binding Profile.Name}" Margin="5" FontSize="20" Padding="20,5" MinWidth="100"
+									Command="{Binding DataContext.LoginProfileCommand, RelativeSource={RelativeSource AncestorType=local:LoginView}}" CommandParameter="{Binding .}"/>
 						</DataTemplate>
 					</DataGridTemplateColumn.CellTemplate>
 				</DataGridTemplateColumn>
@@ -52,7 +53,8 @@
 				<DataGridTemplateColumn Width="SizeToCells">
 					<DataGridTemplateColumn.CellTemplate>
 						<DataTemplate>
-							<Button ToolTip="{x:Static loc:ProfileLoc.Edit}" Command="{Binding EditCommand}" Margin="5">
+							<Button ToolTip="{x:Static loc:ProfileLoc.Edit}" Margin="5"
+									Command="{Binding DataContext.EditProfileCommand, RelativeSource={RelativeSource AncestorType=local:LoginView}}" CommandParameter="{Binding .}">
 								<Button.Content>
 									<Path
 										Width="18"
@@ -69,7 +71,8 @@
 				<DataGridTemplateColumn Width="SizeToCells">
 					<DataGridTemplateColumn.CellTemplate>
 						<DataTemplate>
-							<Button ToolTip="{x:Static loc:ProfileLoc.Delete}" Command="{Binding DeleteCommand}" Margin="5">
+							<Button ToolTip="{x:Static loc:ProfileLoc.Delete}" Margin="5"
+									Command="{Binding DataContext.DeleteProfileCommand, RelativeSource={RelativeSource AncestorType=local:LoginView}}" CommandParameter="{Binding .}">
 								<Button.Content>
 									<Path
 										Width="18"

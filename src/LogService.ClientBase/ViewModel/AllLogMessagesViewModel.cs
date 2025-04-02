@@ -3,8 +3,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Najlot.Map;
-using LogService.ClientBase.Messages;
-using LogService.ClientBase.Validation;
 using LogService.Client.Localisation;
 using LogService.Client.MVVM;
 using LogService.Client.MVVM.ViewModel;
@@ -158,8 +156,6 @@ public class AllLogMessagesViewModel : AbstractViewModel, IDisposable
 
 			var item = await _logMessageService.GetItemAsync(model.Id);
 			var viewModel = _map.From(item).To<LogMessageViewModel>();
-
-			_messenger.Register<LogMessageUpdated>(viewModel.Handle);
 
 			await _navigationService.NavigateForward(viewModel);
 		}

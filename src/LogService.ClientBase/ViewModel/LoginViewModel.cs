@@ -2,7 +2,6 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
-using LogService.ClientBase.Messages;
 using LogService.ClientBase.ProfileHandler;
 using LogService.ClientBase.Services;
 using System.Threading.Tasks;
@@ -20,7 +19,6 @@ public class LoginViewModel : AbstractViewModel
 	private readonly IProfilesService _profilesService;
 	private readonly IProfileHandler _profileHandler;
 	private readonly IServiceProvider _serviceProvider;
-	private readonly IMessenger _messenger;
 	private readonly Func<ProfileViewModel> _createProfileViewModel;
 	private readonly Func<LoginProfileViewModel> _createLoginProfileViewModel;
 	private IServiceScope _serviceScope;
@@ -32,19 +30,11 @@ public class LoginViewModel : AbstractViewModel
 		private set => Set(nameof(LoginProfiles), ref _loginProfiles, value);
 	}
 
-	public AsyncCommand CreateProfileCommand { get; }
-	private async Task CreateProfileAsync()
-	{
-		var viewModel = _createProfileViewModel();
-		await _navigationService.NavigateForward(viewModel);
-	}
-
 	public LoginViewModel(IErrorService errorService,
 		INavigationService navigationService,
 		IProfilesService profilesService,
 		IProfileHandler profileHandler,
 		IServiceProvider serviceProvider,
-		IMessenger messenger,
 		Func<ProfileViewModel> createProfileViewModel,
 		Func<LoginProfileViewModel> createLoginProfileViewModel)
 	{
@@ -53,23 +43,47 @@ public class LoginViewModel : AbstractViewModel
 		_profilesService = profilesService;
 		_profileHandler = profileHandler;
 		_serviceProvider = serviceProvider;
-		_messenger = messenger;
 		_createProfileViewModel = createProfileViewModel;
 		_createLoginProfileViewModel = createLoginProfileViewModel;
 
-		_messenger.Register<LoginProfile>(HandleLoginAsync);
-		_messenger.Register<EditProfile>(HandleEditAsync);
-		_messenger.Register<DeleteProfile>(HandleDeleteAsync);
-		_messenger.Register<SaveProfile>(HandleSaveAsync);
+		CreateProfileCommand = new AsyncCommand(CreateProfileAsync, DisplayError);
+		EditProfileCommand = new AsyncCommand<LoginProfileViewModel>(EditProfileAsync, DisplayError);
+		DeleteProfileCommand = new AsyncCommand<LoginProfileViewModel>(DeleteProfileAsync, DisplayError);
+		LoginProfileCommand = new AsyncCommand<LoginProfileViewModel>(LoginProfileAsync, DisplayError);
 
-		CreateProfileCommand = new AsyncCommand(
-			CreateProfileAsync,
-			async task => await _errorService.ShowAlertAsync(ProfileLoc.ErrorCreatingProfile, task.Exception));
+		LoadProfilesAsync().ContinueWith(DisplayError, TaskContinuationOptions.OnlyOnFaulted);
+	}
 
-		LoadProfilesAsync()
-			.ContinueWith(
-				async task => await _errorService.ShowAlertAsync(ProfileLoc.CouldNotLoadProfiles, task.Exception),
-				TaskContinuationOptions.OnlyOnFaulted);
+	private async Task DisplayError(Task task)
+	{
+		await _errorService.ShowAlertAsync(CommonLoc.Error, task.Exception);
+	}
+
+	public AsyncCommand CreateProfileCommand { get; }
+
+	private async Task CreateProfileAsync()
+	{
+		var viewModel = _createProfileViewModel();
+		viewModel.OnSaveRequested(HandleSaveAsync);
+		await _navigationService.NavigateForward(viewModel);
+	}
+
+	private async Task HandleSaveAsync(ProfileViewModel obj)
+	{
+		var profile = obj.Profile;
+		var profileVm = LoginProfiles.FirstOrDefault(vm => vm.Profile.Id == profile.Id);
+
+		if (profileVm != null)
+		{
+			LoginProfiles.Remove(profileVm);
+		}
+
+		profileVm = _createLoginProfileViewModel();
+		profileVm.Profile = profile;
+
+		LoginProfiles.Add(profileVm);
+
+		await _profilesService.SaveAsync(LoginProfiles.Select(vm => vm.Profile).ToList());
 	}
 
 	private async Task LoadProfilesAsync()
@@ -80,13 +94,15 @@ public class LoginViewModel : AbstractViewModel
 			{
 				var vm = _createLoginProfileViewModel();
 				vm.Profile = profile;
+
 				return vm;
 			}));
 
 		LoginProfiles = loginProfiles;
 	}
 
-	private async Task HandleDeleteAsync(DeleteProfile obj)
+	public AsyncCommand<LoginProfileViewModel> DeleteProfileCommand { get; }
+	private async Task DeleteProfileAsync(LoginProfileViewModel obj)
 	{
 		var profile = obj.Profile;
 		var profileVm = LoginProfiles.FirstOrDefault(viewModel => viewModel.Profile.Id == profile.Id);
@@ -113,32 +129,18 @@ public class LoginViewModel : AbstractViewModel
 		}
 	}
 
-	private async Task HandleEditAsync(EditProfile obj)
+	public AsyncCommand<LoginProfileViewModel> EditProfileCommand { get; }
+	private async Task EditProfileAsync(LoginProfileViewModel obj)
 	{
 		var profile = obj.Profile;
 		var viewModel = _createProfileViewModel();
 		viewModel.Profile = profile.Clone();
+		viewModel.OnSaveRequested(HandleSaveAsync);
 		await _navigationService.NavigateForward(viewModel);
 	}
 
-	private async Task HandleSaveAsync(SaveProfile obj)
-	{
-		var profile = obj.Profile;
-		var profileVm = LoginProfiles.FirstOrDefault(vm => vm.Profile.Id == profile.Id);
-
-		if (profileVm != null)
-		{
-			LoginProfiles.Remove(profileVm);
-		}
-
-		profileVm = _createLoginProfileViewModel();
-		profileVm.Profile = profile;
-		LoginProfiles.Add(profileVm);
-
-		await _profilesService.SaveAsync(LoginProfiles.Select(vm => vm.Profile).ToList());
-	}
-
-	private async Task HandleLoginAsync(LoginProfile obj)
+	public AsyncCommand<LoginProfileViewModel> LoginProfileCommand { get; }
+	private async Task LoginProfileAsync(LoginProfileViewModel obj)
 	{
 		try
 		{

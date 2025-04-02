@@ -1,6 +1,5 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using LogService.Client.MVVM;
 using LogService.Client.MVVM.Services;
@@ -13,7 +12,6 @@ public class LogArgumentViewModel : AbstractValidationViewModel
 {
 	private readonly IErrorService _errorService;
 	private readonly INavigationService _navigationService;
-
 
 	private int _id;
 	public int Id { get => _id; set => Set(ref _id, value); }
@@ -33,7 +31,6 @@ public class LogArgumentViewModel : AbstractValidationViewModel
 	{
 		_errorService = errorService;
 		_navigationService = navigationService;
-
 
 		SaveCommand = new AsyncCommand(RequestSave, DisplayError);
 		DeleteCommand = new AsyncCommand(RequestDelete, DisplayError);

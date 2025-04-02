@@ -1,4 +1,4 @@
-﻿using Najlot.Map;
+using Najlot.Map;
 using Najlot.Map.Attributes;
 using LogService.Client.Data.Models;
 using LogService.ClientBase.ViewModel;

@@ -9,7 +9,6 @@ using LogService.ClientBase.ProfileHandler;
 using LogService.ClientBase.Services;
 using LogService.ClientBase.Services.Implementation;
 using LogService.ClientBase.ViewModel;
-
 using LogService.ClientBase.Models;
 
 namespace LogService.Wpf.ViewModel;
@@ -20,7 +19,6 @@ public class ViewModelLocator
 	{
 		var serviceCollection = new ServiceCollection();
 		var map = new Map().RegisterDataMappings().RegisterViewModelMappings();
-
 		serviceCollection.AddSingleton(map);
 
 		// Register services

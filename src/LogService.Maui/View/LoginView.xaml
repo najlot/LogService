@@ -4,6 +4,7 @@
 			 xmlns:converter="clr-namespace:LogService.Maui.Converter"
 			 xmlns:loc="clr-namespace:LogService.Client.Localisation;assembly=LogService.Client.Localisation"
 			 x:Class="LogService.Maui.View.LoginView"
+			 xmlns:local="clr-namespace:LogService.Maui.View"
 			 Title="Profiles">
 
 	<ContentPage.ToolbarItems>
@@ -16,37 +17,37 @@
 
 	<ContentPage.Content>
 		<Grid>
-			<ListView ItemsSource="{Binding LoginProfiles}"
-			  HasUnevenRows="true"
-			  CachingStrategy="RecycleElement"
-			  SelectionMode="None">
-				<ListView.ItemTemplate>
+			<CollectionView ItemsSource="{Binding LoginProfiles}">
+				<CollectionView.ItemTemplate>
 					<DataTemplate>
-						<ViewCell>
-							<Grid>
-								<Grid.ColumnDefinitions>
-									<ColumnDefinition Width="*" />
-									<ColumnDefinition Width="Auto" />
-									<ColumnDefinition Width="Auto" />
-								</Grid.ColumnDefinitions>
-								<Button Grid.Column="0" Text="{Binding Profile.Name}" Command="{Binding LoginCommand}"
-									Margin="1" BackgroundColor="#00375a" TextColor="#ffffff" />
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="*" />
+								<ColumnDefinition Width="Auto" />
+								<ColumnDefinition Width="Auto" />
+							</Grid.ColumnDefinitions>
+							<Button 
+								Grid.Column="0" Text="{Binding Profile.Name}"
+								Margin="1" BackgroundColor="#00375a" TextColor="#ffffff"
+								Command="{Binding BindingContext.LoginProfileCommand, Source={RelativeSource AncestorType={x:Type local:LoginView}}}" CommandParameter="{Binding .}" />
 
-								<Button Grid.Column="1" Command="{Binding EditCommand}" Margin="1" Padding="0"
-									HeightRequest="36" WidthRequest="36"
-									BackgroundColor="#00375a"
-									ImageSource="{StaticResource IconEdit}"/>
+							<Button
+								Grid.Column="1" Margin="1" Padding="0"
+								HeightRequest="36" WidthRequest="36"
+								BackgroundColor="#00375a"
+								ImageSource="{StaticResource IconEdit}"
+								Command="{Binding BindingContext.EditProfileCommand, Source={RelativeSource AncestorType={x:Type local:LoginView}}}" CommandParameter="{Binding .}" />
 
-								<Button Grid.Column="2" Command="{Binding DeleteCommand}" Margin="1" Padding="0"
-									HeightRequest="36" WidthRequest="36"
-									BackgroundColor="#00375a"
-									ImageSource="{StaticResource IconDelete}"/>
-							</Grid>
-						</ViewCell>
+							<Button
+								Grid.Column="2" Margin="1" Padding="0"
+								HeightRequest="36" WidthRequest="36"
+								BackgroundColor="#00375a"
+								ImageSource="{StaticResource IconDelete}"
+								Command="{Binding BindingContext.DeleteProfileCommand, Source={RelativeSource AncestorType={x:Type local:LoginView}}}" CommandParameter="{Binding .}" />
+						</Grid>
 					</DataTemplate>
-				</ListView.ItemTemplate>
-			</ListView>
+				</CollectionView.ItemTemplate>
+			</CollectionView>
 		</Grid>
-		
 	</ContentPage.Content>
 </ContentPage>

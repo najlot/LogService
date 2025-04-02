@@ -10,7 +10,7 @@ namespace LogService.Wpf.ViewModel;
 public class MainViewModel : AbstractViewModel, INavigationService
 {
 	private AbstractViewModel _viewModel;
-	private readonly Stack<AbstractViewModel> _backViewModels = new Stack<AbstractViewModel>();
+	private readonly Stack<AbstractViewModel> _backViewModels = [];
 	private AbstractViewModel _lastViewModel = null;
 
 	private bool _isPopup = false;

@@ -14,7 +14,8 @@ public partial class LogMessageViewModel
 	private ObservableCollection<LogArgumentViewModel> _arguments = [];
 	public ObservableCollection<LogArgumentViewModel> Arguments { get => _arguments; set => Set(nameof(Arguments), ref _arguments, value); }
 
-	public RelayCommand AddLogArgumentCommand => new(() =>
+	public RelayCommand AddLogArgumentCommand => new(AddLogArgument);
+	private void AddLogArgument()
 	{
 		var max = 0;
 
@@ -29,9 +30,10 @@ public partial class LogMessageViewModel
 		viewModel.ParentId = Id;
 
 		Arguments.Add(viewModel);
-	});
+	}
 
-	public AsyncCommand<LogArgumentViewModel> EditLogArgumentCommand => new(async vm =>
+	public AsyncCommand<LogArgumentViewModel> EditLogArgumentCommand => new(EditLogArgument, DisplayError);
+	private async Task EditLogArgument(LogArgumentViewModel vm)
 	{
 		if (IsBusy)
 		{
@@ -58,7 +60,7 @@ public partial class LogMessageViewModel
 		{
 			IsBusy = false;
 		}
-	}, DisplayError);
+	}
 
 	private async Task SaveLogArgumentAsync(LogArgumentViewModel viewModel)
 	{
@@ -76,7 +78,6 @@ public partial class LogMessageViewModel
 	}
 
 	public AsyncCommand<LogArgumentViewModel> DeleteLogArgumentCommand => new(DeleteLogArgumentAsync, DisplayError);
-
 	private async Task<bool> DeleteLogArgumentAsync(LogArgumentViewModel viewModel)
 	{
 		if (IsBusy)

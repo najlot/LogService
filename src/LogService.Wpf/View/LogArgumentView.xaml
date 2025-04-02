@@ -28,7 +28,6 @@
 				</Button.Content>
 			</Button>
 			<Button ToolTip="{x:Static loc:CommonLoc.Delete}" Command="{Binding DeleteCommand}" Margin="5">
-				<Button.CommandParameter>True</Button.CommandParameter>
 				<Button.Content>
 					<Path
 						Width="18"

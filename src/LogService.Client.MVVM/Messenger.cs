@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -13,7 +13,7 @@ public class Messenger : IMessenger
 		public MethodInfo MethodInfo;
 	}
 
-	private readonly Dictionary<Type, List<TargetAndMethodInfo>> _registrations = new Dictionary<Type, List<TargetAndMethodInfo>>();
+	private readonly Dictionary<Type, List<TargetAndMethodInfo>> _registrations = [];
 
 	public async Task SendAsync<T>(T message) where T : class
 	{
@@ -39,7 +39,7 @@ public class Messenger : IMessenger
 		{
 			if (entry.Target.TryGetTarget(out var target))
 			{
-				if (entry.MethodInfo.Invoke(target, new object[] { message }) is Task task)
+				if (entry.MethodInfo.Invoke(target, [message]) is Task task)
 				{
 					await task;
 				}
@@ -71,7 +71,7 @@ public class Messenger : IMessenger
 		{
 			if (!_registrations.TryGetValue(type, out list))
 			{
-				list = new List<TargetAndMethodInfo>();
+				list = [];
 				_registrations.Add(type, list);
 			}
 		}
@@ -94,7 +94,7 @@ public class Messenger : IMessenger
 		{
 			if (!_registrations.TryGetValue(type, out list))
 			{
-				list = new List<TargetAndMethodInfo>();
+				list = [];
 				_registrations.Add(type, list);
 			}
 		}
