@@ -1,0 +1,180 @@
+@page "/LogMessage/{id:guid}"
+@model LogService.Razor.Pages.LogMessageModel
+@{
+    ViewData["Title"] = "Log Message Details";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/">Home</a></li>
+                    <li class="breadcrumb-item"><a href="/LogMessages">Log Messages</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Message Details</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    @if (Model.LogMessage != null)
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Log Message Details</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-2">
+                                <strong>ID:</strong>
+                            </div>
+                            <div class="col-md-10">
+                                @Model.LogMessage.Id
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-2">
+                                <strong>DateTime:</strong>
+                            </div>
+                            <div class="col-md-10">
+                                @Model.LogMessage.DateTime
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-2">
+                                <strong>Log Level:</strong>
+                            </div>
+                            <div class="col-md-10">
+                                <span class="badge @GetLogLevelClass(Model.LogMessage.LogLevel)">
+                                    @Model.LogMessage.LogLevel
+                                </span>
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(Model.LogMessage.Source))
+                        {
+                            <div class="row mb-3">
+                                <div class="col-md-2">
+                                    <strong>Source:</strong>
+                                </div>
+                                <div class="col-md-10">
+                                    @Model.LogMessage.Source
+                                </div>
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model.LogMessage.Category))
+                        {
+                            <div class="row mb-3">
+                                <div class="col-md-2">
+                                    <strong>Category:</strong>
+                                </div>
+                                <div class="col-md-10">
+                                    @Model.LogMessage.Category
+                                </div>
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model.LogMessage.Message))
+                        {
+                            <div class="row mb-3">
+                                <div class="col-md-2">
+                                    <strong>Message:</strong>
+                                </div>
+                                <div class="col-md-10">
+                                    <pre class="bg-light p-2 rounded">@Model.LogMessage.Message</pre>
+                                </div>
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model.LogMessage.State))
+                        {
+                            <div class="row mb-3">
+                                <div class="col-md-2">
+                                    <strong>State:</strong>
+                                </div>
+                                <div class="col-md-10">
+                                    <pre class="bg-light p-2 rounded">@Model.LogMessage.State</pre>
+                                </div>
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model.LogMessage.Exception))
+                        {
+                            <div class="row mb-3">
+                                <div class="col-md-2">
+                                    <strong>Exception:</strong>
+                                </div>
+                                <div class="col-md-10">
+                                    <pre class="bg-danger-subtle p-2 rounded text-danger">@Model.LogMessage.Exception</pre>
+                                </div>
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model.LogMessage.RawMessage))
+                        {
+                            <div class="row mb-3">
+                                <div class="col-md-2">
+                                    <strong>Raw Message:</strong>
+                                </div>
+                                <div class="col-md-10">
+                                    <pre class="bg-secondary-subtle p-2 rounded small">@Model.LogMessage.RawMessage</pre>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-12">
+                <a href="/LogMessages" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Log Messages
+                </a>
+            </div>
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-danger">
+                    @Model.ErrorMessage
+                </div>
+                <a href="/LogMessages" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Log Messages
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-12 text-center">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p>Loading...</p>
+            </div>
+        </div>
+    }
+</div>
+
+@functions {
+    private string GetLogLevelClass(LogService.Contracts.LogLevel logLevel)
+    {
+        return logLevel switch
+        {
+            LogService.Contracts.LogLevel.Error => "bg-danger",
+            LogService.Contracts.LogLevel.Warning => "bg-warning",
+            LogService.Contracts.LogLevel.Information => "bg-info",
+            LogService.Contracts.LogLevel.Debug => "bg-secondary",
+            _ => "bg-primary"
+        };
+    }
+}

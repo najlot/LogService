@@ -1,0 +1,200 @@
+@page "/LogMessages"
+@model LogService.Razor.Pages.LogMessagesModel
+@{
+    ViewData["Title"] = "Log Messages";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1>Log Messages</h1>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <button class="btn btn-link w-100 text-start p-0" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse">
+                        <i class="bi bi-funnel"></i> Filter
+                    </button>
+                </div>
+                <div class="collapse" id="filterCollapse">
+                    <div class="card-body">
+                        <form method="get">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <label for="dateTimeFrom" class="form-label">Date From</label>
+                                    <input type="date" class="form-control" id="dateTimeFrom" name="dateTimeFrom" value="@Model.Filter.DateTimeFrom?.ToString("yyyy-MM-dd")" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="dateTimeTo" class="form-label">Date To</label>
+                                    <input type="date" class="form-control" id="dateTimeTo" name="dateTimeTo" value="@Model.Filter.DateTimeTo?.ToString("yyyy-MM-dd")" />
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="logLevel" class="form-label">Min. Log Level</label>
+                                    <select class="form-select" id="logLevel" name="logLevel">
+                                        @foreach (var level in Enum.GetValues<LogService.Contracts.LogLevel>())
+                                        {
+                                            <option value="@level" selected="@(Model.Filter.LogLevel == level)">@level</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="source" class="form-label">Source</label>
+                                    <input type="text" class="form-control" id="source" name="source" value="@Model.Filter.Source" />
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        <i class="bi bi-search"></i> Search
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-md-3">
+                                    <label for="category" class="form-label">Category</label>
+                                    <input type="text" class="form-control" id="category" name="category" value="@Model.Filter.Category" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="message" class="form-label">Message</label>
+                                    <input type="text" class="form-control" id="message" name="message" value="@Model.Filter.Message" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="exception" class="form-label">Exception</label>
+                                    <input type="text" class="form-control" id="exception" name="exception" value="@Model.Filter.Exception" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="rawMessage" class="form-label">Raw Message</label>
+                                    <input type="text" class="form-control" id="rawMessage" name="rawMessage" value="@Model.Filter.RawMessage" />
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Log Messages Table -->
+    <div class="row mt-3">
+        <div class="col-12">
+            @if (Model.IsLoading)
+            {
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p>Loading...</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>DateTime</th>
+                                <th>Log Level</th>
+                                <th>Message</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logMessagesTable">
+                            @foreach (var logMessage in Model.LogMessages)
+                            {
+                                <tr>
+                                    <td>
+                                        <a href="/LogMessage/@logMessage.Id" class="text-decoration-none">
+                                            @logMessage.DateTime
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a href="/LogMessage/@logMessage.Id" class="text-decoration-none">
+                                            <span class="badge @GetLogLevelClass(logMessage.LogLevel)">
+                                                @logMessage.LogLevel
+                                            </span>
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a href="/LogMessage/@logMessage.Id" class="text-decoration-none">
+                                            @(LimitDisplayLength(logMessage.Message, 100))
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- SignalR for real-time updates -->
+<script src="~/lib/microsoft/signalr/signalr.min.js"></script>
+<script>
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/loghub")
+        .build();
+
+    connection.start().then(function () {
+        console.log("SignalR connected");
+        // Join user group for receiving messages
+        connection.invoke("JoinUserGroup", "@User.Identity?.Name");
+    }).catch(function (err) {
+        console.error("SignalR connection error: " + err.toString());
+    });
+
+    // Listen for new log messages
+    connection.on("ReceiveLogMessages", function (messages) {
+        // Add new messages to the table
+        const tbody = document.getElementById("logMessagesTable");
+        if (tbody) {
+            messages.forEach(function(message) {
+                const row = tbody.insertRow(0);
+                row.innerHTML = `
+                    <td><a href="/LogMessage/${message.id}" class="text-decoration-none">${message.dateTime}</a></td>
+                    <td><a href="/LogMessage/${message.id}" class="text-decoration-none"><span class="badge ${getLogLevelClass(message.logLevel)}">${message.logLevel}</span></a></td>
+                    <td><a href="/LogMessage/${message.id}" class="text-decoration-none">${limitDisplayLength(message.message, 100)}</a></td>
+                `;
+            });
+        }
+    });
+
+    function getLogLevelClass(logLevel) {
+        switch (logLevel) {
+            case 'Error': return 'bg-danger';
+            case 'Warning': return 'bg-warning';
+            case 'Information': return 'bg-info';
+            case 'Debug': return 'bg-secondary';
+            default: return 'bg-primary';
+        }
+    }
+
+    function limitDisplayLength(value, maxLength) {
+        if (!value || value.length <= maxLength) return value;
+        return value.substring(0, maxLength - 3) + "...";
+    }
+</script>
+
+@functions {
+    private string GetLogLevelClass(LogService.Contracts.LogLevel logLevel)
+    {
+        return logLevel switch
+        {
+            LogService.Contracts.LogLevel.Error => "bg-danger",
+            LogService.Contracts.LogLevel.Warning => "bg-warning",
+            LogService.Contracts.LogLevel.Information => "bg-info",
+            LogService.Contracts.LogLevel.Debug => "bg-secondary",
+            _ => "bg-primary"
+        };
+    }
+
+    private string LimitDisplayLength(string? value, int maxLength)
+    {
+        if (maxLength < 3) throw new InvalidOperationException("MaxLength must be greater than 3");
+        if (string.IsNullOrWhiteSpace(value)) return "";
+        if (value.Length <= maxLength) return value;
+        return value.Substring(0, maxLength - 3) + "...";
+    }
+}

@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+	<PropertyGroup>
+		<TargetFramework>net9.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UserSecretsId>aspnet-LogService.Razor-4ea02e08-91a1-464f-b410-a492610d37b1</UserSecretsId>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Najlot.Log.Configuration.FileSource" Version="4.0.1" />
+		<PackageReference Include="Najlot.Log.Extensions.Logging" Version="4.0.1" />
+		<PackageReference Include="System.Text.Json" Version="9.0.3" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\LogService.Client.Data\LogService.Client.Data.csproj" />
+		<ProjectReference Include="..\LogService.Client.Localisation\LogService.Client.Localisation.csproj" />
+	</ItemGroup>
+
+</Project>
