@@ -19,7 +19,7 @@ public class LogMessagesModel : PageModel
         _logger = logger;
     }
 
-    public List<LogMessageListItemModel> LogMessages { get; set; } = new();
+    public LogMessageListItemModel[] LogMessages { get; set; } = Array.Empty<LogMessageListItemModel>();
     public LogMessageFilter Filter { get; set; } = new();
     public bool IsLoading { get; set; } = true;
     public string? ErrorMessage { get; set; }
@@ -54,7 +54,7 @@ public class LogMessagesModel : PageModel
             // Load log messages with filter
             LogMessages = await _logMessageService.GetItemsAsync(Filter);
 
-            _logger.LogDebug("Loaded {Count} log messages with filter", LogMessages.Count);
+            _logger.LogDebug("Loaded {Count} log messages with filter", LogMessages.Length);
         }
         catch (System.Security.Authentication.AuthenticationException)
         {
@@ -65,7 +65,7 @@ public class LogMessagesModel : PageModel
         {
             _logger.LogError(ex, "Error loading log messages");
             ErrorMessage = "Error loading log messages. Please try again.";
-            LogMessages = new List<LogMessageListItemModel>();
+            LogMessages = Array.Empty<LogMessageListItemModel>();
         }
         finally
         {

@@ -171,8 +171,8 @@
         return logLevel switch
         {
             LogService.Contracts.LogLevel.Error => "bg-danger",
-            LogService.Contracts.LogLevel.Warning => "bg-warning",
-            LogService.Contracts.LogLevel.Information => "bg-info",
+            LogService.Contracts.LogLevel.Warn => "bg-warning",
+            LogService.Contracts.LogLevel.Info => "bg-info",
             LogService.Contracts.LogLevel.Debug => "bg-secondary",
             _ => "bg-primary"
         };

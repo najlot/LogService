@@ -1,5 +1,8 @@
 using LogService.Client.Data.Identity;
 using System.Security.Claims;
+using System.Text;
+using System.Web;
+using Cosei.Client.Base;
 
 namespace LogService.Razor.Services;
 
@@ -7,35 +10,53 @@ public class CookieTokenProvider : ITokenProvider
 {
 	private readonly IHttpContextAccessor _httpContextAccessor;
 	private readonly ILogger<CookieTokenProvider> _logger;
+	private readonly IRequestClient _requestClient;
 
-	public CookieTokenProvider(IHttpContextAccessor httpContextAccessor, ILogger<CookieTokenProvider> logger)
+	public CookieTokenProvider(IHttpContextAccessor httpContextAccessor, ILogger<CookieTokenProvider> logger, IRequestClient requestClient)
 	{
 		_httpContextAccessor = httpContextAccessor;
 		_logger = logger;
+		_requestClient = requestClient;
 	}
 
-	public async Task<string?> GetToken()
+	public async Task<string> GetToken()
 	{
 		await Task.CompletedTask;
 		var context = _httpContextAccessor.HttpContext;
 		if (context?.User?.Identity?.IsAuthenticated == true)
 		{
-			return context.User.FindFirst("access_token")?.Value;
+			var token = context.User.FindFirst("access_token")?.Value;
+			if (!string.IsNullOrEmpty(token))
+			{
+				return token;
+			}
 		}
-		return null;
+		throw new System.Security.Authentication.AuthenticationException();
 	}
 
-	public async Task<string?> GetServiceToken(string source, DateTime validUntil)
+	public async Task<string> GetServiceToken(string source, DateTime validUntil)
 	{
-		// For service tokens, we still need to call the API
-		// This is different from the access token stored in cookies
 		var token = await GetToken();
-		if (token == null) return null;
+		if (string.IsNullOrEmpty(token))
+		{
+			throw new System.Security.Authentication.AuthenticationException();
+		}
 
-		// TODO: Implement service token generation call to API
-		// This would be a call to the LogService API to generate a service token
-		// For now, return null to indicate not implemented
-		_logger.LogWarning("Service token generation not yet implemented for Razor pages");
-		return null;
+		var headers = new Dictionary<string, string>
+		{
+			{ "Authorization", $"Bearer {token}" }
+		};
+
+		var encodedSource = HttpUtility.UrlEncode(source);
+		var encodedValidUntil = HttpUtility.UrlEncode(validUntil.ToString("o"));
+		var query = $"?source={encodedSource}&validUntil={encodedValidUntil}";
+		var response = await _requestClient.GetAsync("api/Auth/ServiceToken" + query, headers);
+
+		if (response.StatusCode >= 200 && response.StatusCode < 300)
+		{
+			return Encoding.UTF8.GetString(response.Body.ToArray());
+		}
+
+		throw new System.Security.Authentication.AuthenticationException();
 	}
 }

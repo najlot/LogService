@@ -29,7 +29,7 @@ public class CookieUserDataStore : IUserDataStore
 	{
 		await Task.CompletedTask;
 		// Token is set during login, this is handled by the authentication middleware
-		_logger.LogDebug("Token set operation called - handled by authentication middleware");
+		_logger.LogWarning("Token set operation called - handled by authentication middleware");
 	}
 
 	public async Task<string?> GetUsername()
@@ -47,13 +47,13 @@ public class CookieUserDataStore : IUserDataStore
 	{
 		await Task.CompletedTask;
 		// Username is set during login, this is handled by the authentication middleware
-		_logger.LogDebug("Username set operation called - handled by authentication middleware");
+		_logger.LogWarning("Username set operation called - handled by authentication middleware");
 	}
 
 	public async Task SetUserData(string username, string token)
 	{
 		await Task.CompletedTask;
 		// User data is set during login, this is handled by the authentication middleware
-		_logger.LogDebug("UserData set operation called - handled by authentication middleware");
+		_logger.LogWarning("UserData set operation called - handled by authentication middleware");
 	}
 }

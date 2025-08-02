@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using System.ComponentModel.DataAnnotations;
 using LogService.Client.Data.Identity;
 
@@ -29,6 +31,10 @@ public class RegisterModel : PageModel
         public string Username { get; set; } = string.Empty;
 
         [Required]
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
+
+        [Required]
         [DataType(DataType.Password)]
         [StringLength(30, MinimumLength = 8)]
         public string Password { get; set; } = string.Empty;
@@ -39,9 +45,13 @@ public class RegisterModel : PageModel
         public string ConfirmPassword { get; set; } = string.Empty;
     }
 
-    public void OnGet()
+    public async Task OnGetAsync()
     {
-        // Initialize page
+        // Log out any existing user before showing registration form
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        }
     }
 
     public async Task<IActionResult> OnPostAsync()
@@ -53,9 +63,9 @@ public class RegisterModel : PageModel
 
         try
         {
-            var success = await _registrationService.RegisterAsync(Input.Username, Input.Password);
+            var result = await _registrationService.Register(Guid.NewGuid(), Input.Username, Input.Email, Input.Password);
 
-            if (success)
+            if (result.IsSuccess)
             {
                 SuccessMessage = "Registration successful! You can now login with your credentials.";
                 _logger.LogInformation("User {Username} registered successfully", Input.Username);
@@ -66,7 +76,7 @@ public class RegisterModel : PageModel
             }
             else
             {
-                ErrorMessage = "Registration failed. Username may already exist.";
+                ErrorMessage = result.ErrorMessage ?? "Registration failed. Username may already exist.";
                 return Page();
             }
         }

@@ -18,14 +18,14 @@ public class LogMessageModel : PageModel
         _logger = logger;
     }
 
-    public LogMessageDetailModel? LogMessage { get; set; }
+    public Client.Data.Models.LogMessageModel? LogMessage { get; set; }
     public string? ErrorMessage { get; set; }
 
     public async Task<IActionResult> OnGetAsync(Guid id)
     {
         try
         {
-            LogMessage = await _logMessageService.GetAsync(id);
+            LogMessage = await _logMessageService.GetItemAsync(id);
 
             if (LogMessage == null)
             {

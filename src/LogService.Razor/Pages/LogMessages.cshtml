@@ -164,8 +164,8 @@
     function getLogLevelClass(logLevel) {
         switch (logLevel) {
             case 'Error': return 'bg-danger';
-            case 'Warning': return 'bg-warning';
-            case 'Information': return 'bg-info';
+            case 'Warn': return 'bg-warning';
+            case 'Info': return 'bg-info';
             case 'Debug': return 'bg-secondary';
             default: return 'bg-primary';
         }
@@ -183,8 +183,8 @@
         return logLevel switch
         {
             LogService.Contracts.LogLevel.Error => "bg-danger",
-            LogService.Contracts.LogLevel.Warning => "bg-warning",
-            LogService.Contracts.LogLevel.Information => "bg-info",
+            LogService.Contracts.LogLevel.Warn => "bg-warning",
+            LogService.Contracts.LogLevel.Info => "bg-info",
             LogService.Contracts.LogLevel.Debug => "bg-secondary",
             _ => "bg-primary"
         };

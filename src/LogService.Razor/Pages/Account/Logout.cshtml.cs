@@ -23,7 +23,7 @@ public class LogoutModel : PageModel
             _logger.LogInformation("User {Username} logged out", username);
         }
 
-        return RedirectToPage("/Account/Login");
+        return RedirectToPage("Login");
     }
 
     public async Task<IActionResult> OnPostAsync()
