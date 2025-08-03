@@ -36,12 +36,12 @@ public class LoginModel : PageModel
         public string Password { get; set; } = string.Empty;
     }
 
-    public void OnGet()
+    public async Task OnGetAsync()
     {
         // Clear any existing authentication
         if (User.Identity?.IsAuthenticated == true)
         {
-            HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         }
     }
 

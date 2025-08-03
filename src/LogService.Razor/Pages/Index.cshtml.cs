@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using LogService.Client.Data.Services;
 using LogService.Client.Data.Models;
+using LogService.Client.Data.Identity;
 using System.ComponentModel.DataAnnotations;
 
 namespace LogService.Razor.Pages;
@@ -11,11 +12,13 @@ namespace LogService.Razor.Pages;
 public class IndexModel : PageModel
 {
     private readonly IUserService _userService;
+    private readonly ITokenProvider _tokenProvider;
     private readonly ILogger<IndexModel> _logger;
 
-    public IndexModel(IUserService userService, ILogger<IndexModel> logger)
+    public IndexModel(IUserService userService, ITokenProvider tokenProvider, ILogger<IndexModel> logger)
     {
         _userService = userService;
+        _tokenProvider = tokenProvider;
         _logger = logger;
     }
 
@@ -59,10 +62,8 @@ public class IndexModel : PageModel
     {
         try
         {
-            // TODO: Implement service token generation
-            // This would call the LogService API to generate a service token
-            ServiceToken = "Service token generation not yet implemented for Razor pages";
-            _logger.LogWarning("Service token generation requested but not implemented");
+            ServiceToken = await _tokenProvider.GetServiceToken(TokenInput.Source, TokenInput.ValidUntil);
+            _logger.LogInformation("Service token generated for source: {Source}, valid until: {ValidUntil}", TokenInput.Source, TokenInput.ValidUntil);
         }
         catch (Exception ex)
         {

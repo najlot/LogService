@@ -45,13 +45,16 @@ public class RegisterModel : PageModel
         public string ConfirmPassword { get; set; } = string.Empty;
     }
 
-    public async Task OnGetAsync()
+    public async Task<IActionResult> OnGetAsync()
     {
         // Log out any existing user before showing registration form
         if (User.Identity?.IsAuthenticated == true)
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            // Redirect to self to refresh the page and clear authentication state
+            return RedirectToPage();
         }
+        return Page();
     }
 
     public async Task<IActionResult> OnPostAsync()
