@@ -46,7 +46,7 @@ public class LogHub : Hub
 					});
 
 				// Register event handlers - only for events that exist
-				subscriber.Register<LogMessageCreated>(async (logMessage) => await HandleLogMessageCreated(userId, logMessage));
+				subscriber.Register<List<LogMessageCreated>>(async (logMessage) => await HandleLogMessagesCreated(userId, logMessage));
 
 				await subscriber.StartAsync();
 				_subscribers[userId] = subscriber;
@@ -66,9 +66,9 @@ public class LogHub : Hub
 		_logger.LogDebug("User {UserId} left group User_{UserId}", userId, userId);
 	}
 
-	private async Task HandleLogMessageCreated(string userId, LogMessageCreated logMessage)
+	private async Task HandleLogMessagesCreated(string userId, List<LogMessageCreated> logMessages)
 	{
-		await Clients.Group($"User_{userId}").SendAsync("ReceiveLogMessages", new[] { logMessage });
+		await Clients.Group($"User_{userId}").SendAsync("ReceiveLogMessages", logMessages);
 		_logger.LogDebug("Sent log message created event to user group User_{userId}", userId);
 	}
 

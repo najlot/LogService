@@ -49,7 +49,7 @@ public class ManageModel : PageModel
         // Page loads with empty form
     }
 
-    public IActionResult OnPost()
+    public async Task<IActionResult> OnPostAsync()
     {
         if (!ModelState.IsValid)
         {
@@ -58,13 +58,13 @@ public class ManageModel : PageModel
 
         try
         {
-            // TODO: Implement password change functionality
-            // This would require extending the user service to support password changes
-            ErrorMessage = "Password change functionality is not yet implemented in the current API.";
-            _logger.LogWarning("Password change requested but not implemented for user {Username}", User.Identity?.Name);
-            
-            return Page();
-        }
+            var user = await _userService.GetCurrentUserAsync();
+			user.Password = Input.NewPassword;
+			await _userService.UpdateItemAsync(user);
+			SuccessMessage = "Your password has been changed successfully.";
+			_logger.LogInformation("User {Username} changed their password successfully.", User.Identity?.Name);
+			return Page();
+		}
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error changing password for user {Username}", User.Identity?.Name);
