@@ -47,29 +47,71 @@
 			<Generator>PublicResXFileCodeGenerator</Generator>
 			<LastGenOutput>CommonLoc.Designer.cs</LastGenOutput>
 		</EmbeddedResource>
+		<EmbeddedResource Update="CommonLoc.de.resx">
+			<DependentUpon>CommonLoc.resx</DependentUpon>
+		</EmbeddedResource>
+		<EmbeddedResource Update="CommonLoc.ru.resx">
+			<DependentUpon>CommonLoc.resx</DependentUpon>
+		</EmbeddedResource>
 		<EmbeddedResource Update="ProfileLoc.resx">
 			<Generator>PublicResXFileCodeGenerator</Generator>
 			<LastGenOutput>ProfileLoc.Designer.cs</LastGenOutput>
+		</EmbeddedResource>
+		<EmbeddedResource Update="ProfileLoc.de.resx">
+			<DependentUpon>ProfileLoc.resx</DependentUpon>
+		</EmbeddedResource>
+		<EmbeddedResource Update="ProfileLoc.ru.resx">
+			<DependentUpon>ProfileLoc.resx</DependentUpon>
 		</EmbeddedResource>
 		<EmbeddedResource Update="SourceLoc.resx">
 			<Generator>PublicResXFileCodeGenerator</Generator>
 			<LastGenOutput>SourceLoc.Designer.cs</LastGenOutput>
 		</EmbeddedResource>
+		<EmbeddedResource Update="SourceLoc.de.resx">
+			<DependentUpon>SourceLoc.resx</DependentUpon>
+		</EmbeddedResource>
+		<EmbeddedResource Update="SourceLoc.ru.resx">
+			<DependentUpon>SourceLoc.resx</DependentUpon>
+		</EmbeddedResource>
 		<EmbeddedResource Update="UserLoc.resx">
 			<Generator>PublicResXFileCodeGenerator</Generator>
 			<LastGenOutput>UserLoc.Designer.cs</LastGenOutput>
+		</EmbeddedResource>
+		<EmbeddedResource Update="UserLoc.de.resx">
+			<DependentUpon>UserLoc.resx</DependentUpon>
+		</EmbeddedResource>
+		<EmbeddedResource Update="UserLoc.ru.resx">
+			<DependentUpon>UserLoc.resx</DependentUpon>
 		</EmbeddedResource>
 		<EmbeddedResource Update="LogArgumentLoc.resx">
 			<Generator>PublicResXFileCodeGenerator</Generator>
 			<LastGenOutput>LogArgumentLoc.Designer.cs</LastGenOutput>
 		</EmbeddedResource>
+		<EmbeddedResource Update="LogArgumentLoc.de.resx">
+			<DependentUpon>LogArgumentLoc.resx</DependentUpon>
+		</EmbeddedResource>
+		<EmbeddedResource Update="LogArgumentLoc.ru.resx">
+			<DependentUpon>LogArgumentLoc.resx</DependentUpon>
+		</EmbeddedResource>
 		<EmbeddedResource Update="LogLevelLoc.resx">
 			<Generator>PublicResXFileCodeGenerator</Generator>
 			<LastGenOutput>LogLevelLoc.Designer.cs</LastGenOutput>
 		</EmbeddedResource>
+		<EmbeddedResource Update="LogLevelLoc.de.resx">
+			<DependentUpon>LogLevelLoc.resx</DependentUpon>
+		</EmbeddedResource>
+		<EmbeddedResource Update="LogLevelLoc.ru.resx">
+			<DependentUpon>LogLevelLoc.resx</DependentUpon>
+		</EmbeddedResource>
 		<EmbeddedResource Update="LogMessageLoc.resx">
 			<Generator>PublicResXFileCodeGenerator</Generator>
 			<LastGenOutput>LogMessageLoc.Designer.cs</LastGenOutput>
+		</EmbeddedResource>
+		<EmbeddedResource Update="LogMessageLoc.de.resx">
+			<DependentUpon>LogMessageLoc.resx</DependentUpon>
+		</EmbeddedResource>
+		<EmbeddedResource Update="LogMessageLoc.ru.resx">
+			<DependentUpon>LogMessageLoc.resx</DependentUpon>
 		</EmbeddedResource>
 	</ItemGroup>
 
