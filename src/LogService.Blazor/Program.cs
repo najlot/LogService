@@ -124,7 +124,7 @@ public class Program
 		app.MapBlazorHub();
 		app.MapFallbackToPage("/_Host");
 
-		var supportedCultures = new[] { "en", "de" };
+		var supportedCultures = new[] { "en", "de", "ru" };
 		var localizationOptions = new RequestLocalizationOptions()
 			.SetDefaultCulture(supportedCultures[0])
 			.AddSupportedCultures(supportedCultures)
