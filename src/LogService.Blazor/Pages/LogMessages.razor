@@ -267,6 +267,7 @@ else
 			Subscriber = await SubscriberProvider.GetSubscriber();
 
 			Subscriber.Register<List<LogMessageCreated>>(Handle);
+			Subscriber.Register<List<LogMessageUpdated>>(HandleUpdated);
 
 			await Subscriber.StartAsync();
 		}
@@ -303,7 +304,10 @@ else
 
 	private async Task Handle(List<LogMessageCreated> messages)
 	{
-		var items = Map.From<LogMessageCreated>(messages).ToArray<LogMessageListItemModel>();
+		// Filter messages based on current filter settings
+		var filteredMessages = messages.Where(m => ShouldIncludeMessage(m.DateTime, m.LogLevel, m.Category, m.State, m.Source, m.RawMessage, m.Message, m.Exception, m.ExceptionIsValid)).ToList();
+		
+		var items = Map.From<LogMessageCreated>(filteredMessages).ToArray<LogMessageListItemModel>();
 
 		lock (logMessages)
 		{
@@ -311,6 +315,57 @@ else
 		}
 		
 		await InvokeAsync(StateHasChanged);
+	}
+
+	private async Task HandleUpdated(List<LogMessageUpdated> messages)
+	{
+		lock (logMessages)
+		{
+			foreach (var message in messages)
+			{
+				// Remove existing item if it exists
+				var existingItem = logMessages.FirstOrDefault(i => i.Id == message.Id);
+				if (existingItem != null)
+				{
+					logMessages.Remove(existingItem);
+				}
+
+				// Add updated item if it passes the filter
+				if (ShouldIncludeMessage(message.DateTime, message.LogLevel, message.Category, message.State, message.Source, message.RawMessage, message.Message, message.Exception, message.ExceptionIsValid))
+				{
+					var updatedItem = Map.From(message).To<LogMessageListItemModel>();
+					logMessages.Insert(0, updatedItem);
+				}
+			}
+		}
+		
+		await InvokeAsync(StateHasChanged);
+	}
+
+	private bool ShouldIncludeMessage(DateTime dateTime, LogLevel logLevel, string category, string state, string source, string rawMessage, string message, string exception, bool exceptionIsValid)
+	{
+		if (Filter.DateTimeFrom != null && dateTime < Filter.DateTimeFrom)
+			return false;
+		if (Filter.DateTimeTo != null && dateTime > Filter.DateTimeTo)
+			return false;
+		if (Filter.LogLevel != null && logLevel < Filter.LogLevel)
+			return false;
+		if (!string.IsNullOrEmpty(Filter.Category) && !category.Contains(Filter.Category, StringComparison.OrdinalIgnoreCase))
+			return false;
+		if (!string.IsNullOrEmpty(Filter.State) && !state.Contains(Filter.State, StringComparison.OrdinalIgnoreCase))
+			return false;
+		if (!string.IsNullOrEmpty(Filter.Source) && !source.Contains(Filter.Source, StringComparison.OrdinalIgnoreCase))
+			return false;
+		if (!string.IsNullOrEmpty(Filter.RawMessage) && !rawMessage.Contains(Filter.RawMessage, StringComparison.OrdinalIgnoreCase))
+			return false;
+		if (!string.IsNullOrEmpty(Filter.Message) && !message.Contains(Filter.Message, StringComparison.OrdinalIgnoreCase))
+			return false;
+		if (!string.IsNullOrEmpty(Filter.Exception) && !exception.Contains(Filter.Exception, StringComparison.OrdinalIgnoreCase))
+			return false;
+		if (Filter.ExceptionIsValid != null && exceptionIsValid != Filter.ExceptionIsValid)
+			return false;
+
+		return true;
 	}
 
 	public void Dispose()
