@@ -1,0 +1,216 @@
+@using Cosei.Client.Base;
+@using Cosei.Client.Http;
+@using Microsoft.Extensions.Localization;
+@using LogService.Blazor.Identity;
+@using LogService.Blazor.Services;
+@using LogService.Client.Data.Mappings;
+@using LogService.Client.Data.Models;
+@using LogService.Client.Data.Services;
+@using LogService.Client.Data;
+@using LogService.Client.Localisation;
+@using LogService.Contracts;
+@using LogService.Contracts.Events;
+@inject ILogger<LogMessageModal> Log
+@inject Najlot.Map.IMap Map;
+@inject ILogMessageService LogMessageService
+@inject IAuthenticationService AuthenticationService
+@inject IStringLocalizer<LogLevelLoc> LogLevelLocalizer
+
+<!-- Modal -->
+<div class="modal fade" id="@ModalId" tabindex="-1" aria-labelledby="@($"{ModalId}Label")" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="@($"{ModalId}Label")">@LogMessageLoc.LogMessage</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @if (IsLoading)
+                {
+                    <div class="d-flex justify-content-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">@CommonLoc.Loading...</span>
+                        </div>
+                    </div>
+                }
+                else if (Model == null)
+                {
+                    <div class="alert alert-warning" role="alert">
+                        Failed to load log message details.
+                    </div>
+                }
+                else
+                {
+                    <div class="w-auto h-auto">
+                        <div class="row">
+                            <!-- DateTime -->
+                            <div class="col-4 col-xl-2 fw-bold">
+                                @LogMessageLoc.DateTime
+                            </div>
+                            <div class="col-8 col-xl-4">
+                                @Model.DateTime
+                            </div>
+
+                            <!-- LogLevel -->
+                            <div class="col-4 col-xl-2 fw-bold">
+                                @LogMessageLoc.LogLevel
+                            </div>
+                            <div class="col-8 col-xl-4">
+                                @LogLevelLocalizer[Model.LogLevel.ToString()]
+                            </div>
+                        </div>
+
+                        <!-- Source -->
+                        <div class="row">
+                            <div class="col-4 col-xl-2 fw-bold">
+                                @LogMessageLoc.Source
+                            </div>
+                            <div class="col-8 col-xl-4">
+                                @Model.Source
+                            </div>
+
+                            <div class="col-4 col-xl-2 fw-bold">
+                                @LogMessageLoc.Category
+                            </div>
+                            <div class="col-8 col-xl-4 text-break">
+                                @Model.Category
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(Model.State))
+                        {
+                            <!-- State -->
+                            <div class="row">
+                                <div class="col-4 col-xl-2 fw-bold">
+                                    @LogMessageLoc.State
+                                </div>
+                                <div class="col-8 col-xl-10 text-break">
+                                    @Model.State
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Message -->
+                        <div class="row">
+                            <div class="col-4 col-xl-2 fw-bold">
+                                @LogMessageLoc.Message
+                            </div>
+                            <div class="col-8 col-xl-10 text-break">
+                                @Model.Message
+                            </div>
+                        </div>
+
+                        @if (Model.RawMessage != Model.Message)
+                        {
+                            <!-- RawMessage -->
+                            <div class="row">
+                                <div class="col-4 col-xl-2 fw-bold">
+                                    @LogMessageLoc.RawMessage
+                                </div>
+                                <div class="col-8 col-xl-10 text-break">
+                                    @Model.RawMessage
+                                </div>
+                            </div>
+                        }
+                        
+                        @if (Model.ExceptionIsValid)
+                        {
+                            <!-- Exception -->
+                            <div class="row">
+                                <div class="col">
+                                    <div class="col-4 col-xl-2 fw-bold">
+                                        @LogMessageLoc.Exception
+                                    </div>
+                                    <div class="col-12 col-xl-10 text-break">
+                                        @Model.Exception
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Arguments -->
+                        @if (Model.Arguments.Any())
+                        {
+                            <br />
+                            <div class="row">
+                                <div class="col-4 col-xl-2 fw-bold">
+                                    @LogArgumentLoc.Key
+                                </div>
+                                <div class="col-8 col-xl-10 fw-bold">
+                                    @LogArgumentLoc.Value
+                                </div>
+                            </div>
+
+                            @foreach (var entry in Model.Arguments)
+                            {
+                                <div class="row border-top">
+                                    <div class="col-4 col-xl-2">
+                                        @entry.Key
+                                    </div>
+                                    <div class="col-8 col-xl-10 text-break">
+                                        @entry.Value
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <a href="/LogMessage/@LogMessageId" class="btn btn-primary" target="_blank">Open in New Tab</a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [CascadingParameter(Name = "ErrorService")]
+    protected IErrorService? ErrorService { get; set; }
+
+    [Parameter]
+    public string ModalId { get; set; } = "logMessageModal";
+
+    [Parameter]
+    public Guid LogMessageId { get; set; }
+
+    private LogMessageModel? Model;
+    private bool IsLoading = false;
+
+    public async Task ShowModal(Guid logMessageId)
+    {
+        LogMessageId = logMessageId;
+        Model = null;
+        IsLoading = true;
+        
+        // Trigger the modal to show
+        await InvokeAsync(StateHasChanged);
+        
+        try
+        {
+            var state = await AuthenticationService.GetAuthenticationStateAsync();
+
+            if (state.User.Identity is null)
+            {
+                ErrorService?.ShowError("Authentication", "Please log in to view log messages.");
+                return;
+            }
+
+            Model = await LogMessageService.GetItemAsync(LogMessageId);
+        }
+        catch (System.Security.Authentication.AuthenticationException)
+        {
+            ErrorService?.ShowError("Authentication", "Authentication required to view log messages.");
+        }
+        catch (Exception ex)
+        {
+            Log.LogError(ex, "Error loading logmessage.");
+            ErrorService?.ShowError("Error", "Could not load log message. Server error.");
+        }
+        finally
+        {
+            IsLoading = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+}
