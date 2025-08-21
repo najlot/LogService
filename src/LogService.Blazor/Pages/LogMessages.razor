@@ -9,6 +9,7 @@
 @using LogService.Client.Data;
 @using LogService.Client.Localisation;
 @using LogService.Contracts.Events;
+@using Microsoft.JSInterop;
 @inject ILogger<LogMessages> Log
 @inject Najlot.Map.IMap Map
 @inject ILogMessageService LogMessageService
@@ -16,6 +17,7 @@
 @inject IAuthenticationService AuthenticationService
 @inject NavigationManager NavigationManager
 @inject IStringLocalizer<LogLevelLoc> LogLevelLocalizer
+@inject IJSRuntime JSRuntime
 
 @implements IDisposable
 
@@ -190,23 +192,26 @@ else
 	{
 		<div class="row border-bottom border-dark">
 			<div class="col-6 col-xl-2">
-				<a href="/LogMessage/@logMessage.Id" class="nav-link text-break">
+				<a href="/LogMessage/@logMessage.Id" class="nav-link text-break" @onclick="@(e => HandleLogMessageClick(e, logMessage.Id))" @onclick:preventDefault="true">
 					@logMessage.DateTime
 				</a>
 			</div>
 			<div class="col-6 col-xl-1">
-				<a href="/LogMessage/@logMessage.Id" class="nav-link text-break">
+				<a href="/LogMessage/@logMessage.Id" class="nav-link text-break" @onclick="@(e => HandleLogMessageClick(e, logMessage.Id))" @onclick:preventDefault="true">
 					@logMessage.LogLevel
 				</a>
 			</div>
 			<div class="nav-item col-xl-9">
-				<a href="/LogMessage/@logMessage.Id" class="nav-link text-break">
+				<a href="/LogMessage/@logMessage.Id" class="nav-link text-break" @onclick="@(e => HandleLogMessageClick(e, logMessage.Id))" @onclick:preventDefault="true">
 					@logMessage.Message
 				</a>
 			</div>
 		</div>
 	}
 }
+
+<!-- LogMessage Modal -->
+<LogService.Blazor.Shared.LogMessageModal @ref="logMessageModal" ModalId="logMessageModal" />
 
 @code {
 	[CascadingParameter(Name = "ErrorService")]
@@ -316,5 +321,26 @@ else
 	public void Dispose()
 	{
 		Subscriber?.Unregister(this);
+	}
+
+	private LogService.Blazor.Shared.LogMessageModal? logMessageModal;
+
+	private async Task HandleLogMessageClick(Microsoft.AspNetCore.Components.Web.MouseEventArgs e, Guid logMessageId)
+	{
+		// Check if user wants to open in new tab (Ctrl+Click, Middle Click, or Right Click)
+		if (e.CtrlKey || e.Button == 1 || e.Button == 2)
+		{
+			// Let the browser handle opening in new tab
+			await JSRuntime.InvokeVoidAsync("open", $"/LogMessage/{logMessageId}", "_blank");
+		}
+		else
+		{
+			// Show modal
+			if (logMessageModal != null)
+			{
+				await logMessageModal.ShowModal(logMessageId);
+				await JSRuntime.InvokeVoidAsync("showBootstrapModal", "logMessageModal");
+			}
+		}
 	}
 }
