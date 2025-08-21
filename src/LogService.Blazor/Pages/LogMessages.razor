@@ -211,7 +211,7 @@ else
 }
 
 <!-- LogMessage Modal -->
-<LogService.Blazor.Shared.LogMessageModal @ref="logMessageModal" ModalId="logMessageModal" />
+<LogMessageModal @ref="logMessageModal" ModalId="logMessageModal" />
 
 @code {
 	[CascadingParameter(Name = "ErrorService")]
@@ -323,7 +323,7 @@ else
 		Subscriber?.Unregister(this);
 	}
 
-	private LogService.Blazor.Shared.LogMessageModal? logMessageModal;
+	private LogMessageModal? logMessageModal;
 
 	private async Task HandleLogMessageClick(Microsoft.AspNetCore.Components.Web.MouseEventArgs e, Guid logMessageId)
 	{
