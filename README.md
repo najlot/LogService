@@ -6,7 +6,7 @@ LogService is a unified centralized logging service built with .NET 9.0 that pro
 - **Web-based log management** with Blazor Server UI
 - **Real-time log streaming** via SignalR
 - **User-based log segregation** for multi-tenant scenarios
-- **Multiple storage backends** (MongoDB, MySQL, File System)
+- **Multiple storage backends** (MongoDB, MySQL, LiteDB)
 
 ## Architecture
 
@@ -51,7 +51,7 @@ Simply deploy the single **LogService** application:
 The service supports multiple storage options:
 - **MongoDB**: For NoSQL document storage
 - **MySQL**: For relational database storage with Entity Framework
-- **File System**: For simple file-based storage (fallback)
+- **LiteDB**: For single-file embedded database (default, ideal for simple deployments)
 
 Configure your preferred backend in `appsettings.json`.
 

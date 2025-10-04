@@ -22,7 +22,7 @@ The main **LogService** project combines both the backend API and the Blazor web
 The service supports multiple storage backends:
 - **MongoDB**: Primary NoSQL option
 - **MySQL**: Relational database option with Entity Framework
-- **File System**: Fallback file-based storage
+- **LiteDB**: Single-file embedded database (default, ideal for simple deployments)
 
 ## Technology Stack
 
@@ -158,8 +158,8 @@ else if (mysqlConfig != null)
 }
 else
 {
-    services.AddScoped<Repository.IUserRepository, FileUserRepository>();
-    services.AddScoped<Repository.ILogMessageRepository, FileLogMessageRepository>();
+    services.AddScoped<Repository.IUserRepository, LiteDbUserRepository>();
+    services.AddScoped<Repository.ILogMessageRepository, LiteDbLogMessageRepository>();
 }
 ```
 
@@ -319,7 +319,7 @@ This unified architecture provides:
 - **Maintainability**: Centralized codebase for backend and web interface
 
 The architecture maintains all the original capabilities including:
-- Multiple storage backends (MongoDB, MySQL, File System)
+- Multiple storage backends (MongoDB, MySQL, LiteDB)
 - User-based log segregation
 - Real-time log streaming via SignalR
 - RESTful API for external clients (WPF, custom integrations)

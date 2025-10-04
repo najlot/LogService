@@ -77,7 +77,7 @@ public class Program
 		// Add services to the container.
 		// Configure database and repository storage
 		var rmqConfig = builder.Configuration.ReadConfiguration<RabbitMqConfiguration>();
-		var fileConfig = builder.Configuration.ReadConfiguration<FileConfiguration>();
+		var liteDbConfig = builder.Configuration.ReadConfiguration<LiteDbConfiguration>();
 		var mysqlConfig = builder.Configuration.ReadConfiguration<MySqlConfiguration>();
 		var mongoDbConfig = builder.Configuration.ReadConfiguration<MongoDbConfiguration>();
 		var serviceConfig = builder.Configuration.ReadConfiguration<ServiceConfiguration>();
@@ -105,9 +105,9 @@ public class Program
 		}
 		else
 		{
-			builder.Services.AddSingleton(fileConfig ?? new FileConfiguration());
-			builder.Services.AddScoped<Repository.IUserRepository, FileUserRepository>();
-			builder.Services.AddScoped<Repository.ILogMessageRepository, FileLogMessageRepository>();
+			builder.Services.AddSingleton(liteDbConfig ?? new LiteDbConfiguration());
+			builder.Services.AddScoped<Repository.IUserRepository, LiteDbUserRepository>();
+			builder.Services.AddScoped<Repository.ILogMessageRepository, LiteDbLogMessageRepository>();
 		}
 
 		if (rmqConfig != null)
