@@ -396,9 +396,4 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
-/src/LogService/config/*.json
-!/src/LogService/config/*.json.example
-/src/LogService/LogMessages
-/src/LogService/Users
-/src/LogService/Data
-/deploy_linux_arm
+
