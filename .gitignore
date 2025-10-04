@@ -399,3 +399,4 @@ FodyWeavers.xsd
 
 /src/LogService/config
 /src/LogService/Data
+/src/LogService/logs
