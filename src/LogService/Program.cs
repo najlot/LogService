@@ -61,11 +61,18 @@ public class Program
 		// Register both mapping extensions
 		LogService.Mappings.ServiceCollectionExtensions.RegisterDataMappings(map);
 		LogService.Client.Data.MapRegisterExtensions.RegisterDataMappings(map);
+		builder.Services.AddSingleton<Najlot.Map.IMap>(map);
 		builder.Services.AddSingleton(map);
 
 		// Configure Logging
 		builder.Logging.ClearProviders();
 		builder.Logging.AddNajlotLog(LogAdministrator.Instance);
+
+		// Add HTTP client factory for client services
+		builder.Services.AddHttpClient(Microsoft.Extensions.Options.Options.DefaultName, c =>
+		{
+			c.BaseAddress = new Uri("http://localhost:5000");
+		});
 
 		// Add services to the container.
 		// Configure database and repository storage
