@@ -11,6 +11,7 @@
 		<PackageReference Include="Cosei.Service.Http" Version="0.1.2" />
 		<PackageReference Include="Cosei.Service.RabbitMq" Version="0.1.2" />
 		<PackageReference Include="Dapper" Version="2.1.66" />
+		<PackageReference Include="LiteDB" Version="5.0.21" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.7" />
 		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.7" />
 		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.7" />

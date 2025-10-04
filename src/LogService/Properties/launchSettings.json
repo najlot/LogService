@@ -1,6 +1,6 @@
 {
     "profiles": {
-        "LogService.Blazor": {
+        "LogService": {
             "commandName": "Project",
             "launchBrowser": true,
             "environmentVariables": {
