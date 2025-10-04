@@ -1,7 +1,20 @@
-# Log.Service
+# LogService
 
-This service is developed to process log messages from the `HttpDestination` of `Najlot.Log`,
-providing a central point to collect and manage logs.
+LogService is a unified centralized logging service built with .NET 9.0 that processes log messages from the `HttpDestination` of `Najlot.Log`. It combines a Web API backend with a Blazor Server web interface in a single deployable service, providing:
+
+- **Centralized log collection** via REST API
+- **Web-based log management** with Blazor Server UI
+- **Real-time log streaming** via SignalR
+- **User-based log segregation** for multi-tenant scenarios
+- **Multiple storage backends** (MongoDB, MySQL, File System)
+
+## Architecture
+
+The service is designed as a **single deployable application** that includes:
+- ASP.NET Core Web API for log ingestion and management
+- Blazor Server web interface for viewing and managing logs
+- SignalR hub for real-time log updates
+- JWT-based authentication and authorization
 
 ## Configuration in Najlot.Log
 
@@ -11,18 +24,39 @@ To send log messages to this service, you need to configure `Najlot.Log` by addi
 .AddHttpDestination("http://HOSTNAME:PORT/api/LogMessage", "<token>")
 ```
 
-Replace `HOSTNAME` and `PORT` with the appropriate values for your setup, and include your authentication token.
+Replace `HOSTNAME` and `PORT` with the appropriate values for your setup (default port is 5000), and include your authentication token.
 
-# Segregation by User
-It is possible to register on an instance of this service, and when creating the token, you can specify a "Source".
+## Segregation by User
 
-The idea behind the "Source" is to represent the application sending the log messages.
-The logged-in user can only view log messages from tokens that were created by this user.
-This allows services to be grouped by user.
+The service supports multi-tenant operation:
+- Register users on the service instance
+- Each user can create tokens with a "Source" identifier
+- The "Source" represents the application sending log messages
+- Users can only view log messages from tokens they created
+- Separate service groups by creating different users
 
-This design also supports the possibility of separating service groups by creating a new user,
-making it easier to manage logs in an environment with many different service groups.
+This design makes it easier to manage logs in environments with many different service groups.
 
-# Next steps
+## Deployment
+
+Simply deploy the single **LogService** application:
+1. Configure your preferred storage backend in `appsettings.json`
+2. Set the JWT secret in configuration
+3. Run the service on port 5000 (or configure as needed)
+4. Access the web UI at `http://HOSTNAME:PORT/`
+5. API endpoints are available at `http://HOSTNAME:PORT/api/`
+
+## Storage Backends
+
+The service supports multiple storage options:
+- **MongoDB**: For NoSQL document storage
+- **MySQL**: For relational database storage with Entity Framework
+- **File System**: For simple file-based storage (fallback)
+
+Configure your preferred backend in `appsettings.json`.
+
+## Next Steps
+
 - Filtering on new messages from SignalR
 - Filter improvements
+- Enhanced search capabilities

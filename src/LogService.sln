@@ -5,13 +5,11 @@ VisualStudioVersion = 17.1.32328.378
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LogService.Contracts", "LogService.Contracts\LogService.Contracts.csproj", "{47C2FA21-5859-440C-B656-EA45EFF17DE7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LogService.Service", "LogService.Service\LogService.Service.csproj", "{FEFC4430-33BF-412E-979C-104763454BE3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LogService", "LogService\LogService.csproj", "{FEFC4430-33BF-412E-979C-104763454BE3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LogService.Service.Test", "LogService.Service.Test\LogService.Service.Test.csproj", "{06EEC4DE-0DF4-42DF-B718-179A52950A0B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LogService.Client.Data", "LogService.Client.Data\LogService.Client.Data.csproj", "{1B2C4213-1B9F-4F18-BCEA-E109181FAD66}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LogService.Blazor", "LogService.Blazor\LogService.Blazor.csproj", "{BA2BA238-684F-4D5D-BFF8-437693EA00FC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LogService.Client.Localisation", "LogService.Client.Localisation\LogService.Client.Localisation.csproj", "{32F2AFF4-5CC5-4B23-80DB-636D7D1F1631}"
 EndProject
@@ -129,30 +127,6 @@ Global
 		{1B2C4213-1B9F-4F18-BCEA-E109181FAD66}.Release|iPhone.Build.0 = Release|Any CPU
 		{1B2C4213-1B9F-4F18-BCEA-E109181FAD66}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
 		{1B2C4213-1B9F-4F18-BCEA-E109181FAD66}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
-		{BA2BA238-684F-4D5D-BFF8-437693EA00FC}.Ad-Hoc|Any CPU.ActiveCfg = Debug|Any CPU
-		{BA2BA238-684F-4D5D-BFF8-437693EA00FC}.Ad-Hoc|Any CPU.Build.0 = Debug|Any CPU
-		{BA2BA238-684F-4D5D-BFF8-437693EA00FC}.Ad-Hoc|iPhone.ActiveCfg = Debug|Any CPU
-		{BA2BA238-684F-4D5D-BFF8-437693EA00FC}.Ad-Hoc|iPhone.Build.0 = Debug|Any CPU
-		{BA2BA238-684F-4D5D-BFF8-437693EA00FC}.Ad-Hoc|iPhoneSimulator.ActiveCfg = Debug|Any CPU
-		{BA2BA238-684F-4D5D-BFF8-437693EA00FC}.Ad-Hoc|iPhoneSimulator.Build.0 = Debug|Any CPU
-		{BA2BA238-684F-4D5D-BFF8-437693EA00FC}.AppStore|Any CPU.ActiveCfg = Debug|Any CPU
-		{BA2BA238-684F-4D5D-BFF8-437693EA00FC}.AppStore|Any CPU.Build.0 = Debug|Any CPU
-		{BA2BA238-684F-4D5D-BFF8-437693EA00FC}.AppStore|iPhone.ActiveCfg = Debug|Any CPU
-		{BA2BA238-684F-4D5D-BFF8-437693EA00FC}.AppStore|iPhone.Build.0 = Debug|Any CPU
-		{BA2BA238-684F-4D5D-BFF8-437693EA00FC}.AppStore|iPhoneSimulator.ActiveCfg = Debug|Any CPU
-		{BA2BA238-684F-4D5D-BFF8-437693EA00FC}.AppStore|iPhoneSimulator.Build.0 = Debug|Any CPU
-		{BA2BA238-684F-4D5D-BFF8-437693EA00FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BA2BA238-684F-4D5D-BFF8-437693EA00FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BA2BA238-684F-4D5D-BFF8-437693EA00FC}.Debug|iPhone.ActiveCfg = Debug|Any CPU
-		{BA2BA238-684F-4D5D-BFF8-437693EA00FC}.Debug|iPhone.Build.0 = Debug|Any CPU
-		{BA2BA238-684F-4D5D-BFF8-437693EA00FC}.Debug|iPhoneSimulator.ActiveCfg = Debug|Any CPU
-		{BA2BA238-684F-4D5D-BFF8-437693EA00FC}.Debug|iPhoneSimulator.Build.0 = Debug|Any CPU
-		{BA2BA238-684F-4D5D-BFF8-437693EA00FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BA2BA238-684F-4D5D-BFF8-437693EA00FC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BA2BA238-684F-4D5D-BFF8-437693EA00FC}.Release|iPhone.ActiveCfg = Release|Any CPU
-		{BA2BA238-684F-4D5D-BFF8-437693EA00FC}.Release|iPhone.Build.0 = Release|Any CPU
-		{BA2BA238-684F-4D5D-BFF8-437693EA00FC}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
-		{BA2BA238-684F-4D5D-BFF8-437693EA00FC}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
 		{32F2AFF4-5CC5-4B23-80DB-636D7D1F1631}.Ad-Hoc|Any CPU.ActiveCfg = Debug|Any CPU
 		{32F2AFF4-5CC5-4B23-80DB-636D7D1F1631}.Ad-Hoc|Any CPU.Build.0 = Debug|Any CPU
 		{32F2AFF4-5CC5-4B23-80DB-636D7D1F1631}.Ad-Hoc|iPhone.ActiveCfg = Debug|Any CPU

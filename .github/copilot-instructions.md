@@ -6,15 +6,16 @@ LogService is a centralized logging service built with .NET 9.0 that processes l
 
 ## Architecture
 
-This is a multi-client architecture consisting of:
+This is a unified service architecture consisting of:
 
-- **LogService.Service**: ASP.NET Core Web API backend with SignalR support
-- **LogService.Blazor**: Blazor Server web application for log management UI
+- **LogService**: Combined ASP.NET Core Web API backend with Blazor Server UI and SignalR support for real-time log streaming
 - **LogService.Wpf**: WPF desktop client for log viewing
 - **LogService.Contracts**: Shared data contracts and models
-- **LogService.Client.Data**: Shared data access layer
+- **LogService.Client.Data**: Shared data access layer for remote clients
 - **LogService.Client.MVVM**: MVVM infrastructure for client applications
 - **LogService.ClientBase**: Base client functionality
+
+The main **LogService** project combines both the backend API and the Blazor web interface in a single deployable service, simplifying deployment and reducing operational complexity.
 
 ### Data Storage Options
 
@@ -51,19 +52,19 @@ The service supports multiple storage backends:
 
 ```
 src/
-├── LogService.Service/           # Web API backend
+├── LogService/                   # Combined Web API backend and Blazor UI
 │   ├── Controllers/             # API controllers
 │   ├── Services/               # Business logic
 │   ├── Repository/             # Data access
 │   ├── Configuration/          # Configuration models
-│   └── Mappings/              # Object mappings
-├── LogService.Blazor/          # Web UI
-│   ├── Pages/                 # Razor pages
-│   ├── Services/              # Client services
-│   └── Shared/                # Shared components
+│   ├── Mappings/               # Object mappings
+│   ├── Model/                  # Database models
+│   ├── Pages/                  # Blazor Razor pages
+│   ├── Shared/                 # Shared Blazor components
+│   └── wwwroot/                # Static files
 ├── LogService.Wpf/             # Desktop client
 ├── LogService.Contracts/       # Shared contracts
-├── LogService.Client.Data/     # Shared data layer
+├── LogService.Client.Data/     # Shared data layer for remote clients
 └── Tests/                      # Unit and integration tests
 ```
 
@@ -85,7 +86,7 @@ src/
 
 #### Database Patterns
 - **Repository pattern**: Implement `IUserRepository`, `ILogMessageRepository`
-- **Dependency injection**: Register repositories in `Startup.cs`
+- **Dependency injection**: Register repositories in `Program.cs`
 - **Connection management**: Use scoped lifetime for database contexts
 - **Query optimization**: Use Dapper for read-heavy operations
 
@@ -144,21 +145,21 @@ public class LogMessage
 ### Multi-Storage Backend Pattern
 
 ```csharp
-// Storage provider selection in Startup.cs
+// Storage provider selection in Program.cs
 if (mongoDbConfig != null)
 {
-    services.AddScoped<IUserRepository, MongoDbUserRepository>();
-    services.AddScoped<ILogMessageRepository, MongoDbLogMessageRepository>();
+    services.AddScoped<Repository.IUserRepository, MongoDbUserRepository>();
+    services.AddScoped<Repository.ILogMessageRepository, MongoDbLogMessageRepository>();
 }
 else if (mysqlConfig != null)
 {
-    services.AddScoped<IUserRepository, MySqlUserRepository>();
-    services.AddScoped<ILogMessageRepository, MySqlLogMessageRepository>();
+    services.AddScoped<Repository.IUserRepository, MySqlUserRepository>();
+    services.AddScoped<Repository.ILogMessageRepository, MySqlLogMessageRepository>();
 }
 else
 {
-    services.AddScoped<IUserRepository, FileUserRepository>();
-    services.AddScoped<ILogMessageRepository, FileLogMessageRepository>();
+    services.AddScoped<Repository.IUserRepository, FileUserRepository>();
+    services.AddScoped<Repository.ILogMessageRepository, FileLogMessageRepository>();
 }
 ```
 
@@ -169,6 +170,7 @@ else
 - **State management**: Use scoped services for page-level state
 - **Real-time updates**: Integrate with SignalR for live data
 - **Authentication**: Implement proper login/logout flows
+- **In-process services**: Backend services are available directly via DI, no HTTP calls needed for internal operations
 
 #### WPF MVVM Pattern
 - **ViewModels**: Implement `INotifyPropertyChanged` for data binding
@@ -239,10 +241,17 @@ public async Task GetLogMessages_ReturnsFilteredResults()
 
 ### Deployment Considerations
 
+#### Single Service Deployment
+- **Simplified architecture**: Single deployable service combining API and UI
+- **Reduced complexity**: No need to configure separate services or coordinate deployments
+- **Single port configuration**: One endpoint serves both API and web interface
+- **Unified configuration**: All settings in one `appsettings.json` file
+
 #### Docker Support
 - Container-ready architecture with configurable storage backends
 - Health checks for monitoring service status
 - Environment variable configuration
+- Single container deployment
 
 #### CORS Configuration
 ```csharp
@@ -270,9 +279,10 @@ catch (Exception ex)
 ```
 
 #### Dependency Injection
-- Register all dependencies in `Startup.ConfigureServices`
+- Register all dependencies in `Program.cs` using WebApplicationBuilder
 - Use appropriate lifetimes: Singleton for config, Scoped for repositories
 - Implement factory patterns for multi-provider scenarios
+- Backend services are registered separately from client services for Blazor UI
 
 #### Logging Integration
 - Use structured logging with `ILogger<T>`
@@ -299,4 +309,19 @@ catch (Exception ex)
 - **Memory management**: Dispose resources properly
 - **Concurrent operations**: Use async/await for I/O bound operations
 
-This architecture provides a scalable, maintainable logging service that can handle multiple clients and storage backends while maintaining security and performance standards.
+## Architecture Benefits
+
+This unified architecture provides:
+- **Simplified deployment**: Single service to deploy instead of two separate services
+- **Easier configuration**: One configuration file, one port to manage
+- **Reduced operational complexity**: No need to coordinate multiple service deployments
+- **Scalability**: Can still handle multiple clients via API endpoints while providing integrated web UI
+- **Maintainability**: Centralized codebase for backend and web interface
+
+The architecture maintains all the original capabilities including:
+- Multiple storage backends (MongoDB, MySQL, File System)
+- User-based log segregation
+- Real-time log streaming via SignalR
+- RESTful API for external clients (WPF, custom integrations)
+- JWT authentication and authorization
+- Multi-tenant support with source-based grouping

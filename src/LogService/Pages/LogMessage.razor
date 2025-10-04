@@ -1,0 +1,190 @@
+@page "/logmessage/{id:guid}"
+@using Cosei.Client.Base;
+@using Cosei.Client.Http;
+@using Microsoft.Extensions.Localization;
+@using LogService.Identity;
+@using LogService.Services;
+@using LogService.Client.Data.Mappings;
+@using LogService.Client.Data.Models;
+@using LogService.Client.Data.Services;
+@using LogService.Client.Data;
+@using LogService.Client.Localisation;
+@using LogService.Contracts;
+@using LogService.Contracts.Events;
+@inject ILogger<LogMessage> Log
+@inject Najlot.Map.IMap Map;
+@inject ILogMessageService LogMessageService
+@inject IAuthenticationService AuthenticationService
+@inject NavigationManager NavigationManager
+@inject IStringLocalizer<LogLevelLoc> LogLevelLocalizer
+
+<PageTitle>@LogMessageLoc.LogMessage</PageTitle>
+
+@if (Model == null)
+{
+	<p><em>@CommonLoc.Loading...</em></p>
+}
+else
+{
+	<EditForm Model="@Model">
+		<section class="w-100">
+			<div class="form-outline mb-4">
+				<h1>@LogMessageLoc.LogMessage</h1>
+			</div>
+
+			<div class="w-auto h-auto">
+				<DataAnnotationsValidator />
+				<ValidationSummary />
+
+				<div class="row">
+					<!-- DateTime -->
+					<div class="col-4 col-xl-2 fw-bold">
+						@LogMessageLoc.DateTime
+					</div>
+					<div class="col-8 col-xl-4">
+						@Model.DateTime
+					</div>
+
+					<!-- LogLevel -->
+					<div class="col-4 col-xl-2 fw-bold">
+						@LogMessageLoc.LogLevel
+					</div>
+					<div class="col-8 col-xl-4">
+						@LogLevelLocalizer[Model.LogLevel.ToString()]
+					</div>
+				</div>
+
+				<!-- Source -->
+				<div class="row">
+					<div class="col-4 col-xl-2 fw-bold">
+						@LogMessageLoc.Source
+					</div>
+					<div class="col-8 col-xl-4">
+						@Model.Source
+					</div>
+
+					<div class="col-4 col-xl-2 fw-bold">
+						@LogMessageLoc.Category
+					</div>
+					<div class="col-8 col-xl-4 text-break">
+						@Model.Category
+					</div>
+				</div>
+
+				@if (!string.IsNullOrEmpty(Model.State))
+				{
+					<!-- State -->
+					<div class="row">
+						<div class="col-4 col-xl-2 fw-bold">
+							@LogMessageLoc.State
+						</div>
+						<div class="col-8 col-xl-10 text-break">
+							@Model.State
+						</div>
+					</div>
+				}
+
+				<!-- Message -->
+				<div class="row">
+					<div class="col-4 col-xl-2 fw-bold">
+						@LogMessageLoc.Message
+					</div>
+					<div class="col-8 col-xl-10 text-break">
+						@Model.Message
+					</div>
+				</div>
+
+				@if (Model.RawMessage != Model.Message)
+				{
+					<!-- RawMessage -->
+					<div class="row">
+						<div class="col-4 col-xl-2 fw-bold">
+							@LogMessageLoc.RawMessage
+						</div>
+						<div class="col-8 col-xl-10 text-break">
+							@Model.RawMessage
+						</div>
+					</div>
+				}
+				
+				@if (Model.ExceptionIsValid)
+				{
+					<!-- Exception -->
+					<div class="row">
+						<div class="col">
+							<div class="col-4 col-xl-2 fw-bold">
+								@LogMessageLoc.Exception
+							</div>
+							<div class="col-12 col-xl-10 text-break">
+								@Model.Exception
+							</div>
+						</div>
+					</div>
+				}
+			</div>
+
+			<!-- Arguments -->
+			@if (Model.Arguments.Any())
+			{
+				<br />
+				<div class="row">
+					<div class="col-4 col-xl-2 fw-bold">
+						@LogArgumentLoc.Key
+					</div>
+					<div class="col-8 col-xl-10 fw-bold">
+						@LogArgumentLoc.Value
+					</div>
+				</div>
+
+				@foreach (var entry in Model.Arguments)
+				{
+					<div class="row border-top">
+						<div class="col-4 col-xl-2">
+							@entry.Key
+						</div>
+						<div class="col-8 col-xl-10 text-break">
+							@entry.Value
+						</div>
+					</div>
+				}
+			}
+		</section>
+	</EditForm>
+}
+
+@code {
+	[CascadingParameter(Name = "ErrorService")]
+	protected IErrorService? ErrorService { get; set; }
+
+	[Parameter]
+	public Guid Id { get; set; }
+
+	private LogMessageModel? Model;
+
+	protected override async Task OnInitializedAsync()
+	{
+		var state = await AuthenticationService.GetAuthenticationStateAsync();
+
+		if (state.User.Identity is null)
+		{
+			var url = NavigationManager.BuildReturnUrl("/login");
+			NavigationManager.NavigateTo(url);
+			return;
+		}
+
+		try
+		{
+			Model = await LogMessageService.GetItemAsync(Id);
+		}
+		catch (System.Security.Authentication.AuthenticationException)
+		{
+			var url = NavigationManager.BuildReturnUrl("/login");
+			NavigationManager.NavigateTo(url);
+		}
+		catch (Exception ex)
+		{
+			Log.LogError(ex, "Error loading logmessage.");
+			ErrorService?.ShowError("Error", "Could not load. Server error.");
+		}
+	}
+}
