@@ -1,14 +1,21 @@
 using Cosei.Client.Base;
 using Cosei.Client.Http;
+using Cosei.Service.Base;
+using Cosei.Service.Http;
+using Cosei.Service.RabbitMq;
 using Najlot.Log.Destinations;
 using Najlot.Log.Middleware;
 using Najlot.Log;
 using Najlot.Log.Configuration.FileSource;
 using Najlot.Log.Extensions.Logging;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Options;
+using LogService.Blazor.Configuration;
 using LogService.Blazor.Identity;
+using LogService.Blazor.Mappings;
+using LogService.Blazor.Repository;
 using LogService.Blazor.Services;
 using LogService.Blazor.Services.Implementation;
 using LogService.Client.Data;
@@ -50,45 +57,103 @@ public class Program
 
 		var builder = WebApplication.CreateBuilder(args);
 		var map = new Najlot.Map.Map();
-		builder.Services.AddSingleton(map.RegisterDataMappings());
+		
+		// Register both mapping extensions
+		LogService.Blazor.Mappings.ServiceCollectionExtensions.RegisterDataMappings(map);
+		LogService.Client.Data.MapRegisterExtensions.RegisterDataMappings(map);
+		builder.Services.AddSingleton(map);
 
 		// Configure Logging
 		builder.Logging.ClearProviders();
 		builder.Logging.AddNajlotLog(LogAdministrator.Instance);
 
 		// Add services to the container.
-		var dataServiceUrl = builder.Configuration.GetSection("DataServiceUrl")?.Get<string>() ?? throw new InvalidOperationException("DataServiceUrl not found.");
+		// Configure database and repository storage
+		var rmqConfig = builder.Configuration.ReadConfiguration<RabbitMqConfiguration>();
+		var fileConfig = builder.Configuration.ReadConfiguration<FileConfiguration>();
+		var mysqlConfig = builder.Configuration.ReadConfiguration<MySqlConfiguration>();
+		var mongoDbConfig = builder.Configuration.ReadConfiguration<MongoDbConfiguration>();
+		var serviceConfig = builder.Configuration.ReadConfiguration<ServiceConfiguration>();
 
-		builder.Services.AddHttpClient(Options.DefaultName, c =>
+		if (string.IsNullOrWhiteSpace(serviceConfig?.Secret))
 		{
-			c.BaseAddress = new Uri(dataServiceUrl);
-		});
+			throw new Exception($"Please set {nameof(ServiceConfiguration.Secret)} in the {nameof(ServiceConfiguration)}!");
+		}
 
-		builder.Services.AddAuthentication().AddCookie(CookieAuthenticationDefaults.AuthenticationScheme);
+		builder.Services.AddSingleton(serviceConfig);
+
+		if (mongoDbConfig != null)
+		{
+			builder.Services.AddSingleton(mongoDbConfig);
+			builder.Services.AddSingleton<MongoDbContext>();
+			builder.Services.AddScoped<Repository.IUserRepository, MongoDbUserRepository>();
+			builder.Services.AddScoped<Repository.ILogMessageRepository, MongoDbLogMessageRepository>();
+		}
+		else if (mysqlConfig != null)
+		{
+			builder.Services.AddSingleton(mysqlConfig);
+			builder.Services.AddScoped<MySqlDbContext>();
+			builder.Services.AddScoped<Repository.IUserRepository, MySqlUserRepository>();
+			builder.Services.AddScoped<Repository.ILogMessageRepository, MySqlLogMessageRepository>();
+		}
+		else
+		{
+			builder.Services.AddSingleton(fileConfig ?? new FileConfiguration());
+			builder.Services.AddScoped<Repository.IUserRepository, FileUserRepository>();
+			builder.Services.AddScoped<Repository.ILogMessageRepository, FileLogMessageRepository>();
+		}
+
+		if (rmqConfig != null)
+		{
+			rmqConfig.QueueName = "LogService";
+			builder.Services.AddCoseiRabbitMq(rmqConfig);
+		}
+
+		builder.Services.AddCoseiHttp();
+
+		// Add JWT Authentication
+		var validationParameters = Services.TokenService.GetValidationParameters(serviceConfig.Secret);
+		builder.Services.AddAuthentication(x =>
+		{
+			x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+			x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+		})
+		.AddJwtBearer(x =>
+		{
+			x.RequireHttpsMetadata = false;
+			x.TokenValidationParameters = validationParameters;
+		})
+		.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme);
+
 		builder.Services.AddAuthorization();
+		builder.Services.AddSignalR();
+
+		// Backend services
+		builder.Services.AddScoped<Services.IUserService, Services.UserService>();
+		builder.Services.AddScoped<Services.LogMessageService>();
+		builder.Services.AddScoped<Services.TokenService>();
+		builder.Services.AddHostedService<LogMessageCleanUpService>();
+
+		// Client services for Blazor UI
+		builder.Services.AddScoped<IRequestClient, HttpFactoryRequestClient>();
+		builder.Services.AddScoped<Client.Data.Identity.ITokenService, Client.Data.Identity.TokenService>();
+		builder.Services.AddScoped<ITokenProvider, RefreshingTokenProvider>();
+		builder.Services.AddScoped<IUserDataStore, UserDataStore>();
+		builder.Services.AddScoped<IRegistrationService, RegistrationService>();
+		builder.Services.AddScoped<Client.Data.Repositories.IUserRepository, Client.Data.Repositories.Implementation.UserRepository>();
+		builder.Services.AddScoped<Client.Data.Services.IUserService, Client.Data.Services.Implementation.UserService>();
+		builder.Services.AddScoped<Client.Data.Repositories.ILogMessageRepository, Client.Data.Repositories.Implementation.LogMessageRepository>();
+		builder.Services.AddScoped<Client.Data.Services.ILogMessageService, Client.Data.Services.Implementation.LogMessageService>();
+		builder.Services.AddScoped<ISubscriberProvider, SubscriberProvider>();
 
 		builder.Services.AddLocalization();
 
 		builder.Services.AddRazorPages();
 		builder.Services.AddServerSideBlazor();
+		builder.Services.AddControllers();
 
 		builder.Services.AddScoped<AuthenticationStateProvider, AuthenticationService>();
 		builder.Services.AddScoped(c => (IAuthenticationService)c.GetRequiredService<AuthenticationStateProvider>());
-
-		builder.Services.AddScoped<IRequestClient, HttpFactoryRequestClient>();
-		builder.Services.AddScoped<ITokenService, TokenService>();
-		builder.Services.AddScoped<ITokenProvider, RefreshingTokenProvider>();
-		builder.Services.AddScoped<IUserDataStore, UserDataStore>();
-
-		builder.Services.AddScoped<IRegistrationService, RegistrationService>();
-
-		builder.Services.AddScoped<IUserRepository, UserRepository>();
-		builder.Services.AddScoped<IUserService, UserService>();
-		builder.Services.AddScoped<ILogMessageRepository, LogMessageRepository>();
-
-		builder.Services.AddScoped<ILogMessageService, LogMessageService>();
-
-		builder.Services.AddScoped<ISubscriberProvider, SubscriberProvider>();
 
 		var app = builder.Build();
 		var serviceProvider = app.Services;
@@ -110,6 +175,13 @@ public class Program
 			app.UseHsts();
 		}
 
+		app.UseCors(c =>
+		{
+			c.AllowAnyOrigin();
+			c.AllowAnyMethod();
+			c.AllowAnyHeader();
+		});
+
 		app.UseHttpsRedirection();
 
 		app.UseStaticFiles();
@@ -122,7 +194,10 @@ public class Program
 		app.MapControllers();
 		app.MapRazorPages();
 		app.MapBlazorHub();
+		app.MapHub<CoseiHub>("/cosei");
 		app.MapFallbackToPage("/_Host");
+
+		app.UseCosei();
 
 		var supportedCultures = new[] { "en", "de" };
 		var localizationOptions = new RequestLocalizationOptions()
@@ -131,6 +206,12 @@ public class Program
 			.AddSupportedUICultures(supportedCultures);
 
 		app.UseRequestLocalization(localizationOptions);
+
+		// Ensure database is created
+		using (var scope = app.Services.CreateScope())
+		{
+			scope.ServiceProvider.GetService<MySqlDbContext>()?.Database?.EnsureCreated();
+		}
 
 		app.Run();
 
