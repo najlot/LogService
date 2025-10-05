@@ -1,9 +1,8 @@
 @page "/Login"
 @using System.ComponentModel.DataAnnotations;
 @using LogService.Identity;
+@using LogService.Localisation;
 @using LogService.Services;
-@using LogService.Client.Data.Identity;
-@using LogService.Client.Localisation;
 
 @inject IAuthenticationService AuthenticationService
 @inject ITokenService TokenService
@@ -70,7 +69,7 @@
 
 		try
 		{
-			token = await TokenService.CreateToken(Input.Username, Input.Password);
+			token = await TokenService.GetToken(Input.Username, Input.Password);
 		}
 		catch (Exception ex)
 		{

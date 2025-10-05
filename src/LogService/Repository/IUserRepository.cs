@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using LogService.Model;
 
 namespace LogService.Repository;
@@ -16,6 +13,4 @@ public interface IUserRepository
 	Task Insert(UserModel model);
 
 	Task Update(UserModel model);
-
-	Task Delete(Guid id);
 }

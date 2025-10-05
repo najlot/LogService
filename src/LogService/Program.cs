@@ -1,29 +1,17 @@
-using Cosei.Client.Base;
-using Cosei.Client.Http;
-using Cosei.Service.Base;
-using Cosei.Service.Http;
-using Cosei.Service.RabbitMq;
 using Najlot.Log.Destinations;
 using Najlot.Log.Middleware;
 using Najlot.Log;
 using Najlot.Log.Configuration.FileSource;
 using Najlot.Log.Extensions.Logging;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Najlot.Map;
+using LogService.Repository;
+using LogService.Services;
 using LogService.Configuration;
 using LogService.Identity;
 using LogService.Mappings;
-using LogService.Repository;
-using LogService.Services;
-using LogService.Services.Implementation;
-using LogService.Client.Data;
-using LogService.Client.Data.Identity;
-using LogService.Client.Data.Repositories;
-using LogService.Client.Data.Repositories.Implementation;
-using LogService.Client.Data.Services;
-using LogService.Client.Data.Services.Implementation;
 
 namespace LogService;
 
@@ -56,28 +44,17 @@ public class Program
 			.ReadConfigurationFromXmlFile(configPath, true, true);
 
 		var builder = WebApplication.CreateBuilder(args);
-		var map = new Najlot.Map.Map();
-		
-		// Register both mapping extensions
-		LogService.Mappings.ServiceCollectionExtensions.RegisterDataMappings(map);
-		LogService.Client.Data.MapRegisterExtensions.RegisterDataMappings(map);
-		builder.Services.AddSingleton<Najlot.Map.IMap>(map);
-		builder.Services.AddSingleton(map);
+
+		var map = new Map();
+		map.RegisterDataMappings();
+		builder.Services.AddSingleton<IMap>(map);
 
 		// Configure Logging
 		builder.Logging.ClearProviders();
 		builder.Logging.AddNajlotLog(LogAdministrator.Instance);
 
-		// Add HTTP client factory for client services
-		builder.Services.AddHttpClient(Microsoft.Extensions.Options.Options.DefaultName, c =>
-		{
-			c.BaseAddress = new Uri("http://localhost:5000");
-		});
-
-		// Add services to the container.
-		// Configure database and repository storage
-		var rmqConfig = builder.Configuration.ReadConfiguration<RabbitMqConfiguration>();
-		var liteDbConfig = builder.Configuration.ReadConfiguration<LiteDbConfiguration>();
+		// Read configuration from Startup.cs
+		var fileConfig = builder.Configuration.ReadConfiguration<LiteDbConfiguration>();
 		var mysqlConfig = builder.Configuration.ReadConfiguration<MySqlConfiguration>();
 		var mongoDbConfig = builder.Configuration.ReadConfiguration<MongoDbConfiguration>();
 		var serviceConfig = builder.Configuration.ReadConfiguration<ServiceConfiguration>();
@@ -89,37 +66,32 @@ public class Program
 
 		builder.Services.AddSingleton(serviceConfig);
 
+		// Storage backend selection from Startup.cs
 		if (mongoDbConfig != null)
 		{
 			builder.Services.AddSingleton(mongoDbConfig);
 			builder.Services.AddSingleton<MongoDbContext>();
-			builder.Services.AddScoped<Repository.IUserRepository, MongoDbUserRepository>();
-			builder.Services.AddScoped<Repository.ILogMessageRepository, MongoDbLogMessageRepository>();
+			builder.Services.AddScoped<IUserRepository, MongoDbUserRepository>();
+			builder.Services.AddScoped<ILogMessageRepository, MongoDbLogMessageRepository>();
 		}
 		else if (mysqlConfig != null)
 		{
 			builder.Services.AddSingleton(mysqlConfig);
 			builder.Services.AddScoped<MySqlDbContext>();
-			builder.Services.AddScoped<Repository.IUserRepository, MySqlUserRepository>();
-			builder.Services.AddScoped<Repository.ILogMessageRepository, MySqlLogMessageRepository>();
+			builder.Services.AddScoped<IUserRepository, MySqlUserRepository>();
+			builder.Services.AddScoped<ILogMessageRepository, MySqlLogMessageRepository>();
 		}
 		else
 		{
-			builder.Services.AddSingleton(liteDbConfig ?? new LiteDbConfiguration());
-			builder.Services.AddScoped<Repository.IUserRepository, LiteDbUserRepository>();
-			builder.Services.AddScoped<Repository.ILogMessageRepository, LiteDbLogMessageRepository>();
+			builder.Services.AddSingleton(fileConfig ?? new LiteDbConfiguration());
+			builder.Services.AddSingleton<LiteDbContext>();
+			builder.Services.AddScoped<IUserRepository, LiteDbUserRepository>();
+			builder.Services.AddScoped<ILogMessageRepository, LiteDbLogMessageRepository>();
 		}
 
-		if (rmqConfig != null)
-		{
-			rmqConfig.QueueName = "LogService";
-			builder.Services.AddCoseiRabbitMq(rmqConfig);
-		}
+		// JWT Authentication from Startup.cs
+		var validationParameters = TokenService.GetValidationParameters(serviceConfig.Secret);
 
-		builder.Services.AddCoseiHttp();
-
-		// Add JWT Authentication
-		var validationParameters = Services.TokenService.GetValidationParameters(serviceConfig.Secret);
 		builder.Services.AddAuthentication(x =>
 		{
 			x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -130,37 +102,39 @@ public class Program
 			x.RequireHttpsMetadata = false;
 			x.TokenValidationParameters = validationParameters;
 		})
-		.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme);
+		.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme); // Keep cookie auth for Blazor
 
 		builder.Services.AddAuthorization();
-		builder.Services.AddSignalR();
-
-		// Backend services
-		builder.Services.AddScoped<Services.IUserService, Services.UserService>();
-		builder.Services.AddScoped<Services.LogMessageService>();
-		builder.Services.AddScoped<Services.TokenService>();
-		builder.Services.AddHostedService<LogMessageCleanUpService>();
-
-		// Client services for Blazor UI
-		builder.Services.AddScoped<IRequestClient, HttpFactoryRequestClient>();
-		builder.Services.AddScoped<Client.Data.Identity.ITokenService, Client.Data.Identity.TokenService>();
-		builder.Services.AddScoped<ITokenProvider, RefreshingTokenProvider>();
-		builder.Services.AddScoped<IUserDataStore, UserDataStore>();
-		builder.Services.AddScoped<IRegistrationService, RegistrationService>();
-		builder.Services.AddScoped<Client.Data.Repositories.IUserRepository, Client.Data.Repositories.Implementation.UserRepository>();
-		builder.Services.AddScoped<Client.Data.Services.IUserService, Client.Data.Services.Implementation.UserService>();
-		builder.Services.AddScoped<Client.Data.Repositories.ILogMessageRepository, Client.Data.Repositories.Implementation.LogMessageRepository>();
-		builder.Services.AddScoped<Client.Data.Services.ILogMessageService, Client.Data.Services.Implementation.LogMessageService>();
-		builder.Services.AddScoped<ISubscriberProvider, SubscriberProvider>();
 
 		builder.Services.AddLocalization();
 
 		builder.Services.AddRazorPages();
 		builder.Services.AddServerSideBlazor();
+
+		// Add controllers from Startup.cs
 		builder.Services.AddControllers();
+
+		// Add SignalR from Startup.cs
+		builder.Services.AddSignalR();
 
 		builder.Services.AddScoped<AuthenticationStateProvider, AuthenticationService>();
 		builder.Services.AddScoped(c => (IAuthenticationService)c.GetRequiredService<AuthenticationStateProvider>());
+
+		builder.Services.AddScoped<ITokenService, TokenService>();
+		builder.Services.AddScoped<IUserDataStore, UserDataStore>();
+
+		// Service registrations from Startup.cs - update existing ones to use local Blazor classes
+		builder.Services.AddScoped<IUserService, UserService>();
+		builder.Services.AddScoped<LogMessageService>();
+		builder.Services.AddScoped<TokenService>();
+
+		builder.Services.AddScoped<ILogMessageService, LogMessageService>();
+
+		// Register messaging services
+		builder.Services.AddSingleton<IMessenger, Messenger>();
+		
+		// Add hosted service from Startup.cs
+		builder.Services.AddHostedService<LogMessageCleanUpService>();
 
 		var app = builder.Build();
 		var serviceProvider = app.Services;
@@ -182,6 +156,13 @@ public class Program
 			app.UseHsts();
 		}
 
+		app.UseHttpsRedirection();
+
+		app.UseStaticFiles();
+
+		app.UseRouting();
+
+		// CORS configuration from Startup.cs
 		app.UseCors(c =>
 		{
 			c.AllowAnyOrigin();
@@ -189,22 +170,13 @@ public class Program
 			c.AllowAnyHeader();
 		});
 
-		app.UseHttpsRedirection();
-
-		app.UseStaticFiles();
-
-		app.UseRouting();
-
 		app.UseAuthentication();
 		app.UseAuthorization();
 
 		app.MapControllers();
 		app.MapRazorPages();
 		app.MapBlazorHub();
-		app.MapHub<CoseiHub>("/cosei");
 		app.MapFallbackToPage("/_Host");
-
-		app.UseCosei();
 
 		var supportedCultures = new[] { "en", "de" };
 		var localizationOptions = new RequestLocalizationOptions()
@@ -214,11 +186,9 @@ public class Program
 
 		app.UseRequestLocalization(localizationOptions);
 
-		// Ensure database is created
-		using (var scope = app.Services.CreateScope())
-		{
-			scope.ServiceProvider.GetService<MySqlDbContext>()?.Database?.EnsureCreated();
-		}
+		// Database initialization from Startup.cs
+		using var scope = app.Services.CreateScope();
+		scope.ServiceProvider.GetService<MySqlDbContext>()?.Database?.EnsureCreated();
 
 		app.Run();
 

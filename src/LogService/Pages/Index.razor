@@ -1,17 +1,18 @@
 @page "/"
-@using LogService.Services
-@using LogService.Pages
-@using LogService.Client.Data.Identity
-@using LogService.Client.Data.Services
-@using LogService.Client.Localisation
 @using System.ComponentModel.DataAnnotations
+@using LogService.Identity
+@using LogService.Localisation
+@using LogService.Model
+@using LogService.Pages
+@using LogService.Services
+@using LogService.Identity
+@using LogService.Services
 
-@inject ITokenProvider TokenProvider
-@inject Client.Data.Services.IUserService UserService
+@inject ITokenService TokenService
+@inject IUserService UserService
 @inject ILogger<Index> Logger
 @inject NavigationManager NavigationManager
-
-@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IAuthenticationService AuthenticationService
 
 <PageTitle>@CommonLoc.Home</PageTitle>
 
@@ -138,7 +139,8 @@
 
 	protected async Task SetServiceToken()
 	{
-		token = await TokenProvider.GetServiceToken(source, validUntil);
+		var userModel = await UserService.GetCurrentUserAsync();
+		token = TokenService.GetServiceToken(userModel.Username, userModel.Id, source, validUntil);
 	}
 
 	protected override async Task OnInitializedAsync()
@@ -150,7 +152,7 @@
 
 		try
 		{
-			var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+			var authState = await AuthenticationService.GetAuthenticationStateAsync();
 			var user = authState.User;
 
 			if (user.Identity is not null && user.Identity.IsAuthenticated)
@@ -172,8 +174,9 @@
 	{
 		try
 		{
-			var token = await TokenProvider.GetToken();
-			if (token is null)
+			var state = await AuthenticationService.GetAuthenticationStateAsync();
+
+			if (state.User.Identity is null)
 			{
 				var url = NavigationManager.BuildReturnUrl("/login");
 				NavigationManager.NavigateTo(url);
@@ -185,7 +188,7 @@
 				logRetentionDays *= -1;
 			}
 
-			await UserService.UpdateSettingsAsync(new Client.Data.Models.UserSettingsModel()
+			await UserService.UpdateSettingsAsync(new UserSettingsModel()
 			{
 				LogRetentionDays = logRetentionDays
 			});

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-using LogService.Repository;
-using Microsoft.Extensions.Hosting;
-using System.Threading;
-using Microsoft.Extensions.DependencyInjection;
-using System.Linq;
+﻿using LogService.Repository;
 
 namespace LogService.Services;
 
@@ -36,17 +30,19 @@ public class LogMessageCleanUpService(IServiceProvider serviceProvider) : Backgr
 			var retention = user.Settings.LogRetentionDays;
 			var deleteBefore = DateTime.Now.AddDays(retention * -1);
 
-			var logs = await repository
+			var ids = await repository
 				.GetAll(user.Id)
 				.Where(e => e.DateTime < deleteBefore)
-				.ToListAsync(stoppingToken)
+				.Select(e => e.Id)
+				.ToArrayAsync(stoppingToken)
 				.ConfigureAwait(false);
 
-			foreach (var item in logs)
+			if (ids.Length != 0)
 			{
-				await repository.Delete(item.Id).ConfigureAwait(false);
-				stoppingToken.ThrowIfCancellationRequested();
+				await repository.Delete(ids).ConfigureAwait(false);
 			}
+
+			stoppingToken.ThrowIfCancellationRequested();
 		}
 	}
 }

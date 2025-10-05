@@ -2,13 +2,14 @@
 
 @using System.ComponentModel.DataAnnotations;
 @using LogService.Identity;
+@using LogService.Localisation;
 @using LogService.Services;
-@using LogService.Client.Data.Identity;
-@using LogService.Client.Localisation;
+@using LogService.Identity
+@using LogService.Services
 
 @inject IAuthenticationService AuthenticationService
 @inject ITokenService TokenService
-@inject IRegistrationService RegistrationService
+@inject IUserService UserService
 @inject NavigationManager NavigationManager
 @inject ILogger<Register> Logger
 
@@ -78,19 +79,23 @@
 
 	private async Task TryRegister()
 	{
-		string? token = null;
-		var result = await RegistrationService.Register(Guid.NewGuid(), Input.Username, Input.EMail, Input.Password);
-
-		if (!result.IsSuccess)
-		{
-			Input.Password = "";
-			ErrorService?.ShowError("Register", result.ErrorMessage);
-			return;
-		}
-
 		try
 		{
-			token = await TokenService.CreateToken(Input.Username, Input.Password);
+			await UserService.CreateUser(Guid.NewGuid(), Input.Username, Input.EMail, Input.Password);
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex, "Error registering user.");
+			Input.Password = "";
+			ErrorService?.ShowError("Register", "Registration is currently unavailable. Please try later.");
+			return;
+		}
+		
+		string? token = null;
+		
+		try
+		{
+			token = await TokenService.GetToken(Input.Username, Input.Password);
 		}
 		catch (Exception ex)
 		{

@@ -1,14 +1,14 @@
 @page "/Manage"
 
 @using System.ComponentModel.DataAnnotations;
-@using LogService.Client.Data;
+@using LogService.Identity;
+@using LogService.Localisation;
 @using LogService.Services;
-@using LogService.Client.Data.Services;
-@using LogService.Client.Data.Identity;
-@using LogService.Client.Localisation;
+@using LogService.Identity
+@using LogService.Services
 
-@inject ITokenProvider TokenProvider
-@inject Client.Data.Services.IUserService UserService
+@inject IAuthenticationService AuthenticationService
+@inject IUserService UserService
 @inject ILogger<Manage> Logger
 @inject NavigationManager NavigationManager
 
@@ -44,55 +44,63 @@
 </div>
 
 @code {
-    private class InputModel
-    {
-        [Required]
-        [DataType(DataType.Password)]
-        [StringLength(30, MinimumLength = 8)]
-        public string Password { get; set; } = string.Empty;
+	private class InputModel
+	{
+		[Required]
+		[DataType(DataType.Password)]
+		[StringLength(30, MinimumLength = 8)]
+		public string Password { get; set; } = string.Empty;
 
-        [Required]
-        [DataType(DataType.Password)]
-        [StringLength(30, MinimumLength = 8)]
-        public string PasswordConfirm { get; set; } = string.Empty;
-    }
+		[Required]
+		[DataType(DataType.Password)]
+		[StringLength(30, MinimumLength = 8)]
+		public string PasswordConfirm { get; set; } = string.Empty;
+	}
 
-    private InputModel Input = new();
+	private InputModel Input = new();
 
-    [CascadingParameter(Name = "ErrorService")]
-    protected IErrorService? ErrorService { get; set; }
+	[CascadingParameter(Name = "ErrorService")]
+	protected IErrorService? ErrorService { get; set; }
 
-    protected override async Task OnInitializedAsync()
-    {
-        ErrorService?.HideError();
-        await base.OnInitializedAsync();
-    }
+	protected override async Task OnInitializedAsync()
+	{
+		await base.OnInitializedAsync();
 
-    private async Task SavePassword()
-    {
-        if (Input.Password != Input.PasswordConfirm)
-        {
-            ErrorService?.ShowError("Manage", "Passwords do not match.");
-            Input.PasswordConfirm = "";
-            return;
-        }
+		ErrorService?.HideError();
+		
+		var state = await AuthenticationService.GetAuthenticationStateAsync();
+		if (state.User.Identity is null)
+		{
+			var url = NavigationManager.BuildReturnUrl("/login");
+			NavigationManager.NavigateTo(url);
+			return;
+		}
+	}
 
-        try
-        {
-            var token = await TokenProvider.GetToken();
-            if (token is null)
-            {
-                var url = NavigationManager.BuildReturnUrl("/login");
-                NavigationManager.NavigateTo(url);
-                return;
-            }
+	private async Task SavePassword()
+	{
+		if (Input.Password != Input.PasswordConfirm)
+		{
+			ErrorService?.ShowError("Manage", "Passwords do not match.");
+			Input.PasswordConfirm = "";
+			return;
+		}
 
-            var user = await UserService.GetCurrentUserAsync();
-            user.Password = Input.Password;
-            await UserService.UpdateItemAsync(user);
+		try
+		{
+			var state = await AuthenticationService.GetAuthenticationStateAsync();
+			if (state.User.Identity is null)
+			{
+				var url = NavigationManager.BuildReturnUrl("/login");
+				NavigationManager.NavigateTo(url);
+				return;
+			}
 
-            Input.Password = "";
-            Input.PasswordConfirm = "";
+			var user = await UserService.GetCurrentUserAsync();
+			await UserService.UpdateItemAsync(user, Input.Password);
+
+			Input.Password = "";
+			Input.PasswordConfirm = "";
 
 			ErrorService?.HideError();
 		}

@@ -1,10 +1,4 @@
 ﻿using MongoDB.Driver;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-using LogService.Configuration;
 using LogService.Model;
 
 namespace LogService.Repository;
@@ -33,10 +27,7 @@ public class MongoDbLogMessageRepository : ILogMessageRepository
 		}
 	}
 
-	public IQueryable<LogMessageModel> GetAllQueryable()
-	{
-		return _collection.AsQueryable();
-	}
+	public IQueryable<LogMessageModel> GetAllQueryable() => _collection.AsQueryable();
 
 	public async Task<LogMessageModel?> Get(Guid id)
 	{
@@ -49,18 +40,8 @@ public class MongoDbLogMessageRepository : ILogMessageRepository
 		await _collection.InsertManyAsync(models).ConfigureAwait(false);
 	}
 
-	public async Task Insert(LogMessageModel model)
+	public async Task Delete(Guid[] ids)
 	{
-		await _collection.InsertOneAsync(model).ConfigureAwait(false);
-	}
-
-	public async Task Update(LogMessageModel model)
-	{
-		await _collection.FindOneAndReplaceAsync(item => item.Id == model.Id, model).ConfigureAwait(false);
-	}
-
-	public async Task Delete(Guid id)
-	{
-		await _collection.DeleteOneAsync(item => item.Id == id).ConfigureAwait(false);
+		await _collection.DeleteManyAsync(item => ids.Contains(item.Id)).ConfigureAwait(false);
 	}
 }

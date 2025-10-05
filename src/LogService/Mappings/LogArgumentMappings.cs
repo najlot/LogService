@@ -1,6 +1,5 @@
 using Najlot.Map;
 using LogService.Contracts;
-using System.Collections.Generic;
 using Najlot.Map.Attributes;
 
 namespace LogService.Mappings;

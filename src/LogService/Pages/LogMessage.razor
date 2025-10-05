@@ -1,16 +1,11 @@
 @page "/logmessage/{id:guid}"
-@using Cosei.Client.Base;
-@using Cosei.Client.Http;
-@using Microsoft.Extensions.Localization;
 @using LogService.Identity;
+@using LogService.Localisation;
+@using LogService.Model;
 @using LogService.Services;
-@using LogService.Client.Data.Mappings;
-@using LogService.Client.Data.Models;
-@using LogService.Client.Data.Services;
-@using LogService.Client.Data;
-@using LogService.Client.Localisation;
 @using LogService.Contracts;
 @using LogService.Contracts.Events;
+@using Microsoft.Extensions.Localization;
 @inject ILogger<LogMessage> Log
 @inject Najlot.Map.IMap Map;
 @inject ILogMessageService LogMessageService
@@ -163,17 +158,16 @@ else
 
 	protected override async Task OnInitializedAsync()
 	{
-		var state = await AuthenticationService.GetAuthenticationStateAsync();
-
-		if (state.User.Identity is null)
-		{
-			var url = NavigationManager.BuildReturnUrl("/login");
-			NavigationManager.NavigateTo(url);
-			return;
-		}
-
 		try
 		{
+			var state = await AuthenticationService.GetAuthenticationStateAsync();
+			if (state.User.Identity is null)
+			{
+				var url = NavigationManager.BuildReturnUrl("/login");
+				NavigationManager.NavigateTo(url);
+				return;
+			}
+
 			Model = await LogMessageService.GetItemAsync(Id);
 		}
 		catch (System.Security.Authentication.AuthenticationException)

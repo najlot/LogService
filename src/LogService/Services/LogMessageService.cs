@@ -1,33 +1,30 @@
-﻿using Cosei.Service.Base;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Najlot.Map;
-using LogService.Contracts;
-using LogService.Model;
-using LogService.Repository;
+﻿using Najlot.Map;
 using LogService.Contracts.Commands;
 using LogService.Contracts.Events;
-using LogService.Contracts.ListItems;
 using LogService.Contracts.Filters;
+using LogService.Model;
+using LogService.Identity;
+using LogService.Repository;
 
 namespace LogService.Services;
 
-public class LogMessageService
+public class LogMessageService : ILogMessageService
 {
 	private readonly ILogMessageRepository _logMessageRepository;
-	private readonly IPublisher _publisher;
+	private readonly IMessenger _messenger;
 	private readonly IMap _map;
+	private readonly IAuthenticationService _authenticationService;
 
 	public LogMessageService(
 		ILogMessageRepository logMessageRepository,
-		IPublisher publisher,
-		IMap map)
+		IMessenger messenger,
+		IMap map,
+		IAuthenticationService authenticationService)
 	{
 		_logMessageRepository = logMessageRepository;
-		_publisher = publisher;
+		_messenger = messenger;
 		_map = map;
+		_authenticationService = authenticationService;
 	}
 
 	public async Task CreateLogMessages(CreateLogMessage[] commands, string source, Guid userId)
@@ -53,17 +50,36 @@ public class LogMessageService
 		await _logMessageRepository.Insert(items).ConfigureAwait(false);
 
 		var messages = _map.From<LogMessageModel>(items).ToList<LogMessageCreated>();
-		await _publisher.PublishToUserAsync(userId.ToString(), messages).ConfigureAwait(false);
+		await _messenger.SendAsync(messages).ConfigureAwait(false);
 	}
 
-	public async Task<LogMessage?> GetItemAsync(Guid id, Guid userId)
+	public async Task<LogMessageModel?> GetItemAsync(Guid id)
 	{
+		var userId = await _authenticationService.GetUserIdAsync();
 		var item = await _logMessageRepository.Get(id).ConfigureAwait(false);
-		return _map.FromNullable(item)?.To<LogMessage>();
+
+		if (item == null || item.CreatedBy != userId)
+		{
+			return null;
+		}
+
+		return item;
 	}
 
-	public LogMessageListItem[] GetItemsForUserAsync(LogMessageFilter filter, Guid userId)
+	public async Task<LogMessageListItemModel[]> GetItemsAsync()
 	{
+		var userId = await _authenticationService.GetUserIdAsync();
+		var queryable = _logMessageRepository
+			.GetAllQueryable()
+			.Where(e => e.CreatedBy == userId)
+			.OrderByDescending(e => e.DateTime);
+
+		return _map.From<LogMessageModel>(queryable).ToArray<LogMessageListItemModel>();
+	}
+
+	public async Task<LogMessageListItemModel[]> GetItemsAsync(LogMessageFilter filter)
+	{
+		var userId = await _authenticationService.GetUserIdAsync();
 		var queryable = _logMessageRepository
 			.GetAllQueryable()
 			.Where(e => e.CreatedBy == userId);
@@ -93,18 +109,6 @@ public class LogMessageService
 
 		var sourceItems = queryable.ToArray();
 
-		return _map.From<LogMessageModel>(sourceItems).ToArray<LogMessageListItem>();
-	}
-
-	public LogMessageListItem[] GetItemsForUserAsync(Guid userId)
-	{
-		var queryable = _logMessageRepository
-			.GetAllQueryable()
-			.Where(e => e.CreatedBy == userId)
-			.OrderByDescending(e => e.DateTime);
-
-		var sourceItems = queryable.ToArray();
-
-		return _map.From<LogMessageModel>(sourceItems).ToArray<LogMessageListItem>();
+		return _map.From<LogMessageModel>(sourceItems).ToArray<LogMessageListItemModel>();
 	}
 }

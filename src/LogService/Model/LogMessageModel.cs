@@ -1,7 +1,5 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
 using LogService.Contracts;
-using System;
-using System.Collections.Generic;
 
 namespace LogService.Model;
 

@@ -1,16 +1,13 @@
 ﻿using Microsoft.IdentityModel.Tokens;
-using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using LogService.Configuration;
-using System.Linq;
 using System.Security.Cryptography;
-using System.Threading.Tasks;
+using LogService.Configuration;
 
 namespace LogService.Services;
 
-public class TokenService
+public class TokenService : ITokenService
 {
 	private readonly IUserService _userService;
 	private readonly ServiceConfiguration _serviceConfiguration;
@@ -47,30 +44,11 @@ public class TokenService
 		return GetValidationParameters(_serviceConfiguration.Secret);
 	}
 
-	public string GetRefreshToken(string username, Guid userId)
-	{
-		var claim = new[]
-		{
-			new Claim(ClaimTypes.Name, username),
-			new Claim(ClaimTypes.NameIdentifier, userId.ToString())
-		};
-
-		var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_serviceConfiguration.Secret));
-		var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-		var jwtToken = new JwtSecurityToken(
-			issuer: "Log.Service",
-			audience: "Log.Service",
-			claims: claim,
-			expires: DateTime.UtcNow.AddDays(7),
-			signingCredentials: credentials
-		);
-
-		var token = new JwtSecurityTokenHandler().WriteToken(jwtToken);
-		return token;
-	}
-
-	public string GetServiceToken(string username, Guid userId, string source, DateTime validUntil)
+	public string GetServiceToken(
+		string username,
+		Guid userId,
+		string source,
+		DateTime validUntil)
 	{
 		var claim = new[]
 		{
@@ -107,7 +85,7 @@ public class TokenService
 		var bytes = Encoding.UTF8.GetBytes(password);
 		var userUasswordHash = SHA256.HashData(bytes);
 
-		if (!Enumerable.SequenceEqual(user.PasswordHash, userUasswordHash))
+		if (!user.PasswordHash.SequenceEqual(userUasswordHash))
 		{
 			return null;
 		}

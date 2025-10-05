@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
-using LogService.Client.Data.Identity;
 
 namespace LogService.Identity;
 

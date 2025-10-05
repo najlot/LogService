@@ -399,4 +399,5 @@ FodyWeavers.xsd
 
 /src/LogService/config
 /src/LogService/Data
-/src/LogService/logs
+
+/deploy_linux_arm

@@ -1,78 +1,37 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using LiteDB;
-using LogService.Configuration;
+﻿using LiteDB;
 using LogService.Model;
 
 namespace LogService.Repository;
 
-public class LiteDbLogMessageRepository : ILogMessageRepository
+public class LiteDbLogMessageRepository(LiteDbContext context) : ILogMessageRepository
 {
-	private readonly string _connectionString;
+	private readonly ILiteCollection<LogMessageModel> _collection = context.LogMessages;
 
-	public LiteDbLogMessageRepository(LiteDbConfiguration configuration)
+	public IAsyncEnumerable<LogMessageModel> GetAll(Guid userId)
 	{
-		// Ensure the directory exists
-		var directory = Path.GetDirectoryName(configuration.DatabasePath);
-		if (!string.IsNullOrEmpty(directory))
-		{
-			Directory.CreateDirectory(directory);
-		}
-		
-		_connectionString = $"Filename={configuration.DatabasePath};Connection=shared";
-	}
-
-	public async IAsyncEnumerable<LogMessageModel> GetAll(Guid userId)
-	{
-		await Task.CompletedTask;
-		using var db = new LiteDatabase(_connectionString);
-		var collection = db.GetCollection<LogMessageModel>("logMessages");
-		
-		foreach (var item in collection.Find(x => x.CreatedBy == userId))
-		{
-			yield return item;
-		}
+		return _collection.Find(x => x.CreatedBy == userId).ToAsyncEnumerable();
 	}
 
 	public IQueryable<LogMessageModel> GetAllQueryable()
 	{
-		using var db = new LiteDatabase(_connectionString);
-		var collection = db.GetCollection<LogMessageModel>("logMessages");
-		return collection.FindAll().AsQueryable();
+		return _collection.Query().ToEnumerable().AsQueryable();
 	}
 
 	public Task<LogMessageModel?> Get(Guid id)
 	{
-		using var db = new LiteDatabase(_connectionString);
-		var collection = db.GetCollection<LogMessageModel>("logMessages");
-		var item = collection.FindById(id);
-		return Task.FromResult<LogMessageModel?>(item);
+		return Task.FromResult<LogMessageModel?>(_collection.FindById(id));
 	}
 
 	public Task Insert(LogMessageModel[] models)
 	{
-		using var db = new LiteDatabase(_connectionString);
-		var collection = db.GetCollection<LogMessageModel>("logMessages");
-		collection.InsertBulk(models);
+		_collection.InsertBulk(models);
+		context.Checkpoint();
 		return Task.CompletedTask;
 	}
 
-	public Task Insert(LogMessageModel model)
+	public Task Delete(Guid[] ids)
 	{
-		using var db = new LiteDatabase(_connectionString);
-		var collection = db.GetCollection<LogMessageModel>("logMessages");
-		collection.Insert(model.Id, model);
-		return Task.CompletedTask;
-	}
-
-	public Task Delete(Guid id)
-	{
-		using var db = new LiteDatabase(_connectionString);
-		var collection = db.GetCollection<LogMessageModel>("logMessages");
-		collection.Delete(id);
+		_collection.DeleteMany(x => ids.Contains(x.Id));
 		return Task.CompletedTask;
 	}
 }

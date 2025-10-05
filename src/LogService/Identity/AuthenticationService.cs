@@ -1,45 +1,45 @@
+using LogService.Configuration;
+using LogService.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using LogService.Services;
-using LogService.Client.Data.Identity;
 
 namespace LogService.Identity;
 
-public class AuthenticationService : AuthenticationStateProvider, IAuthenticationService
+public class AuthenticationService(
+	IUserDataStore userDataStore,
+	ServiceConfiguration serviceConfiguration,
+	ILogger<AuthenticationService> logger)
+	: AuthenticationStateProvider, IAuthenticationService
 {
-	private readonly IUserDataStore _userDataStore;
-	private readonly ISubscriberProvider _subscriberProvider;
-	private readonly ILogger _logger;
-
-	public AuthenticationService(IUserDataStore userDataStore, ISubscriberProvider subscriberProvider, ILogger<AuthenticationService> logger)
-	{
-		_userDataStore = userDataStore;
-		_subscriberProvider = subscriberProvider;
-		_logger = logger;
-	}
-
 	public override async Task<AuthenticationState> GetAuthenticationStateAsync()
 	{
 		try
 		{
-			var username = await _userDataStore.GetUsername();
-			var token = await _userDataStore.GetAccessToken();
+			var username = await userDataStore.GetUsername();
+			var token = await userDataStore.GetAccessToken();
 
 			if (!string.IsNullOrWhiteSpace(token) && !string.IsNullOrWhiteSpace(username))
 			{
-				var securityToken = new JwtSecurityToken(token);
-				var validTo = securityToken.Payload.ValidTo;
+				var parameters = TokenService.GetValidationParameters(serviceConfiguration.Secret);
+				var tokenHandler = new JwtSecurityTokenHandler();
 
-				if (validTo > DateTime.UtcNow)
+				// Validate the token
+				var principal = tokenHandler.ValidateToken(token, parameters, out var validatedToken);
+
+				if (validatedToken is JwtSecurityToken jwtToken)
 				{
-					return await GenerateAuthenticationState(username);
+					var validTo = jwtToken.Payload.ValidTo;
+					if (validTo > DateTime.UtcNow)
+					{
+						return await GenerateAuthenticationState(username, jwtToken);
+					}
 				}
 			}
 		}
 		catch (Exception ex)
 		{
-			_logger.LogError(ex, "Could not retrieve authentication state.");
+			logger.LogError(ex, "Could not retrieve authentication state.");
 			await LogoutAsync();
 		}
 
@@ -48,27 +48,33 @@ public class AuthenticationService : AuthenticationStateProvider, IAuthenticatio
 
 	public async Task LoginAsync(string username, string token)
 	{
-		await _userDataStore.SetUserData(username, token);
-		_ = await _subscriberProvider.GetSubscriber();
-
-		NotifyAuthenticationStateChanged(GenerateAuthenticationState(username));
+		await userDataStore.SetUserData(username, token);
+		var securityToken = new JwtSecurityToken(token);
+		NotifyAuthenticationStateChanged(GenerateAuthenticationState(username, securityToken));
 	}
 
 	public async Task LogoutAsync()
 	{
-		await _userDataStore.SetUserData("", "");
-		await _subscriberProvider.ClearSubscriber();
+		await userDataStore.SetUserData("", "");
 
 		NotifyAuthenticationStateChanged(GenerateEmptyAuthenticationState());
 	}
 
-	private Task<AuthenticationState> GenerateAuthenticationState(string username)
+	private Task<AuthenticationState> GenerateAuthenticationState(string username, JwtSecurityToken securityToken)
 	{
-		var claimsIdentity = new ClaimsIdentity(new[]
+		var claims = new List<Claim>
 		{
-			new Claim(ClaimTypes.Name, username),
-		}, "auth");
+			new Claim(ClaimTypes.Name, username)
+		};
 
+		// Extract the NameIdentifier claim from the JWT token
+		var userIdClaim = securityToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+		if (userIdClaim != null)
+		{
+			claims.Add(new Claim(ClaimTypes.NameIdentifier, userIdClaim.Value));
+		}
+
+		var claimsIdentity = new ClaimsIdentity(claims, "auth");
 		var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
 		return Task.FromResult(new AuthenticationState(claimsPrincipal));
 	}

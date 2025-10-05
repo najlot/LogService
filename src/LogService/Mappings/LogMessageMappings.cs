@@ -1,11 +1,8 @@
-using System.Linq;
-using System.Collections.Generic;
 using Najlot.Map;
 using Najlot.Map.Attributes;
 using LogService.Contracts;
 using LogService.Contracts.Commands;
 using LogService.Contracts.Events;
-using LogService.Contracts.ListItems;
 using LogService.Model;
 
 namespace LogService.Mappings;
@@ -14,6 +11,7 @@ internal class LogMessageMappings
 {
 	public LogMessageCreated MapToCreated(IMap map, LogMessageModel from) =>
 		new(from.Id,
+			from.CreatedBy,
 			from.DateTime,
 			from.LogLevel,
 			from.Category,
@@ -41,26 +39,25 @@ internal class LogMessageMappings
 		to.Arguments = map.From<KeyValuePair<string, string>>(from.Arguments ?? []).ToList<LogArgument>();
 	}
 
-	public void MapToModel(IMap map, LogMessageModel from, LogMessage to)
+	public void MapToModel(IMap map, LogMessageModel from, LogMessageListItemModel to)
 	{
 		to.Id = from.Id;
 		to.DateTime = from.DateTime;
 		to.LogLevel = from.LogLevel;
 		to.Category = from.Category;
-		to.State = from.State;
 		to.Source = from.Source;
-		to.RawMessage = from.RawMessage;
 		to.Message = from.Message;
-		to.Exception = from.Exception;
-		to.ExceptionIsValid = from.ExceptionIsValid;
-		to.Arguments = from.Arguments;
+		to.HasException = from.ExceptionIsValid;
 	}
 
-	public void MapToModel(IMap map, LogMessageModel from, LogMessageListItem to)
+	public void MapToModel(IMap map, LogMessageCreated from, LogMessageListItemModel to)
 	{
 		to.Id = from.Id;
 		to.DateTime = from.DateTime;
 		to.LogLevel = from.LogLevel;
+		to.Category = from.Category;
+		to.Source = from.Source;
 		to.Message = from.Message;
+		to.HasException = from.ExceptionIsValid;
 	}
 }

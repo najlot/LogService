@@ -1,156 +1,90 @@
-using Cosei.Service.Base;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
-using Najlot.Map;
-using LogService.Contracts;
+using LogService.Identity;
 using LogService.Model;
 using LogService.Repository;
-using LogService.Contracts.Commands;
-using LogService.Contracts.Events;
-using LogService.Contracts.ListItems;
 
 namespace LogService.Services;
 
-public class UserService : IUserService
+public class UserService(IUserRepository userRepository, IAuthenticationService authenticationStateProvider) : IUserService
 {
-	private readonly IUserRepository _userRepository;
-	private readonly IPublisher _publisher;
-	private readonly IMap _map;
-
-	public UserService(
-		IUserRepository userRepository,
-		IPublisher publisher,
-		IMap map)
+	public async Task CreateUser(Guid id, string username, string email, string password)
 	{
-		_userRepository = userRepository;
-		_publisher = publisher;
-		_map = map;
-	}
+		username = username.Normalize().ToLower();
+		password = password.Trim();
 
-	public async Task CreateUser(CreateUser command, Guid userId)
-	{
-		var username = command.Username.Normalize().ToLower();
-
-		var user = await _userRepository.Get(username).ConfigureAwait(false);
+		var user = await userRepository.Get(username).ConfigureAwait(false);
 		if (user != null)
 		{
 			throw new InvalidOperationException("User already exists!");
 		}
 
-		if (command.Password.Trim().Length < 6)
+		if (password.Length < 6)
 		{
 			throw new InvalidOperationException("Password too short!");
 		}
 
-		var passwordBytes = Encoding.UTF8.GetBytes(command.Password);
+		var passwordBytes = Encoding.UTF8.GetBytes(password);
 		var passwordHash = SHA256.HashData(passwordBytes);
 
-		var item = _map.From(command).To<UserModel>();
-		item.Username = username;
-		item.PasswordHash = passwordHash;
-		item.IsActive = true;
-
-		await _userRepository.Insert(item).ConfigureAwait(false);
-
-		var message = _map.From(item).To<UserCreated>();
-		await _publisher.PublishToUserAsync(userId.ToString(), message).ConfigureAwait(false);
-	}
-
-	public async Task UpdateUserSettings(UpdateUserSettings command, Guid userId)
-	{
-		var item = await _userRepository.Get(userId).ConfigureAwait(false);
-
-		if (item == null)
+		var item = new UserModel
 		{
-			throw new InvalidOperationException("User not found!");
-		}
-
-		item.Settings.LogRetentionDays = command.LogRetentionDays;
-		await _userRepository.Update(item);
-	}
-
-	public async Task UpdateUser(UpdateUser command, Guid userId)
-	{
-		var username = command.Username.Normalize().ToLower();
-
-		var item = await _userRepository.Get(command.Id).ConfigureAwait(false);
-
-		if (item == null)
-		{
-			throw new InvalidOperationException("User not found!");
-		}
-
-		if (item.Id != userId)
-		{
-			throw new InvalidOperationException("You must not modify other users!");
-		}
-
-		if (item.Username != username)
-		{
-			throw new InvalidOperationException("Username can not be modified!");
-		}
-
-		item.EMail = command.EMail;
-
-		if (!string.IsNullOrWhiteSpace(command.Password))
-		{
-			if (command.Password.Trim().Length < 6)
+			Id = id,
+			EMail = email,
+			Username = username,
+			PasswordHash = passwordHash,
+			IsActive = true,
+			Settings = new UserSettingsModel
 			{
-				throw new InvalidOperationException("Password too short!");
+				LogRetentionDays = 7
 			}
+		};
 
-			var passwordBytes = Encoding.UTF8.GetBytes(command.Password);
-			item.PasswordHash = SHA256.HashData(passwordBytes);
-		}
-
-		await _userRepository.Update(item).ConfigureAwait(false);
-
-		var message = _map.From(item).To<UserUpdated>();
-		await _publisher.PublishToUserAsync(userId.ToString(), message).ConfigureAwait(false);
-	}
-
-	public async Task DeleteUser(Guid id, Guid userId)
-	{
-		var item = await _userRepository.Get(id).ConfigureAwait(false);
-
-		if (item == null)
-		{
-			throw new InvalidOperationException("User not found!");
-		}
-
-		if (item.Id != userId)
-		{
-			throw new InvalidOperationException("You must not delete other user!");
-		}
-
-		item.IsActive = false;
-
-		await _userRepository.Update(item).ConfigureAwait(false);
-
-		var message = new UserDeleted(id);
-		await _publisher.PublishToUserAsync(userId.ToString(), message).ConfigureAwait(false);
-	}
-
-	public async Task<User?> GetItem(Guid id)
-	{
-		var item = await _userRepository.Get(id).ConfigureAwait(false);
-		return _map.FromNullable(item)?.To<User>();
-	}
-
-	public IAsyncEnumerable<UserListItem> GetItemsForUser(Guid userId)
-	{
-		var items = _userRepository.GetAll().Where(u => u.IsActive && u.Id == userId);
-		return _map.From(items).To<UserListItem>();
+		await userRepository.Insert(item).ConfigureAwait(false);
 	}
 
 	public async Task<UserModel?> GetUserModelFromName(string username)
 	{
 		username = username.Normalize().ToLower();
-		var user = await _userRepository.Get(username).ConfigureAwait(false);
+		var user = await userRepository.Get(username).ConfigureAwait(false);
 		return user;
+	}
+
+	public async Task<UserModel> GetCurrentUserAsync()
+	{
+		var userId = await authenticationStateProvider.GetUserIdAsync();
+
+		var user = await userRepository.Get(userId).ConfigureAwait(false);
+		if (user == null)
+		{
+			throw new InvalidOperationException("User not found");
+		}
+
+		return user;
+	}
+
+	public async Task UpdateItemAsync(UserModel user, string? newPassword = null)
+	{
+		newPassword = newPassword?.Trim();
+
+		if (!string.IsNullOrWhiteSpace(newPassword))
+		{
+			if (newPassword.Length < 6)
+			{
+				throw new InvalidOperationException("Password too short!");
+			}
+
+			var passwordBytes = Encoding.UTF8.GetBytes(newPassword);
+			user.PasswordHash = SHA256.HashData(passwordBytes);
+		}
+
+		await userRepository.Update(user).ConfigureAwait(false);
+	}
+
+	public async Task UpdateSettingsAsync(UserSettingsModel settings)
+	{
+		var user = await GetCurrentUserAsync();
+		user.Settings.LogRetentionDays = settings.LogRetentionDays;
+		await userRepository.Update(user).ConfigureAwait(false);
 	}
 }

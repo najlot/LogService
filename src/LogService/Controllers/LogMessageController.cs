@@ -1,64 +1,35 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using LogService.Contracts;
+﻿using LogService.Contracts.Commands;
 using LogService.Services;
-using LogService.Contracts.Commands;
-using LogService.Contracts.ListItems;
-using LogService.Contracts.Filters;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace LogService.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
 [Authorize]
-public class LogMessageController : ControllerBase
+public class LogMessageController(LogMessageService logMessageService) : ControllerBase
 {
-	private readonly LogMessageService _logMessageService;
-
-	public LogMessageController(LogMessageService logMessageService)
+	private static Guid GetUserId(ClaimsPrincipal principal)
 	{
-		_logMessageService = logMessageService;
-	}
+		var name = principal.FindFirstValue(ClaimTypes.NameIdentifier);
 
-	[HttpGet]
-	public ActionResult<LogMessageListItem[]> List()
-	{
-		var userId = User.GetUserId();
-		var items = _logMessageService.GetItemsForUserAsync(userId);
-		return Ok(items);
-	}
-
-	[HttpPost("[action]")]
-	public ActionResult<LogMessageListItem[]> ListFiltered(LogMessageFilter filter)
-	{
-		var userId = User.GetUserId();
-		var items = _logMessageService.GetItemsForUserAsync(filter, userId);
-		return Ok(items);
-	}
-
-	[HttpGet("{id}")]
-	public async Task<ActionResult<LogMessage>> GetItem(Guid id)
-	{
-		var userId = User.GetUserId();
-		var item = await _logMessageService.GetItemAsync(id, userId).ConfigureAwait(false);
-		if (item == null)
+		if (string.IsNullOrEmpty(name))
 		{
-			return NotFound();
+			throw new InvalidOperationException("User id not found");
 		}
 
-		return Ok(item);
+		var userId = Guid.Parse(name);
+		return userId;
 	}
 
 	[HttpPut]
 	public async Task<ActionResult> Create([FromBody] CreateLogMessage[] commands)
 	{
-		var userId = User.GetUserId();
+		var userId = GetUserId(User);
 		var source = User.Claims.FirstOrDefault(c => c.Type == "Source")?.Value ?? "";
-		await _logMessageService.CreateLogMessages(commands, source, userId).ConfigureAwait(false);
+		await logMessageService.CreateLogMessages(commands, source, userId).ConfigureAwait(false);
 		return Ok();
 	}
 }

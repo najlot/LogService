@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using LogService.Configuration;
 using LogService.Model;
+using LogService.Configuration;
 
 namespace LogService.Repository;
 

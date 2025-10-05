@@ -1,6 +1,4 @@
-﻿using System.IO;
-using System.Text.Json;
-using Microsoft.Extensions.Configuration;
+﻿using System.Text.Json;
 using Najlot.Log;
 
 namespace LogService.Configuration;
@@ -14,7 +12,7 @@ public static class ConfigurationReader
 	public static T? ReadConfiguration<T>(this IConfiguration configuration) where T : class, new()
 	{
 		var key = typeof(T).Name;
-		return ReadConfiguration<T>(configuration, key);
+		return configuration.ReadConfiguration<T>(key);
 	}
 
 	public static T? ReadConfiguration<T>(this IConfiguration configuration, string key) where T : class, new()

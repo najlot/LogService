@@ -1,4 +1,4 @@
-namespace LogService.Configuration;
+﻿namespace LogService.Configuration;
 
 public class LiteDbConfiguration
 {

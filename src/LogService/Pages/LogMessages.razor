@@ -1,18 +1,17 @@
 @page "/logmessages"
-@using Cosei.Client.Base;
-@using Cosei.Client.Http;
-@using Microsoft.Extensions.Localization;
 @using LogService.Identity;
+@using LogService.Localisation;
+@using LogService.Model;
 @using LogService.Services;
-@using LogService.Client.Data.Models;
-@using LogService.Client.Data.Services;
-@using LogService.Client.Data;
-@using LogService.Client.Localisation;
 @using LogService.Contracts.Events;
+@using LogService.Identity
+@using LogService.Model
+@using LogService.Services
+@using Microsoft.Extensions.Localization;
 @inject ILogger<LogMessages> Log
 @inject Najlot.Map.IMap Map
 @inject ILogMessageService LogMessageService
-@inject ISubscriberProvider SubscriberProvider
+@inject IMessenger Messenger
 @inject IAuthenticationService AuthenticationService
 @inject NavigationManager NavigationManager
 @inject IStringLocalizer<LogLevelLoc> LogLevelLocalizer
@@ -190,21 +189,57 @@ else
 	{
 		<div class="row border-bottom border-dark">
 			<div class="col-6 col-xl-2">
-				<a href="/LogMessage/@logMessage.Id" class="nav-link text-break">
+				<a href="/LogMessage/@logMessage.Id"
+				   @onclick="(e) => OpenLogMessageModal(e, logMessage.Id)"
+				   @onclick:preventDefault="true"
+				   class="nav-link text-break">
 					@logMessage.DateTime
 				</a>
 			</div>
 			<div class="col-6 col-xl-1">
-				<a href="/LogMessage/@logMessage.Id" class="nav-link text-break">
+				<a href="/LogMessage/@logMessage.Id"
+				   @onclick="(e) => OpenLogMessageModal(e, logMessage.Id)"
+				   @onclick:preventDefault="true"
+				   class="nav-link text-break">
 					@logMessage.LogLevel
 				</a>
 			</div>
 			<div class="nav-item col-xl-9">
-				<a href="/LogMessage/@logMessage.Id" class="nav-link text-break">
+				<a href="/LogMessage/@logMessage.Id"
+				   @onclick="(e) => OpenLogMessageModal(e, logMessage.Id)"
+				   @onclick:preventDefault="true"
+				   class="nav-link text-break">
 					@logMessage.Message
 				</a>
 			</div>
 		</div>
+	}
+
+	<!-- Modal Dialog -->
+	<div class="modal fade @(_showModal ? "show" : "")"
+		 style="display:@(_showModal ? "block" : "none")"
+		 tabindex="-1" role="dialog" aria-modal="true">
+		<div class="modal-dialog modal-fullscreen" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">@LogMessageLoc.LogMessage</h5>
+					<button type="button" class="btn-close" @onclick="CloseModal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					@if (_selectedLogMessageId != null)
+					{
+						<LogMessage Id="@_selectedLogMessageId.Value" />
+					}
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" @onclick="CloseModal">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	@if (_showModal)
+	{
+		<div class="modal-backdrop fade show"></div>
 	}
 }
 
@@ -214,25 +249,39 @@ else
 
 	private List<LogMessageListItemModel> logMessages = [];
 	private bool isLoading = true;
+	private bool _showModal = false;
+	private Guid? _selectedLogMessageId;
+
+	private Guid currentUserId;
 
 	private LogMessageListItemModel[] GetLogMessages()
 	{
-		if (logMessages is null)
-		{
-			return Array.Empty<LogMessageListItemModel>();
-		}
-
 		lock (logMessages)
 		{
-			var messages = logMessages.ToArray();
-			return messages;
+			return logMessages.ToArray();
 		}
 	}
 
 	private Contracts.Filters.LogMessageFilter Filter = new();
 	private bool ShowFilter;
 
-	private ISubscriber? Subscriber;
+	private void OpenLogMessageModal(MouseEventArgs e, Guid id)
+	{
+		// Only open modal for left-click without modifiers
+		if (e.Button == 0 && !e.CtrlKey && !e.ShiftKey && !e.AltKey)
+		{
+			_selectedLogMessageId = id;
+			_showModal = true;
+			StateHasChanged();
+		}
+		// Otherwise, let browser handle (middle/right click, ctrl+click, etc.)
+	}
+
+	private void CloseModal()
+	{
+		_showModal = false;
+		_selectedLogMessageId = null;
+	}
 
 	private string LimitDisplayLength(string? value, int maxLength)
 	{
@@ -244,17 +293,18 @@ else
 
 	protected override async Task OnInitializedAsync()
 	{
-		var state = await AuthenticationService.GetAuthenticationStateAsync();
-
-		if (state.User.Identity is null)
-		{
-			var url = NavigationManager.BuildReturnUrl("/login");
-			NavigationManager.NavigateTo(url);
-			return;
-		}
-
 		try
 		{
+			var state = await AuthenticationService.GetAuthenticationStateAsync();
+			if (state.User.Identity is null)
+			{
+				var url = NavigationManager.BuildReturnUrl("/login");
+				NavigationManager.NavigateTo(url);
+				return;
+			}
+
+			currentUserId = await AuthenticationService.GetUserIdAsync();
+
 			isLoading = true;
 			var messages = await LogMessageService.GetItemsAsync();
 
@@ -264,11 +314,7 @@ else
 				logMessages.AddRange(messages);
 			}
 
-			Subscriber = await SubscriberProvider.GetSubscriber();
-
-			Subscriber.Register<List<LogMessageCreated>>(Handle);
-
-			await Subscriber.StartAsync();
+			Messenger.Register<List<LogMessageCreated>>(Handle);
 		}
 		catch (System.Security.Authentication.AuthenticationException)
 		{
@@ -303,7 +349,14 @@ else
 
 	private async Task Handle(List<LogMessageCreated> messages)
 	{
-		var items = Map.From<LogMessageCreated>(messages).ToArray<LogMessageListItemModel>();
+		var items = Map
+			.From<LogMessageCreated>(messages.Where(m => m.CreatedBy == currentUserId))
+			.ToArray<LogMessageListItemModel>();
+
+		if (items.Length == 0)
+		{
+			return;
+		}
 
 		lock (logMessages)
 		{
@@ -313,8 +366,5 @@ else
 		await InvokeAsync(StateHasChanged);
 	}
 
-	public void Dispose()
-	{
-		Subscriber?.Unregister(this);
-	}
+	public void Dispose() => Messenger.Unregister(this);
 }
