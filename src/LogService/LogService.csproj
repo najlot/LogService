@@ -8,6 +8,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<InternalsVisibleTo Include="LogService.Tests" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="LiteDB" Version="5.0.21" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="9.0.9" />
 		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.9" />
