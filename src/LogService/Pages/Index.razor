@@ -1,0 +1,204 @@
+@page "/"
+@using System.ComponentModel.DataAnnotations
+@using LogService.Identity
+@using LogService.Localisation
+@using LogService.Model
+@using LogService.Pages
+@using LogService.Services
+@using LogService.Identity
+@using LogService.Services
+
+@inject ITokenService TokenService
+@inject IUserService UserService
+@inject ILogger<Index> Logger
+@inject NavigationManager NavigationManager
+@inject IAuthenticationService AuthenticationService
+
+<PageTitle>@CommonLoc.Home</PageTitle>
+
+
+<AuthorizeView>
+	<Authorized>
+		<section class="w-100 p-4 d-flex justify-content-center pb-4">
+			<div>
+				<div class="form-outline">
+					<h1>@CommonLoc.Welcome, @name!</h1>
+				</div>
+			</div>
+		</section>
+		<section class="w-100">
+			<div>
+				@if (string.IsNullOrEmpty(token))
+				{
+					<div class="border border-dark">
+						<div class="m-2">
+							<div class="border-bottom border-dark mb-3">
+								<h2>Create service token</h2>
+							</div>
+							<div class="row mb-2">
+								<div class="col-xl-1 mt-1">
+									Source
+								</div>
+								<div class="col-xl-2 mb-2">
+									<InputText @bind-Value="source" class="form-control" />
+								</div>
+								<div class="col-xl-1 mt-1">
+									Valid Until
+								</div>
+								<div class="col-xl-2 mb-2">
+									<InputDate @bind-Value="validUntil" class="form-control" />
+								</div>
+								<div class="col-xl-3">
+									<div class="d-flex justify-content-end justify-content-xl-between">
+										<button @onclick="SetServiceToken" class="btn btn-primary">
+											Get Service Token
+										</button>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				}
+				else
+				{
+					<div class="row form-outline mb-2">
+						<div>
+							<label class="form-label fw-bold">Token</label>
+						</div>
+
+						<div>
+							<script>
+								function auto_grow(element) {
+								element.style.height = "5px";
+								element.style.height = (element.scrollHeight) + "px";
+								}
+							</script>
+
+							<InputTextArea class="form-control" readonly type="text" @bind-Value="token" style="resize: none; overflow: hidden;" onfocus="auto_grow(this)" oninput="auto_grow(this)" />
+						</div>
+					</div>
+				}
+			</div>
+		</section>
+
+		<section class="w-100 mt-2">
+			<div class="border border-dark">
+				<div class="m-2">
+					<div class="border-bottom border-dark mb-3">
+						<h2>Settings</h2>
+					</div>
+					<div class="row mb-2">
+						<div class="col-xl-2 mt-1">
+							Log retention days
+						</div>
+						<div class="col-xl-1 mb-2">
+							<InputNumber @bind-Value="logRetentionDays" class="form-control" />
+						</div>
+
+						<div class="col-xl-9">
+							<div class="d-flex justify-content-end justify-content-xl-between">
+								<button @onclick="SaveSettings" class="btn btn-primary">
+									@CommonLoc.Save
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+	</Authorized>
+	<NotAuthorized>
+		<section class="w-100 p-4 d-flex justify-content-center pb-4">
+			<div>
+				<div class="form-outline mb-4">
+					<h1>@CommonLoc.Welcome!</h1>
+					<p>@CommonLoc.RegisterOrLogin</p>
+				</div>
+				<div class="form-outline mb-4">
+					<a href="/login" class="btn btn-primary w-100">@CommonLoc.Login</a>
+				</div>
+				<div class="form-outline mb-4">
+					<a href="/register" class="btn btn-primary w-100">@CommonLoc.Register</a>
+				</div>
+			</div>
+		</section>
+	</NotAuthorized>
+</AuthorizeView>
+
+
+@code {
+	[CascadingParameter(Name = "ErrorService")]
+	protected IErrorService? ErrorService { get; set; }
+
+	private string? name;
+	private string? token;
+	private string source = "";
+	private int logRetentionDays;
+	private DateTime validUntil = DateTime.Now.AddYears(1);
+
+	protected async Task SetServiceToken()
+	{
+		var userModel = await UserService.GetCurrentUserAsync();
+		token = TokenService.GetServiceToken(userModel.Username, userModel.Id, source, validUntil);
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		await base.OnInitializedAsync();
+
+		name = "";
+		ErrorService?.HideError();
+
+		try
+		{
+			var authState = await AuthenticationService.GetAuthenticationStateAsync();
+			var user = authState.User;
+
+			if (user.Identity is not null && user.Identity.IsAuthenticated)
+			{
+				name = user.FindFirst(c => c.Type == System.Security.Claims.ClaimTypes.Name)?.Value;
+
+				var userModel = await UserService.GetCurrentUserAsync();
+				logRetentionDays = userModel.Settings.LogRetentionDays;
+			}
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex, "Initialization failed.");
+			ErrorService?.ShowError("Error", "Initialization failed!");
+		}
+	}
+
+	private async Task SaveSettings()
+	{
+		try
+		{
+			var state = await AuthenticationService.GetAuthenticationStateAsync();
+
+			if (state.User.Identity is null)
+			{
+				var url = NavigationManager.BuildReturnUrl("/login");
+				NavigationManager.NavigateTo(url);
+				return;
+			}
+
+			if (logRetentionDays < 0)
+			{
+				logRetentionDays *= -1;
+			}
+
+			await UserService.UpdateSettingsAsync(new UserSettingsModel()
+			{
+				LogRetentionDays = logRetentionDays
+			});
+
+			ErrorService?.HideError();
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex, "Error updating user settings.");
+			ErrorService?.ShowError("Login", "Could update user settings. Server error.");
+		}
+	}
+}

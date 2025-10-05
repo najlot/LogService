@@ -1,0 +1,16 @@
+using LogService.Model;
+
+namespace LogService.Repository;
+
+public interface IUserRepository
+{
+	IAsyncEnumerable<UserModel> GetAll();
+
+	Task<UserModel?> Get(Guid id);
+
+	Task<UserModel?> Get(string username);
+
+	Task Insert(UserModel model);
+
+	Task Update(UserModel model);
+}

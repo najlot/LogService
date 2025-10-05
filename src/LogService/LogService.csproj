@@ -1,0 +1,76 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+	<PropertyGroup>
+		<TargetFramework>net9.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UserSecretsId>aspnet-LogService-4ea02e08-91a1-464f-b410-a492610d37b0</UserSecretsId>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="LogService.Tests" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="LiteDB" Version="5.0.21" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="9.0.9" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.9" />
+		<PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="9.0.0" />
+		<PackageReference Include="Najlot.Log.Configuration.FileSource" Version="4.0.4" />
+		<PackageReference Include="Najlot.Log.Extensions.Logging" Version="4.0.4" />
+		<PackageReference Include="System.Text.Json" Version="9.0.9" />
+		<PackageReference Include="Dapper" Version="2.1.66" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.9" />
+		<PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.14.0" />
+		<PackageReference Include="MongoDB.Driver" Version="3.5.0" />
+		<PackageReference Include="Najlot.Map" Version="0.0.5" />
+		<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.3" />
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.14.0" />
+		<PackageReference Include="System.Linq.Async.Queryable" Version="6.0.3" />
+		<PackageReference Include="System.Text.Encodings.Web" Version="9.0.9" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.9" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Update="Localisation\CommonLoc.Designer.cs">
+		<DesignTime>True</DesignTime>
+		<AutoGen>True</AutoGen>
+		<DependentUpon>CommonLoc.resx</DependentUpon>
+	  </Compile>
+	  <Compile Update="Localisation\LogArgumentLoc.Designer.cs">
+		<DesignTime>True</DesignTime>
+		<AutoGen>True</AutoGen>
+		<DependentUpon>LogArgumentLoc.resx</DependentUpon>
+	  </Compile>
+	  <Compile Update="Localisation\LogLevelLoc.Designer.cs">
+		<DesignTime>True</DesignTime>
+		<AutoGen>True</AutoGen>
+		<DependentUpon>LogLevelLoc.resx</DependentUpon>
+	  </Compile>
+	  <Compile Update="Localisation\LogMessageLoc.Designer.cs">
+		<DesignTime>True</DesignTime>
+		<AutoGen>True</AutoGen>
+		<DependentUpon>LogMessageLoc.resx</DependentUpon>
+	  </Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Update="Localisation\CommonLoc.resx">
+		<Generator>PublicResXFileCodeGenerator</Generator>
+		<LastGenOutput>CommonLoc.Designer.cs</LastGenOutput>
+	  </EmbeddedResource>
+	  <EmbeddedResource Update="Localisation\LogArgumentLoc.resx">
+		<Generator>PublicResXFileCodeGenerator</Generator>
+		<LastGenOutput>LogArgumentLoc.Designer.cs</LastGenOutput>
+	  </EmbeddedResource>
+	  <EmbeddedResource Update="Localisation\LogLevelLoc.resx">
+		<Generator>PublicResXFileCodeGenerator</Generator>
+		<LastGenOutput>LogLevelLoc.Designer.cs</LastGenOutput>
+	  </EmbeddedResource>
+	  <EmbeddedResource Update="Localisation\LogMessageLoc.resx">
+		<Generator>PublicResXFileCodeGenerator</Generator>
+		<LastGenOutput>LogMessageLoc.Designer.cs</LastGenOutput>
+	  </EmbeddedResource>
+	</ItemGroup>
+
+</Project>
