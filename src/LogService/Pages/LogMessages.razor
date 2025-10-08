@@ -264,6 +264,7 @@ else
 
 	private Contracts.Filters.LogMessageFilter Filter = new();
 	private bool ShowFilter;
+	private bool isFilterActive = false;
 
 	private void OpenLogMessageModal(MouseEventArgs e, Guid id)
 	{
@@ -314,6 +315,7 @@ else
 				logMessages.AddRange(messages);
 			}
 
+			isFilterActive = false;
 			Messenger.Register<List<LogMessageCreated>>(Handle);
 		}
 		catch (System.Security.Authentication.AuthenticationException)
@@ -344,13 +346,22 @@ else
 			logMessages.AddRange(messages);
 		}
 
+		isFilterActive = true;
 		isLoading = false;
 	}
 
 	private async Task Handle(List<LogMessageCreated> messages)
 	{
+		var filteredMessages = messages.Where(m => m.CreatedBy == currentUserId);
+
+		// Apply filter if active
+		if (isFilterActive)
+		{
+			filteredMessages = filteredMessages.Where(MatchesFilter);
+		}
+
 		var items = Map
-			.From<LogMessageCreated>(messages.Where(m => m.CreatedBy == currentUserId))
+			.From<LogMessageCreated>(filteredMessages)
 			.ToArray<LogMessageListItemModel>();
 
 		if (items.Length == 0)
@@ -364,6 +375,32 @@ else
 		}
 		
 		await InvokeAsync(StateHasChanged);
+	}
+
+	private bool MatchesFilter(LogMessageCreated message)
+	{
+		if (Filter.DateTimeFrom != null && message.DateTime < Filter.DateTimeFrom)
+			return false;
+		if (Filter.DateTimeTo != null && message.DateTime > Filter.DateTimeTo)
+			return false;
+		if (Filter.LogLevel != null && message.LogLevel < Filter.LogLevel)
+			return false;
+		if (!string.IsNullOrEmpty(Filter.Category) && !message.Category.Contains(Filter.Category))
+			return false;
+		if (!string.IsNullOrEmpty(Filter.State) && !message.State.Contains(Filter.State))
+			return false;
+		if (!string.IsNullOrEmpty(Filter.Source) && !message.Source.Contains(Filter.Source))
+			return false;
+		if (!string.IsNullOrEmpty(Filter.RawMessage) && !message.RawMessage.Contains(Filter.RawMessage))
+			return false;
+		if (!string.IsNullOrEmpty(Filter.Message) && !message.Message.Contains(Filter.Message))
+			return false;
+		if (!string.IsNullOrEmpty(Filter.Exception) && !message.Exception.Contains(Filter.Exception))
+			return false;
+		if (Filter.ExceptionIsValid != null && message.ExceptionIsValid != Filter.ExceptionIsValid)
+			return false;
+
+		return true;
 	}
 
 	public void Dispose() => Messenger.Unregister(this);
