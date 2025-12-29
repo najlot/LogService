@@ -4,12 +4,14 @@ using LogService.Contracts;
 using LogService.Contracts.Commands;
 using LogService.Contracts.Events;
 using LogService.Model;
+using System.Linq.Expressions;
 
 namespace LogService.Mappings;
 
-internal class LogMessageMappings
+[Mapping]
+internal partial class LogMessageMappings
 {
-	public LogMessageCreated MapToCreated(IMap map, LogMessageModel from) =>
+	public static LogMessageCreated MapToCreated(IMap map, LogMessageModel from) =>
 		new(from.Id,
 			from.CreatedBy,
 			from.DateTime,
@@ -26,7 +28,7 @@ internal class LogMessageMappings
 	[MapIgnoreProperty(nameof(to.Id))]
 	[MapIgnoreProperty(nameof(to.CreatedBy))]
 	[MapIgnoreProperty(nameof(to.Source))]
-	public void MapToModel(IMap map, CreateLogMessage from, LogMessageModel to)
+	public static void MapToModel(IMap map, CreateLogMessage from, LogMessageModel to)
 	{
 		to.DateTime = from.DateTime;
 		to.LogLevel = (Contracts.LogLevel)from.LogLevel;
@@ -39,25 +41,31 @@ internal class LogMessageMappings
 		to.Arguments = map.From<KeyValuePair<string, string>>(from.Arguments ?? []).ToList<LogArgument>();
 	}
 
-	public void MapToModel(IMap map, LogMessageModel from, LogMessageListItemModel to)
+	private static partial void MapPartialToModel(IMap map, LogMessageModel from, LogMessageListItemModel to);
+	public static void MapToModel(IMap map, LogMessageModel from, LogMessageListItemModel to)
 	{
-		to.Id = from.Id;
-		to.DateTime = from.DateTime;
-		to.LogLevel = from.LogLevel;
-		to.Category = from.Category;
-		to.Source = from.Source;
-		to.Message = from.Message;
+		MapPartialToModel(map, from, to);
 		to.HasException = from.ExceptionIsValid;
 	}
 
-	public void MapToModel(IMap map, LogMessageCreated from, LogMessageListItemModel to)
+	public Expression<Func<LogMessageModel, LogMessageListItemModel>> MapToListItemExpression()
 	{
-		to.Id = from.Id;
-		to.DateTime = from.DateTime;
-		to.LogLevel = from.LogLevel;
-		to.Category = from.Category;
-		to.Source = from.Source;
-		to.Message = from.Message;
+		return from => new LogMessageListItemModel
+		{
+			Id = from.Id,
+			DateTime = from.DateTime,
+			LogLevel = from.LogLevel,
+			Category = from.Category,
+			Source = from.Source,
+			Message = from.Message,
+			HasException = from.ExceptionIsValid
+		};
+	}
+
+	private static partial void MapPartialToModel(IMap map, LogMessageCreated from, LogMessageListItemModel to);
+	public static void MapToModel(IMap map, LogMessageCreated from, LogMessageListItemModel to)
+	{
+		MapPartialToModel(map, from, to);
 		to.HasException = from.ExceptionIsValid;
 	}
 }

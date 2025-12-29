@@ -2,25 +2,20 @@ using FluentAssertions;
 using LogService.Contracts;
 using LogService.Contracts.Commands;
 using LogService.Contracts.Events;
-using LogService.Mappings;
 using LogService.Model;
 using Najlot.Map;
-using Xunit;
 
 namespace LogService.Tests.Mappings;
 
 public class LogMessageMappingsTests
 {
-    private readonly IMap _map;
-    private readonly LogMessageMappings _mappings;
+	private readonly IMap _map = new Map().RegisterLogServiceMappings();
 
-    public LogMessageMappingsTests()
-    {
-        _map = new Map();
-        _map.Register<LogArgumentMappings>();
-        _mappings = new LogMessageMappings();
-        _map.Register(_mappings);
-    }
+    [Fact]
+	public void MapperValidationShouldNotThrow()
+	{
+		_map.Validate();
+	}
 
     [Fact]
     public void MapToCreated_LogMessageModel_ShouldCreateLogMessageCreatedEvent()
@@ -39,14 +34,14 @@ public class LogMessageMappingsTests
             Message = "Message",
             Exception = "Exception",
             ExceptionIsValid = true,
-            Arguments = new List<LogArgument>
-            {
-                new LogArgument { Id = 1, Key = "key1", Value = "value1" }
-            }
+            Arguments =
+			[
+				new LogArgument { Id = 1, Key = "key1", Value = "value1" }
+            ]
         };
 
         // Act
-        var result = _mappings.MapToCreated(_map, source);
+        var result = _map.From(source).To<LogMessageCreated>();
 
         // Assert
         result.Should().NotBeNull();
@@ -83,10 +78,9 @@ public class LogMessageMappingsTests
                 new KeyValuePair<string, string>("key2", "value2")
             ]
         };
-        var target = new LogMessageModel();
 
         // Act
-        _mappings.MapToModel(_map, source, target);
+        var target = _map.From(source).To<LogMessageModel>();
 
         // Assert
         target.DateTime.Should().Be(source.DateTime);
@@ -116,10 +110,9 @@ public class LogMessageMappingsTests
             ExceptionIsValid = false,
             Arguments = null
         };
-        var target = new LogMessageModel();
 
         // Act
-        _mappings.MapToModel(_map, source, target);
+        var target = _map.From(source).To<LogMessageModel>();
 
         // Assert
         target.Category.Should().BeEmpty();
@@ -144,10 +137,9 @@ public class LogMessageMappingsTests
             Message = "Msg",
             ExceptionIsValid = true
         };
-        var target = new LogMessageListItemModel();
 
         // Act
-        _mappings.MapToModel(_map, source, target);
+        var target = _map.From(source).To<LogMessageListItemModel>();
 
         // Assert
         target.Id.Should().Be(source.Id);
@@ -175,15 +167,14 @@ public class LogMessageMappingsTests
             "Message",
             "Ex",
             true,
-            new List<LogArgument>()
+		   []
         );
-        var target = new LogMessageListItemModel();
 
-        // Act
-        _mappings.MapToModel(_map, source, target);
+		// Act
+		var target = _map.From(source).To<LogMessageListItemModel>();
 
-        // Assert
-        target.Id.Should().Be(source.Id);
+		// Assert
+		target.Id.Should().Be(source.Id);
         target.DateTime.Should().Be(source.DateTime);
         target.LogLevel.Should().Be(source.LogLevel);
         target.Category.Should().Be(source.Category);

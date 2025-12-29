@@ -1,22 +1,12 @@
 using FluentAssertions;
 using LogService.Contracts;
-using LogService.Mappings;
 using Najlot.Map;
-using Xunit;
 
 namespace LogService.Tests.Mappings;
 
 public class LogArgumentMappingsTests
 {
-    private readonly IMap _map;
-    private readonly LogArgumentMappings _mappings;
-
-    public LogArgumentMappingsTests()
-    {
-        _map = new Map();
-        _mappings = new LogArgumentMappings();
-        _map.Register(_mappings);
-    }
+    private readonly IMap _map = new Map().RegisterLogServiceMappings();
 
     [Fact]
     public void Map_LogArgumentToLogArgument_ShouldCopyAllProperties()
@@ -28,13 +18,12 @@ public class LogArgumentMappingsTests
             Key = "TestKey",
             Value = "TestValue"
         };
-        var target = new LogArgument();
 
-        // Act
-        _mappings.Map(_map, source, target);
+		// Act
+		var target = _map.From(source).To<LogArgument>();
 
-        // Assert
-        target.Id.Should().Be(source.Id);
+		// Assert
+		target.Id.Should().Be(source.Id);
         target.Key.Should().Be(source.Key);
         target.Value.Should().Be(source.Value);
     }
@@ -44,13 +33,12 @@ public class LogArgumentMappingsTests
     {
         // Arrange
         var source = new KeyValuePair<string, string>("MyKey", "MyValue");
-        var target = new LogArgument();
 
-        // Act
-        _mappings.Map(_map, source, target);
+		// Act
+		var target = _map.From(source).To<LogArgument>();
 
-        // Assert
-        target.Key.Should().Be("MyKey");
+		// Assert
+		target.Key.Should().Be("MyKey");
         target.Value.Should().Be("MyValue");
         target.Id.Should().Be(0); // Id should not be set from KeyValuePair
     }
@@ -60,13 +48,12 @@ public class LogArgumentMappingsTests
     {
         // Arrange
         var source = new KeyValuePair<string, string>("Key", "");
-        var target = new LogArgument();
 
-        // Act
-        _mappings.Map(_map, source, target);
+		// Act
+		var target = _map.From(source).To<LogArgument>();
 
-        // Assert
-        target.Key.Should().Be("Key");
+		// Assert
+		target.Key.Should().Be("Key");
         target.Value.Should().BeEmpty();
     }
 }

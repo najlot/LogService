@@ -31,7 +31,11 @@ public class LiteDbLogMessageRepository(LiteDbContext context) : ILogMessageRepo
 
 	public Task Delete(Guid[] ids)
 	{
-		_collection.DeleteMany(x => ids.Contains(x.Id));
+		foreach (var id in ids)
+		{
+			_collection.Delete(id);
+		}
+
 		return Task.CompletedTask;
 	}
 }

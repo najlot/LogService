@@ -71,10 +71,11 @@ public class LogMessageService : ILogMessageService
 		var userId = await _authenticationService.GetUserIdAsync();
 		var queryable = _logMessageRepository
 			.GetAllQueryable()
-			.Where(e => e.CreatedBy == userId)
-			.OrderByDescending(e => e.DateTime);
+			.Where(e => e.CreatedBy == userId);
 
-		return _map.From<LogMessageModel>(queryable).ToArray<LogMessageListItemModel>();
+		queryable = queryable.OrderByDescending(e => e.DateTime);
+
+		return _map.From(queryable).ToArray<LogMessageListItemModel>();
 	}
 
 	public async Task<LogMessageListItemModel[]> GetItemsAsync(LogMessageFilter filter)
@@ -107,8 +108,6 @@ public class LogMessageService : ILogMessageService
 
 		queryable = queryable.OrderByDescending(e => e.DateTime);
 
-		var sourceItems = queryable.ToArray();
-
-		return _map.From<LogMessageModel>(sourceItems).ToArray<LogMessageListItemModel>();
+		return _map.From(queryable).ToArray<LogMessageListItemModel>();
 	}
 }
